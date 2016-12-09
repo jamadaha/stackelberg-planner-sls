@@ -12,3 +12,4 @@ src/search/downward-release
 src/search/Makefile.depend
 src/VAL/lex.yy.cc
 src/VAL/validate
+Makefile.temp0-e
