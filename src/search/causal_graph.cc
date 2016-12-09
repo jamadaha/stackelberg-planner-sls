@@ -6,10 +6,9 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <tr1/unordered_set>
+#include <unordered_set>
 
 using namespace std;
-using namespace std::tr1;
 
 
 /*
@@ -30,8 +29,8 @@ using namespace std::tr1;
 */
 
 class IntRelationBuilder {
-    typedef unordered_set<int> IntSet;
-    vector<IntSet> int_sets;
+    typedef std::unordered_set<int> IntSet;
+    std::vector<IntSet> int_sets;
 
     int get_range() const;
 public:
