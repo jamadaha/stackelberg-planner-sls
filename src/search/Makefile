@@ -104,19 +104,19 @@ HEADERS += hm_heuristic.h
 HEADERS += lm_cut_heuristic.h
 HEADERS += max_heuristic.h
 
-HEADERS += merge_and_shrink/label.h \
-           merge_and_shrink/labels.h \
-           merge_and_shrink/label_reducer.h \
-           merge_and_shrink/merge_and_shrink_heuristic.h \
-           merge_and_shrink/merge_dfp.h \
-           merge_and_shrink/merge_linear.h \
-           merge_and_shrink/merge_strategy.h \
-           merge_and_shrink/shrink_bisimulation.h \
-           merge_and_shrink/shrink_bucket_based.h \
-           merge_and_shrink/shrink_fh.h \
-           merge_and_shrink/shrink_random.h \
-           merge_and_shrink/shrink_strategy.h \
-           merge_and_shrink/transition_system.h \
+#HEADERS += merge_and_shrink/label.h \
+#           merge_and_shrink/labels.h \
+#           merge_and_shrink/label_reducer.h \
+#           merge_and_shrink/merge_and_shrink_heuristic.h \
+#           merge_and_shrink/merge_dfp.h \
+#           merge_and_shrink/merge_linear.h \
+#           merge_and_shrink/merge_strategy.h \
+#           merge_and_shrink/shrink_bisimulation.h \
+#           merge_and_shrink/shrink_bucket_based.h \
+#           merge_and_shrink/shrink_fh.h \
+#           merge_and_shrink/shrink_random.h \
+#           merge_and_shrink/shrink_strategy.h \
+#           merge_and_shrink/transition_system.h \
 
 HEADERS += landmarks/exploration.h \
            landmarks/h_m_landmarks.h \
@@ -144,15 +144,15 @@ HEADERS += landmarks/exploration.h \
 #            learning/state_space_sample.h \
 #            learning/state_vars_feature_extractor.h \
 
-HEADERS += pdbs/canonical_pdbs_heuristic.h \
-           pdbs/dominance_pruner.h \
-           pdbs/match_tree.h \
-           pdbs/max_cliques.h \
-           pdbs/pattern_generation_edelkamp.h \
-           pdbs/pattern_generation_haslum.h \
-           pdbs/pdb_heuristic.h \
-           pdbs/util.h \
-           pdbs/zero_one_pdbs_heuristic.h \
+#HEADERS += pdbs/canonical_pdbs_heuristic.h \
+#           pdbs/dominance_pruner.h \
+#           pdbs/match_tree.h \
+#           pdbs/max_cliques.h \
+#           pdbs/pattern_generation_edelkamp.h \
+#           pdbs/pattern_generation_haslum.h \
+#           pdbs/pdb_heuristic.h \
+#           pdbs/util.h \
+#           pdbs/zero_one_pdbs_heuristic.h \
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
 TARGET = downward
