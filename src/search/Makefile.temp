@@ -1,6 +1,0 @@
-combining_evaluator.o: combining_evaluator.cc combining_evaluator.h \
-  scalar_evaluator.h evaluator.h
-countdown_timer.o: countdown_timer.cc countdown_timer.h timer.h
-int_packer.o: int_packer.cc int_packer.h
-rng.o: rng.cc rng.h
-state_id.o: state_id.cc state_id.h
