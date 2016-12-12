@@ -105,6 +105,38 @@
     (has_OS_version host9 osv2)
     (has_service host9 SQL4)
     (has_service_version host9 SQL4 sv2)
+
+    (os_upgrade winNT4_ser osv1 osv2)
+    (os_upgrade winNT4_ser osv1 osv3)
+    (os_upgrade winNT4_ser osv2 osv3)
+
+    (os_upgrade winNT4_ent osv1 osv2)
+    (os_upgrade winNT4_ent osv1 osv3)
+    (os_upgrade winNT4_ent osv2 osv3)
+
+    (os_upgrade win2000_ser osv1 osv2)
+    (os_upgrade win2000_ser osv1 osv3)
+    (os_upgrade win2000_ser osv2 osv3)
+
+    (os_upgrade win2000_adv osv1 osv2)
+    (os_upgrade win2000_adv osv1 osv3)
+    (os_upgrade win2000_adv osv2 osv3)
+
+    (service_upgrade IIS4 sv1 sv2)
+    (service_upgrade IIS4 sv1 sv3)
+    (service_upgrade IIS4 sv2 sv3)
+
+    (service_upgrade IIS5 sv1 sv2)
+    (service_upgrade IIS5 sv1 sv3)
+    (service_upgrade IIS5 sv2 sv3)
+
+    (service_upgrade SQL4 sv1 sv2)
+    (service_upgrade SQL4 sv1 sv3)
+    (service_upgrade SQL4 sv2 sv3)
+
+    (service_upgrade MSRPC5 sv1 sv2)
+    (service_upgrade MSRPC5 sv1 sv3)
+    (service_upgrade MSRPC5 sv2 sv3)
 )
 (:goal (and
     (controlling host1)

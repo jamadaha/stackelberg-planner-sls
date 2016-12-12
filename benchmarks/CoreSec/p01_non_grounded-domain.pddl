@@ -2,7 +2,7 @@
 (define (domain CoreSec_non_grounded)
 (:requirements :strips)
 
-(:types host port operatingsystem osedition osversion service serviceversion)
+(:types host port operatingsystem osversion service serviceversion)
 
 (:predicates
     (target_under_control)
@@ -12,6 +12,8 @@
     (has_OS_version ?h - host ?v - osversion)
     (has_service ?h - host ?s - service)
     (has_service_version ?h - host ?s - service ?v - serviceversion)
+    (os_upgrade ?os - operatingsystem ?osv1 - osversion ?osv2 - osversion)
+    (service_upgrade ?s - service ?sv1 - serviceversion ?sv2 - serviceversion)
 )
 
 (:functions (total-cost))
@@ -21,6 +23,7 @@
     p80 p3306 p445 - port
     winNT4_ser winNT4_ent win2000_ser win2000_adv - operatingsystem
     osv1 osv2 osv3 - osversion
+    IIS4 IIS5 SQL4 MSRPC5 - service
     sv1 sv2 sv3 - serviceversion
 )
 
@@ -82,6 +85,24 @@
     :parameters (?src - host ?t - host)
     :precondition (and (hacl ?src ?t p3306) (controlling ?src) (has_OS ?t winNT4_ent) (has_OS_version ?t osv2) (has_service ?t SQL4) (has_service_version ?t SQL4 sv2))
     :effect (and (increase (total-cost) 3) (and (controlling ?t)))
+)
+
+(:action FIX_install_firewall_0
+    :parameters (?src ?dest - host ?p - port)
+    :precondition (and (hacl ?src ?dest ?p))
+    :effect (and (increase (total-cost) 1) (and (not (hacl ?src ?dest ?p))))
+)
+
+(:action FIX_upgrade_os_5
+    :parameters (?h - host ?os - operatingsystem ?osv1 - osversion ?osv2 - osversion)
+    :precondition (and (has_OS ?h ?os) (has_OS_version ?h ?osv1) (os_upgrade ?os ?osv1 ?osv2))
+    :effect (and (increase (total-cost) 1) (and (not (has_OS_version ?h ?osv1)) (has_OS_version ?h ?osv2)))
+)
+
+(:action FIX_upgrade_service_5
+    :parameters (?h - host ?s - service ?sv1 - serviceversion ?sv2 - serviceversion)
+    :precondition (and (has_service ?h ?s) (has_service_version ?h ?s ?sv1) (service_upgrade ?s ?sv1 ?sv2))
+    :effect (and (increase (total-cost) 1) (and (not (has_service_version ?h ?s ?sv1)) (has_service_version ?h ?s ?sv2)))
 )
 
 )
