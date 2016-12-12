@@ -22,9 +22,9 @@
     host0 host1 host2 host3 host4 host5 host6 host7 host8 host9 internet - host
     p80 p3306 p445 - port
     winNT4_ser winNT4_ent win2000_ser win2000_adv - operatingsystem
-    osv1 osv2 osv3 - osversion
+    osv1 osv2 osv3 osv4 - osversion
     IIS4 IIS5 SQL4 MSRPC5 - service
-    sv1 sv2 sv3 - serviceversion
+    sv1 sv2 sv3 sv4 - serviceversion
 )
 
 (:action ATTACK_ex-host0_winNT4ser_IIS4_vuln7_17_100
