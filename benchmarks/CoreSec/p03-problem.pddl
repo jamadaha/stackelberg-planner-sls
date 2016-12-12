@@ -1,0 +1,17 @@
+(define (problem 3)
+(:domain 3)
+(:init
+    (applyonce action0)
+    (applyonce action1)
+    (applyonce action2)
+    (applyonce action3)
+    (applyonce action4)
+    (applyonce action5)
+    (applyonce action6)
+)
+(:goal (and
+    (execcode node1_0 root)
+    (execcode node3_0 root)
+))
+(:metric minimize (total-cost))
+)
