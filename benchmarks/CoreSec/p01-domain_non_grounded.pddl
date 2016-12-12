@@ -8,8 +8,10 @@
     (target_under_control)
     (hacl ?src ?dest - host ?p - port)
     (controlling ?h - host)
-    (has_OS ?h - host ?os - operatingsystem ?e - osedition ?v - osversion)
-    (has_service ?h - host ?s - service ?v - serviceversion)
+    (has_OS ?h - host ?os - operatingsystem)
+    (has_OS_version ?h - host ?v - osversion)
+    (has_service ?h - host ?s - service)
+    (has_service_version ?h - host ?s - service ?v - serviceversion)
 )
 
 (:functions (total-cost))
@@ -17,69 +19,68 @@
 (:constants
     host0 host1 host2 host3 host4 host5 host6 host7 host8 host9 internet - host
     p80 p3306 p445 - port
-    winNT4 win2000 - operatingsystem
-    ent ser adv - osedition
+    winNT4_ser winNT4_ent win2000_ser win2000_adv - operatingsystem
     1 2 3 - osversion
     1 2 3 - serviceversion
 )
 
 (:action ATTACK_ex-host0_winNT4ser_IIS4_vuln7_17_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host0 p80) (controlling ?src) (has_OS ?t winNT4 ser 3) (has_service ?t IIS4 3))
-    :effect (and (increase (total-cost) 10) (probabilistic 17/100 (and (controlling ?t))))
+    :precondition (and (hacl ?src ?t p80) (controlling ?src) (has_OS ?t winNT4_ser) (has_OS_version ?t 3) (has_service ?t IIS4) (has_service_version ?t IIS4 3))
+    :effect (and (increase (total-cost) 10) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host1_winNT4ser_IIS4_vuln0_47_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host1 p80) (controlling ?src) (has_OS ?t winNT4 ser 1) (has_service ?t IIS4 1))
+    :precondition (and (hacl ?src ?t p80) (controlling ?src) (has_OS ?t winNT4_ser 1) (has_OS_version ?t 1) (has_service ?t IIS4) (has_service_version ?t IIS4 1))
     :effect (and (increase (total-cost) 5) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host2_winNT4ser_IIS4_vuln15_73_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host2 p80) (controlling ?src) (has_OS ?t winNT4 ser 2) (has_service ?t IIS4 2))
+    :precondition (and (hacl ?src ?t p80) (controlling ?src) (has_OS ?t winNT4_ser 2) (has_OS_version ?t 2) (has_service ?t IIS4) (has_service_version ?t IIS4 2))
     :effect (and (increase (total-cost) 5) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host3_winNT4ent_SQL4_vuln60_69_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host3 p3306) (controlling ?src) (has_OS ?t winNT4 ent 1) (has_service ?t SQL4 1))
+    :precondition (and (hacl ?src ?t p3306) (controlling ?src) (has_OS ?t winNT4_ent 1) (has_OS_version ?t 2) (has_service ?t SQL4) (has_service_version ?t SQL4 1))
     :effect (and (increase (total-cost) 3) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host4_win2000ser_MSRPC5_vuln23_64_100
-    :parameters (?src - host ?t - host ?osv - osversion ?sv - serviceversion)
-    :precondition (and (hacl ?src host4 p445) (controlling ?src) (has_OS ?t win2000 ser ?osv) (has_service ?t MSRPC5 ?sv))
+    :parameters (?src - host ?t - host)
+    :precondition (and (hacl ?src ?t p445) (controlling ?src) (has_OS ?t win2000_ser) (has_service ?t MSRPC5))
     :effect (and (increase (total-cost) 3) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host5_win2000adv_IIS5_vuln25_71_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host5 p80) (controlling ?src) (has_OS ?t win2000 adv 2) (has_service ?t IIS5 2))
+    :precondition (and (hacl ?src ?t p80) (controlling ?src) (has_OS ?t win2000_adv) (has_OS_version ?t 2) (has_service ?t IIS5) (has_service_version ?t IIS5 2))
     :effect (and (increase (total-cost) 5) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host6_winNT4ser_SQL4_vuln15_84_100
-    :parameters (?src - host ?t - host ?osv - osversion ?sv - serviceversion)
-    :precondition (and (hacl ?src host6 p3306) (controlling ?src) (has_OS ?t winNT4 ser ?osv) (has_service ?t SQL4 ?sv))
+    :parameters (?src - host ?t - host)
+    :precondition (and (hacl ?src ?t p3306) (controlling ?src) (has_OS ?t winNT4_ser) (has_service ?t SQL4))
     :effect (and (increase (total-cost) 4) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host7_win2000adv_MSRPC5_vuln61_74_100
-    :parameters (?src - host ?t - host ?osv - osversion ?sv - serviceversion)
-    :precondition (and (hacl ?src host7 p445) (controlling ?src) (has_OS ?t win2000 adv ?osv) (has_service ?t MSRPC5 ?sv))
+    :parameters (?src - host ?t - host)
+    :precondition (and (hacl ?src ?t p445) (controlling ?src) (has_OS ?t win2000_adv) (has_service ?t MSRPC5))
     :effect (and (increase (total-cost) 2) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host8_win2000adv_IIS5_vuln89_82_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host8 p80) (controlling ?src) (has_OS ?t win2000 adv 1) (has_service ?t IIS5 1))
+    :precondition (and (hacl ?src ?t p80) (controlling ?src) (has_OS ?t win2000_adv) (has_OS_version ?t 1) (has_service ?t IIS5) (has_service_version ?t IIS5 1))
     :effect (and (increase (total-cost) 1) (and (controlling ?t)))
 )
 
 (:action ATTACK_ex-host9_winNT4ent_SQL4_vuln24_82_100
     :parameters (?src - host ?t - host)
-    :precondition (and (hacl ?src host9 p3306) (controlling ?src) (has_OS ?t winNT4 ent 2) (has_service ?t SQL4 2))
+    :precondition (and (hacl ?src ?t p3306) (controlling ?src) (has_OS ?t winNT4_ent) (has_OS_version ?t 2) (has_service ?t SQL4) (has_service_version ?t SQL4 2))
     :effect (and (increase (total-cost) 3) (and (controlling ?t)))
 )
 
