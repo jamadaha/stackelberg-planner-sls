@@ -92,8 +92,8 @@ int FixActionsSearch::parse_success_prob_cost(string prob) {
 }
 
 void FixActionsSearch::divideVariables() {
-	for (size_t op = 0; g_operators.size(); op++) {
-		const vector<GlobalEffect> &effects = g_operators[op].get_effects();
+	for (size_t op_no = 0; g_operators.size(); op_no++) {
+		const vector<GlobalEffect> &effects = g_operators[op_no].get_effects();
 		for (size_t i = 0; i < effects.size(); i++) {
 			int var = effects[i].var;
 			attack_vars.insert(var);
@@ -105,6 +105,25 @@ void FixActionsSearch::divideVariables() {
 
 void FixActionsSearch::clean_attack_actions() {
 
+	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
+		const GlobalOperator &op = g_operators[op_no];
+		const vector<GlobalCondition> &conditions = op.get_preconditions();
+	    std::vector<GlobalCondition> fix_preconditions;
+	    std::vector<GlobalCondition> attack_preconditions;
+	    for(size_t i = 0; i < conditions.size(); i++) {
+	    	int var = conditions[i].var;
+	    	if(attack_vars.find(var) != attack_vars.end()) {
+	    		// This is a precondition on an attack var
+	    		attack_preconditions.push_back(conditions[i]);
+	    	} else {
+	    		// This is a precondition on a fix var
+	    		fix_preconditions.push_back(conditions[i]);
+	    	}
+	    }
+	    // TODO we need to do sth. with the fix_preconditions
+	    GlobalOperator new_op(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(), op.get_cost(), op.get_cost2());
+	    attack_operators[op_no] = new_op;
+	}
 }
 
 SearchStatus FixActionsSearch::step() {
