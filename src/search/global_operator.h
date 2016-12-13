@@ -58,11 +58,12 @@ class GlobalOperator {
     std::vector<GlobalEffect> effects;
     std::string name;
     int cost;
+    int cost2;
 
     mutable bool marked; // Used for short-term marking of preferred operators
     void read_pre_post(std::istream &in);
 public:
-    explicit GlobalOperator(std::istream &in, bool is_axiom);
+    explicit GlobalOperator(std::istream &in, bool is_axiom, int cost2 = 0);
     void dump() const;
     std::string get_name() const {return name; }
 
@@ -91,6 +92,7 @@ public:
     mutable bool marker1, marker2; // HACK! HACK!
 
     int get_cost() const {return cost; }
+    int get_cost2() const {return cost2; }
 };
 
 #endif
