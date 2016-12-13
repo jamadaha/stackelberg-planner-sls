@@ -68,6 +68,17 @@ GlobalOperator::GlobalOperator(istream &in, bool axiom, int cost_2)
     marker1 = marker2 = false;
 }
 
+GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _preconditions, std::vector<GlobalEffect> _effects, std::string _name, int _cost, int _cost2)
+: is_an_axiom(_is_an_axiom),
+  preconditions(_preconditions),
+  effects(_effects),
+  name(_name),
+  cost(_cost),
+  cost2(_cost2) {
+	marked = false;
+	marker1 = marker2 = false;
+}
+
 void GlobalCondition::dump() const {
     cout << g_variable_name[var] << ": " << val;
 }

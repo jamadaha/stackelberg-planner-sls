@@ -64,6 +64,8 @@ class GlobalOperator {
     void read_pre_post(std::istream &in);
 public:
     explicit GlobalOperator(std::istream &in, bool is_axiom, int cost2 = 0);
+    explicit GlobalOperator(bool is_an_axiom, std::vector<GlobalCondition> preconditions, std::vector<GlobalEffect> effects, std::string name, int cost, int cost2);
+
     void dump() const;
     std::string get_name() const {return name; }
 
