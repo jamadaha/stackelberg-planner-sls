@@ -10,16 +10,18 @@
 
 #include "search_engine.h"
 
-class FixActionsSearch: public SearchEngine {
+class FixActionsSearch: public SearchEngine
+{
 
 protected:
     virtual void initialize();
     virtual SearchStatus step();
 
 public:
-	FixActionsSearch(const Options &opts);
-	virtual ~FixActionsSearch();
-	virtual void statistics() const;
+    FixActionsSearch(const Options &opts);
+    virtual ~FixActionsSearch();
+    virtual void statistics() const;
+    static void add_option_to_parser(OptionParser &parser);
 };
 
 #endif /* SRC_SEARCH_FIXACTIONS_SEARCH_H_ */
