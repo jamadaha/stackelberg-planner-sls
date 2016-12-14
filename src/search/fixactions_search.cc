@@ -142,6 +142,8 @@ void FixActionsSearch::clean_attack_actions() {
 	}
 }
 
+bool cond_comp_func (GlobalCondition cond1, GlobalCondition cond2) { return cond1.var < cond2. var; }
+
 void FixActionsSearch::create_fix_actions_successor_generator() {
 	int root_var_index = get_next_fix_var(-1);
 	if (root_var_index == -1) {
@@ -156,7 +158,11 @@ void FixActionsSearch::create_fix_actions_successor_generator() {
 	for (size_t op_no = 0; op_no < fix_operators.size(); op_no++) {
 		cout << "Consider op " << op_no << endl;
 		fix_operators[op_no].dump();
-		const vector<GlobalCondition> &conditions = fix_operators[op_no].get_preconditions();
+		vector<GlobalCondition> conditions = fix_operators[op_no].get_preconditions();
+
+		// Sort the conditions by their respective var id
+		sort(conditions.begin(), conditions.end(), cond_comp_func);
+
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
 			int val = conditions[cond_no].val;
