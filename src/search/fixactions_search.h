@@ -9,6 +9,7 @@
 #define SRC_SEARCH_FIXACTIONS_SEARCH_H_
 
 #include "search_engine.h"
+#include "successor_generator.h"
 
 class FixActionsSearch: public SearchEngine
 {
@@ -19,7 +20,7 @@ protected:
     int parse_success_prob_cost(std::string prob);
     void divideVariables();
     void clean_attack_actions();
-    void create_fix_actions_successor_generator();
+    SuccessorGeneratorSwitch* create_fix_vars_successor_generator(const std::vector<GlobalOperator> &ops);
     int get_next_fix_var(int curr_var);
 
 public:

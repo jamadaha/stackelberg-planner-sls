@@ -11,14 +11,16 @@
 #include <unordered_set>
 #include "option_parser.h"
 #include "plugin.h"
-#include "successor_generator.h"
 
 using namespace std;
 
 vector<GlobalOperator> all_operators;
 vector<GlobalOperator> fix_operators;
 vector<GlobalOperator> attack_operators;
-SuccessorGeneratorSwitch *fix_actions_successor_generator;
+vector<GlobalOperator> attack_operators_with_fix_vars_preconds;
+
+SuccessorGeneratorSwitch *fix_operators_successor_generator;
+SuccessorGeneratorSwitch *attack_operators_for_fix_vars_successor_generator;
 
 unordered_set<int> attack_vars;
 vector<int> attack_vars_indices;
@@ -86,9 +88,13 @@ void FixActionsSearch::initialize() {
 
 	cout << "4" << endl;
 
-	create_fix_actions_successor_generator();
+	fix_operators_successor_generator = create_fix_vars_successor_generator(fix_operators);
 
 	cout << "5" << endl;
+
+	attack_operators_for_fix_vars_successor_generator = create_fix_vars_successor_generator(attack_operators_with_fix_vars_preconds);
+
+	cout << "6" << endl;
 
 }
 
@@ -107,8 +113,8 @@ int FixActionsSearch::parse_success_prob_cost(string prob) {
 }
 
 void FixActionsSearch::divideVariables() {
-	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
-		const vector<GlobalEffect> &effects = g_operators[op_no].get_effects();
+	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
+		const vector<GlobalEffect> &effects = attack_operators[op_no].get_effects();
 		for (size_t i = 0; i < effects.size(); i++) {
 			int var = effects[i].var;
 			attack_vars.insert(var);
@@ -121,7 +127,7 @@ void FixActionsSearch::divideVariables() {
 void FixActionsSearch::clean_attack_actions() {
 
 	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
-		const GlobalOperator &op = g_operators[op_no];
+		const GlobalOperator &op = attack_operators[op_no];
 		const vector<GlobalCondition> &conditions = op.get_preconditions();
 		std::vector<GlobalCondition> fix_preconditions;
 		std::vector<GlobalCondition> attack_preconditions;
@@ -135,30 +141,35 @@ void FixActionsSearch::clean_attack_actions() {
 				fix_preconditions.push_back(conditions[i]);
 			}
 		}
-		// TODO we need to do sth. with the fix_preconditions
-		GlobalOperator new_op(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(), op.get_cost(),
+
+		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(), op.get_cost(),
 				op.get_cost2());
-		attack_operators[op_no] = new_op;
+		attack_operators[op_no] = op_with_attack_preconds;
+
+		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(), op.get_cost(),
+				op.get_cost2());
+		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }
 
 bool cond_comp_func (GlobalCondition cond1, GlobalCondition cond2) { return cond1.var < cond2. var; }
 
-void FixActionsSearch::create_fix_actions_successor_generator() {
+SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(const vector<GlobalOperator> &ops) {
 	int root_var_index = get_next_fix_var(-1);
 	if (root_var_index == -1) {
 		// Nothing to do here
-		return;
+		return NULL;
 	}
 
 	cout << "root var is " << root_var_index << endl;
 
 	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index);
-	fix_actions_successor_generator = current_node;
-	for (size_t op_no = 0; op_no < fix_operators.size(); op_no++) {
+	SuccessorGeneratorSwitch *root_node = current_node;
+
+	for (size_t op_no = 0; op_no < ops.size(); op_no++) {
 		cout << "Consider op " << op_no << endl;
-		fix_operators[op_no].dump();
-		vector<GlobalCondition> conditions = fix_operators[op_no].get_preconditions();
+		ops[op_no].dump();
+		vector<GlobalCondition> conditions = ops[op_no].get_preconditions();
 
 		// Sort the conditions by their respective var id
 		sort(conditions.begin(), conditions.end(), cond_comp_func);
@@ -176,6 +187,7 @@ void FixActionsSearch::create_fix_actions_successor_generator() {
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->default_generator;
 			}
+
 			// Here: var == current_node->switch_var
 
 			int next_fix_var_index = get_next_fix_var(current_node->switch_var);
@@ -183,7 +195,7 @@ void FixActionsSearch::create_fix_actions_successor_generator() {
 				if (current_node->generator_for_value[val] == NULL) {
 					current_node->generator_for_value[val] = new SuccessorGeneratorGenerate();
 				}
-				((SuccessorGeneratorGenerate*) current_node->generator_for_value[val])->add_op(&fix_operators[op_no]);
+				((SuccessorGeneratorGenerate*) current_node->generator_for_value[val])->add_op(&ops[op_no]);
 
 			} else {
 				if (current_node->generator_for_value[val] == NULL) {
@@ -196,20 +208,22 @@ void FixActionsSearch::create_fix_actions_successor_generator() {
 					if (current_node->immediate_ops == NULL) {
 						current_node->immediate_ops = new SuccessorGeneratorGenerate();
 					}
-					((SuccessorGeneratorGenerate*) current_node->immediate_ops)->add_op(&fix_operators[op_no]);
+					((SuccessorGeneratorGenerate*) current_node->immediate_ops)->add_op(&ops[op_no]);
 				}
 			}
 		}
 
 		// After processing an op, start at root again
-		current_node = fix_actions_successor_generator;
+		current_node = root_node;
 	}
+
+	return root_node;
 }
 
 int FixActionsSearch::get_next_fix_var(int curr_var) {
 	while (curr_var < (int) g_variable_domain.size()) {
 		curr_var++;
-		if (attack_vars.find(curr_var) != attack_vars.end()) {
+		if (attack_vars.find(curr_var) == attack_vars.end()) {
 			return curr_var;
 		}
 	}
