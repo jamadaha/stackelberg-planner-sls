@@ -10,26 +10,6 @@
 #include <vector>
 using namespace std;
 
-class SuccessorGeneratorSwitch : public SuccessorGenerator {
-    int switch_var;
-    SuccessorGenerator *immediate_ops;
-    vector<SuccessorGenerator *> generator_for_value;
-    SuccessorGenerator *default_generator;
-public:
-    SuccessorGeneratorSwitch(istream &in);
-    virtual void generate_applicable_ops(const GlobalState &curr,
-                                         vector<const GlobalOperator *> &ops);
-    virtual void _dump(string indent);
-};
-
-class SuccessorGeneratorGenerate : public SuccessorGenerator {
-    vector<const GlobalOperator *> op;
-public:
-    SuccessorGeneratorGenerate(istream &in);
-    virtual void generate_applicable_ops(const GlobalState &curr,
-                                         vector<const GlobalOperator *> &ops);
-    virtual void _dump(string indent);
-};
 
 SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(istream &in) {
     in >> switch_var;
@@ -37,6 +17,13 @@ SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(istream &in) {
     for (int i = 0; i < g_variable_domain[switch_var]; ++i)
         generator_for_value.push_back(read_successor_generator(in));
     default_generator = read_successor_generator(in);
+}
+
+SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(int _switch_var)
+: switch_var(_switch_var) {
+	generator_for_value.assign(g_variable_domain.size(), NULL);
+	immediate_ops = NULL;
+	default_generator = NULL;
 }
 
 void SuccessorGeneratorSwitch::generate_applicable_ops(
@@ -71,6 +58,10 @@ SuccessorGeneratorGenerate::SuccessorGeneratorGenerate(istream &in) {
         in >> op_index;
         op.push_back(&g_operators[op_index]);
     }
+}
+
+SuccessorGeneratorGenerate::SuccessorGeneratorGenerate() {
+
 }
 
 void SuccessorGeneratorGenerate::_dump(string indent) {

@@ -19,6 +19,8 @@ protected:
     int parse_success_prob_cost(std::string prob);
     void divideVariables();
     void clean_attack_actions();
+    void create_fix_actions_successor_generator();
+    int get_next_fix_var(int curr_var);
 
 public:
     FixActionsSearch(const Options &opts);
