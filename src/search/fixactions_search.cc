@@ -34,8 +34,8 @@ FixActionsSearch::~FixActionsSearch() {
 void FixActionsSearch::initialize() {
 
 	// Sort the operators
-	for (size_t op = 0; op < g_operators.size(); op++) {
-		string op_name = g_operators[op].get_name();
+	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
+		string op_name = g_operators[op_no].get_name();
 		cout << "For op: " << op_name << endl;
 
 		size_t whitespace = op_name.find(" ");
@@ -50,16 +50,16 @@ void FixActionsSearch::initialize() {
 		}
 
 		if (op_name.find("attack") == 0) {
-			attack_operators.push_back(g_operators[op]);
-			all_operators.push_back(g_operators[op]);
+			attack_operators.push_back(g_operators[op_no]);
+			all_operators.push_back(g_operators[op_no]);
 
 			string prob = everything_before_whitespace.substr(underscore + 1);
 			int success_prob_cost = parse_success_prob_cost(prob);
 			cout << "success_prob_cost: " << success_prob_cost << endl;
 
 		} else if (op_name.find("fix") == 0) {
-			fix_operators.push_back(g_operators[op]);
-			all_operators.push_back(g_operators[op]);
+			fix_operators.push_back(g_operators[op_no]);
+			all_operators.push_back(g_operators[op_no]);
 
 			string invention_cost_string = everything_before_whitespace.substr(underscore + 1);
 			int invention_cost = stoi(invention_cost_string);
@@ -74,6 +74,8 @@ void FixActionsSearch::initialize() {
 	divideVariables();
 
 	clean_attack_actions();
+
+	g_operators.clear();
 
 }
 
