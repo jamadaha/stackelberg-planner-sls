@@ -74,6 +74,9 @@ public:
     const std::vector<GlobalCondition> &get_preconditions() const {return preconditions; }
     const std::vector<GlobalEffect> &get_effects() const {return effects; }
 
+    std::vector<GlobalCondition> &get_preconditions() {return preconditions; }
+    std::vector<GlobalEffect> &get_effects() {return effects; }
+
     bool is_applicable(const GlobalState &state) const {
         for (size_t i = 0; i < preconditions.size(); ++i)
             if (!preconditions[i].is_applicable(state))

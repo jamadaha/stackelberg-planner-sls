@@ -20,8 +20,9 @@ protected:
     int parse_success_prob_cost(std::string prob);
     void divideVariables();
     void clean_attack_actions();
-    SuccessorGeneratorSwitch* create_fix_vars_successor_generator(const std::vector<GlobalOperator> &ops);
-    int get_next_fix_var(int curr_var);
+    void create_new_variable_indices();
+    void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
+    SuccessorGeneratorSwitch* create_fix_vars_successor_generator(const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
 
 public:
     FixActionsSearch(const Options &opts);
