@@ -101,22 +101,26 @@ class PerStateInformationBase;
 class StateRegistry {
     struct StateIDSemanticHash {
         const SegmentedArrayVector<PackedStateBin> &state_data_pool;
-        StateIDSemanticHash(const SegmentedArrayVector<PackedStateBin> &state_data_pool_)
-            : state_data_pool(state_data_pool_) {
+        IntPacker *state_packer;
+        StateIDSemanticHash(const SegmentedArrayVector<PackedStateBin> &state_data_pool_, IntPacker *_state_packer)
+            : state_data_pool(state_data_pool_),
+			  state_packer(_state_packer) {
         }
         size_t operator()(StateID id) const {
-            return ::hash_number_sequence(state_data_pool[id.value], g_state_packer->get_num_bins());
+            return ::hash_number_sequence(state_data_pool[id.value], state_packer->get_num_bins());
         }
     };
 
     struct StateIDSemanticEqual {
         const SegmentedArrayVector<PackedStateBin> &state_data_pool;
-        StateIDSemanticEqual(const SegmentedArrayVector<PackedStateBin> &state_data_pool_)
-            : state_data_pool(state_data_pool_) {
+        IntPacker *state_packer;
+        StateIDSemanticEqual(const SegmentedArrayVector<PackedStateBin> &state_data_pool_, IntPacker *_state_packer)
+            : state_data_pool(state_data_pool_),
+			  state_packer(_state_packer) {
         }
 
         size_t operator()(StateID lhs, StateID rhs) const {
-            size_t size = g_state_packer->get_num_bins();
+            size_t size = state_packer->get_num_bins();
             const PackedStateBin *lhs_data = state_data_pool[lhs.value];
             const PackedStateBin *rhs_data = state_data_pool[rhs.value];
             return std::equal(lhs_data, lhs_data + size, rhs_data);
@@ -135,10 +139,13 @@ class StateRegistry {
     SegmentedArrayVector<PackedStateBin> state_data_pool;
     StateIDSet registered_states;
     GlobalState *cached_initial_state;
+    IntPacker *state_packer;
+    const std::vector<int> &initial_state_data;
     mutable std::set<PerStateInformationBase *> subscribers;
     StateID insert_id_or_pop_state();
+
 public:
-    StateRegistry();
+    StateRegistry(IntPacker *_state_packer = g_state_packer, const std::vector<int> &_initial_state_data = g_initial_state_data);
     ~StateRegistry();
 
     /*

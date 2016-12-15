@@ -6,12 +6,14 @@
 
 using namespace std;
 
-StateRegistry::StateRegistry()
-    : state_data_pool(g_state_packer->get_num_bins()),
+StateRegistry::StateRegistry(IntPacker *_state_packer, const std::vector<int> &_initial_state_data)
+    : state_data_pool(_state_packer->get_num_bins()),
       registered_states(0,
-                        StateIDSemanticHash(state_data_pool),
-                        StateIDSemanticEqual(state_data_pool)),
-      cached_initial_state(0) {
+                        StateIDSemanticHash(state_data_pool, _state_packer),
+                        StateIDSemanticEqual(state_data_pool, _state_packer)),
+      cached_initial_state(0),
+	  state_packer(_state_packer),
+	  initial_state_data(_initial_state_data){
 }
 
 
@@ -46,9 +48,9 @@ GlobalState StateRegistry::lookup_state(StateID id) const {
 
 const GlobalState &StateRegistry::get_initial_state() {
     if (cached_initial_state == 0) {
-        PackedStateBin *buffer = new PackedStateBin[g_state_packer->get_num_bins()];
-        for (size_t i = 0; i < g_initial_state_data.size(); ++i) {
-            g_state_packer->set(buffer, i, g_initial_state_data[i]);
+        PackedStateBin *buffer = new PackedStateBin[state_packer->get_num_bins()];
+        for (size_t i = 0; i < initial_state_data.size(); ++i) {
+        	state_packer->set(buffer, i, initial_state_data[i]);
         }
         g_axiom_evaluator->evaluate(buffer);
         state_data_pool.push_back(buffer);
@@ -70,7 +72,7 @@ GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor, c
     for (size_t i = 0; i < op.get_effects().size(); ++i) {
         const GlobalEffect &effect = op.get_effects()[i];
         if (effect.does_fire(predecessor))
-            g_state_packer->set(buffer, effect.var, effect.val);
+        	state_packer->set(buffer, effect.var, effect.val);
     }
     g_axiom_evaluator->evaluate(buffer);
     StateID id = insert_id_or_pop_state();
