@@ -34,6 +34,7 @@ vector<int> fix_variable_domain;
 vector<string> fix_variable_name;
 vector<vector<string> > fix_fact_names;
 vector<int> fix_initial_state_data;
+StateRegistry *fix_vars_state_registry;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
@@ -234,6 +235,14 @@ void FixActionsSearch::create_new_variable_indices() {
 		}
 		g_goal[i].first = map_var_id_to_new_var_id[g_goal[i].first];
 	}
+
+	// Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
+	IntPacker *fix_vars_state_packer = new IntPacker(fix_variable_domain);
+	fix_vars_state_registry = new StateRegistry(fix_vars_state_packer, fix_initial_state_data);
+	delete g_state_packer;
+	g_state_packer = new IntPacker(g_variable_domain);
+	delete g_state_registry;
+	g_state_registry  = new StateRegistry(g_state_packer, g_initial_state_data);
 }
 
 void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
