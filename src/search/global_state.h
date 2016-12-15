@@ -3,6 +3,7 @@
 
 #include "int_packer.h"
 #include "state_id.h"
+#include "globals.h"
 
 #include <cstddef>
 #include <iostream>
@@ -24,9 +25,10 @@ class GlobalState {
     // registry isn't a reference because we want to support operator=
     const StateRegistry *registry;
     StateID id;
+    IntPacker *state_packer;
     // Only used by the state registry.
     GlobalState(const PackedStateBin *buffer_, const StateRegistry &registry_,
-                StateID id_);
+            StateID id_, IntPacker *_state_packer = g_state_packer);
 
     const PackedStateBin *get_packed_buffer() const {
         return buffer;
