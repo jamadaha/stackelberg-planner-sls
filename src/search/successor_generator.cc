@@ -13,31 +13,39 @@ using namespace std;
 
 SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(istream &in) {
     in >> switch_var;
+	var_range = g_variable_domain[switch_var];
     immediate_ops = read_successor_generator(in);
-    for (int i = 0; i < g_variable_domain[switch_var]; ++i)
+    for (int i = 0; i < var_range; ++i)
         generator_for_value.push_back(read_successor_generator(in));
     default_generator = read_successor_generator(in);
 }
 
-SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(int _switch_var)
-: switch_var(_switch_var) {
-	generator_for_value.assign(g_variable_domain.size(), NULL);
+SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(int _switch_var, int _var_range)
+: switch_var(_switch_var),
+  var_range(_var_range){
+	generator_for_value.assign(_var_range, NULL);
 	immediate_ops = NULL;
 	default_generator = NULL;
 }
 
 void SuccessorGeneratorSwitch::generate_applicable_ops(
     const GlobalState &curr, vector<const GlobalOperator *> &ops) {
-    immediate_ops->generate_applicable_ops(curr, ops);
-    generator_for_value[curr[switch_var]]->generate_applicable_ops(curr, ops);
-    default_generator->generate_applicable_ops(curr, ops);
+	if (immediate_ops != NULL) {
+	    immediate_ops->generate_applicable_ops(curr, ops);
+	}
+	if (generator_for_value[curr[switch_var]] != NULL) {
+		generator_for_value[curr[switch_var]]->generate_applicable_ops(curr, ops);
+	}
+    if (default_generator != NULL) {
+        default_generator->generate_applicable_ops(curr, ops);
+    }
 }
 
 void SuccessorGeneratorSwitch::_dump(string indent) {
     cout << indent << "switch on " << g_variable_name[switch_var] << endl;
     cout << indent << "immediately:" << endl;
     immediate_ops->_dump(indent + "  ");
-    for (int i = 0; i < g_variable_domain[switch_var]; ++i) {
+    for (int i = 0; i < var_range; ++i) {
         cout << indent << "case " << i << ":" << endl;
         generator_for_value[i]->_dump(indent + "  ");
     }

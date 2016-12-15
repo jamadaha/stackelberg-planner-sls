@@ -19,11 +19,12 @@ public:
 class SuccessorGeneratorSwitch : public SuccessorGenerator {
 public:
     int switch_var;
+    int var_range;
     SuccessorGenerator *immediate_ops;
     std::vector<SuccessorGenerator *> generator_for_value;
     SuccessorGenerator *default_generator;
     SuccessorGeneratorSwitch(std::istream &in);
-    SuccessorGeneratorSwitch(int _switch_var);
+    SuccessorGeneratorSwitch(int _switch_var, int _var_range);
     virtual void generate_applicable_ops(const GlobalState &curr,
     		std::vector<const GlobalOperator *> &ops);
     virtual void _dump(std::string indent);

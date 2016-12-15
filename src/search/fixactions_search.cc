@@ -271,7 +271,7 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 	cout << "root var is " << root_var_index << endl;
 
-	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index);
+	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index, fix_variable_domain[root_var_index]);
 	SuccessorGeneratorSwitch *root_node = current_node;
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
@@ -289,7 +289,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 			while (var != current_node->switch_var) {
 				if (current_node->default_generator == NULL) {
-					current_node->default_generator = new SuccessorGeneratorSwitch(current_node->switch_var + 1);
+					int next_fix_var_index = current_node->switch_var + 1;
+					current_node->default_generator = new SuccessorGeneratorSwitch(next_fix_var_index, fix_variable_domain[next_fix_var_index]);
 				}
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->default_generator;
@@ -306,7 +307,7 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 			} else {
 				if (current_node->generator_for_value[val] == NULL) {
-					current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(next_fix_var_index);
+					current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(next_fix_var_index, fix_variable_domain[next_fix_var_index]);
 				}
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->generator_for_value[val];
@@ -327,9 +328,37 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 	return root_node;
 }
 
+void expand_all_successors(const GlobalState &state, vector<const GlobalOperator* > &op_sequence) {
+	vector<const GlobalOperator *> all_operators;
+	cout << "8" << endl;
+	fix_operators_successor_generator->generate_applicable_ops(state, all_operators);
+
+	cout << "9" << endl;
+
+	for (size_t op_no = 0; op_no < all_operators.size(); op_no++){
+		cout << "10" << endl;
+		if(find(op_sequence.begin(), op_sequence.end(), all_operators[op_no]) != op_sequence.end()) {
+			// Continue, if op is already in sequence
+			cout << "11" << endl;
+			continue;
+		}
+		cout << "12" << endl;
+		op_sequence.push_back(all_operators[op_no]);
+		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
+		expand_all_successors(next_state, op_sequence);
+		cout << "13" << endl;
+		op_sequence.pop_back();
+	}
+}
+
 SearchStatus FixActionsSearch::step() {
+	vector<const GlobalOperator *> op_sequnce;
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce);
+	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
 }
+
+
 
 void FixActionsSearch::add_options_to_parser(OptionParser &parser) {
 	SearchEngine::add_options_to_parser(parser);
