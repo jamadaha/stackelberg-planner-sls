@@ -193,23 +193,36 @@ void FixActionsSearch::create_new_variable_indices() {
 
 	adjust_var_indices_of_ops(attack_operators_with_fix_vars_preconds);
 
-	// Clean g_variable_domain, g_variable_name and g_fact_names
-	for(int var = 0; var < num_vars; var++) {
+	// Save the fix var stuff locally and clean g_variable_domain, g_variable_name and g_fact_names
+	int num_vars_temp = num_vars;
+	int var = 0;
+	for(int i = 0; i < num_vars_temp; i++) {
+
+		cout << "i: " << i << ", var: "<< var << ", num_vars: " << num_vars << endl;
+
 		if (attack_vars.find(var) == attack_vars.end()) {
 			// This is a fix var
 
+			cout << "is a fix var" << endl;
+
 			// Save it to local vectors
-			fix_variable_domain.push_back(g_variable_domain[var]);
-			fix_variable_name.push_back(g_variable_name[var]);
-			fix_fact_names.push_back(g_fact_names[var]);
-			fix_initial_state_data.push_back(g_initial_state_data[var]);
+			fix_variable_domain.push_back(g_variable_domain[i]);
+			fix_variable_name.push_back(g_variable_name[i]);
+			fix_fact_names.push_back(g_fact_names[i]);
+			fix_initial_state_data.push_back(g_initial_state_data[i]);
 
 			// Erase it from vectors
-			g_variable_domain.erase(g_variable_domain.begin() + var);
-			g_variable_name.erase(g_variable_name.begin() + var);
-			g_fact_names.erase(g_fact_names.begin() + var);
-			g_initial_state_data.erase(g_initial_state_data.begin() + var);
+			g_variable_domain.erase(g_variable_domain.begin() + i);
+			g_variable_name.erase(g_variable_name.begin() + i);
+			g_fact_names.erase(g_fact_names.begin() + i);
+			g_initial_state_data.erase(g_initial_state_data.begin() + i);
+
+			// Decrement i and num_vars_temp, because an element was deleted.
+			i--;
+			num_vars_temp--;
 		}
+		// Increment var which is the absolute old var id
+		var++;
 	}
 
 	// Changing indices in g_goal to attack_var indices and ensuring that there is no fix goal variable
@@ -221,7 +234,6 @@ void FixActionsSearch::create_new_variable_indices() {
 		}
 		g_goal[i].first = map_var_id_to_new_var_id[g_goal[i].first];
 	}
-
 }
 
 void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
