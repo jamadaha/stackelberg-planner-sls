@@ -299,7 +299,7 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
 		cout << "Consider op " << op_no << endl;
-		pre_cond_ops[op_no].dump(fix_variable_name);
+		pre_cond_ops[op_no].dump(fix_variable_name, g_variable_name);
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {

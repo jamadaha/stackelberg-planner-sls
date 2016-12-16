@@ -31,7 +31,7 @@ struct GlobalCondition {
         return !(*this == other);
     }
 
-    void dump(const std::vector<std::string> &variable_name = g_variable_name) const;
+    void dump(const std::vector<std::string> &conds_variable_name = g_variable_name) const;
 };
 
 struct GlobalEffect {
@@ -49,7 +49,7 @@ struct GlobalEffect {
         return true;
     }
 
-    void dump(const std::vector<std::string> &variable_name = g_variable_name) const;
+    void dump(const std::vector<std::string> &conds_variable_name = g_variable_name, const std::vector<std::string> &effs_variable_name = g_variable_name) const;
 };
 
 class GlobalOperator {
@@ -66,7 +66,7 @@ public:
     explicit GlobalOperator(std::istream &in, bool is_axiom, int cost2 = 0);
     explicit GlobalOperator(bool is_an_axiom, std::vector<GlobalCondition> preconditions, std::vector<GlobalEffect> effects, std::string name, int cost, int cost2);
 
-    void dump(const std::vector<std::string> &variable_name = g_variable_name) const;
+    void dump(const std::vector<std::string> &conds_variable_name = g_variable_name, const std::vector<std::string> &effs_variable_name = g_variable_name) const;
     std::string get_name() const {return name; }
 
     bool is_axiom() const {return is_an_axiom; }

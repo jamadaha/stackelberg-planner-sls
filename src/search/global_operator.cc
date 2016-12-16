@@ -79,31 +79,31 @@ GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _
 	marker1 = marker2 = false;
 }
 
-void GlobalCondition::dump(const vector<string> &variable_name) const {
-    cout << variable_name[var] << ": " << val;
+void GlobalCondition::dump(const vector<string> &conds_variable_name) const {
+    cout << conds_variable_name[var] << ": " << val;
 }
 
-void GlobalEffect::dump(const vector<string> &variable_name) const {
-    cout << variable_name[var] << ":= " << val;
+void GlobalEffect::dump(const vector<string> &conds_variable_name, const vector<string> &effs_variable_name) const {
+    cout << effs_variable_name[var] << ":= " << val;
     if (!conditions.empty()) {
         cout << " if";
         for (size_t i = 0; i < conditions.size(); ++i) {
             cout << " ";
-            conditions[i].dump(variable_name);
+            conditions[i].dump(conds_variable_name);
         }
     }
 }
 
-void GlobalOperator::dump(const vector<string> &variable_name) const {
+void GlobalOperator::dump(const vector<string> &conds_variable_name, const vector<string> &effs_variable_name) const {
     cout << name << ":";
     for (size_t i = 0; i < preconditions.size(); ++i) {
         cout << " [";
-        preconditions[i].dump(variable_name);
+        preconditions[i].dump(conds_variable_name);
         cout << "]";
     }
     for (size_t i = 0; i < effects.size(); ++i) {
         cout << " [";
-        effects[i].dump(variable_name);
+        effects[i].dump(conds_variable_name, effs_variable_name);
         cout << "]";
     }
     cout << endl;
