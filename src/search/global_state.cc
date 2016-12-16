@@ -49,7 +49,7 @@ void GlobalState::dump_pddl(const vector<int> &variable_domain, const vector<vec
 }
 
 void GlobalState::dump_fdr(const vector<int> &variable_domain, const vector<string> &variable_name) const {
-	for (size_t i = 0; i < g_variable_domain.size(); ++i)
-        cout << "  #" << i << " [" << g_variable_name[i] << "] -> "
+	for (size_t i = 0; i < variable_domain.size(); ++i)
+        cout << "  #" << i << " [" << variable_name[i] << "] -> "
              << (*this)[i] << endl;
 }
