@@ -37,6 +37,8 @@ vector<vector<string> > fix_fact_names;
 vector<int> fix_initial_state_data;
 StateRegistry *fix_vars_state_registry;
 
+vector<vector<bool>> commutative_fix_ops;
+
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
 	// TODO Auto-generated constructor stub
@@ -108,9 +110,14 @@ void FixActionsSearch::initialize() {
 
 	cout << "6" << endl;
 
-	attack_operators_for_fix_vars_successor_generator = create_fix_vars_successor_generator(attack_operators_with_fix_vars_preconds, attack_operators);
+	attack_operators_for_fix_vars_successor_generator = create_fix_vars_successor_generator(
+			attack_operators_with_fix_vars_preconds, attack_operators);
 
 	cout << "7" << endl;
+
+	compute_commutative_fix_ops_matrix();
+
+	cout << "8" << endl;
 
 }
 
@@ -161,12 +168,12 @@ void FixActionsSearch::clean_attack_actions() {
 			}
 		}
 
-		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(), op.get_cost(),
-				op.get_cost2());
+		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(),
+				op.get_cost(), op.get_cost2());
 		attack_operators[op_no] = op_with_attack_preconds;
 
-		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(), op.get_cost(),
-				op.get_cost2());
+		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(),
+				op.get_cost(), op.get_cost2());
 		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }
@@ -198,9 +205,9 @@ void FixActionsSearch::create_new_variable_indices() {
 	// Save the fix var stuff locally and clean g_variable_domain, g_variable_name and g_fact_names
 	int num_vars_temp = num_vars;
 	int var = 0;
-	for(int i = 0; i < num_vars_temp; i++) {
+	for (int i = 0; i < num_vars_temp; i++) {
 
-		cout << "i: " << i << ", var: "<< var << ", num_vars: " << num_vars << endl;
+		cout << "i: " << i << ", var: " << var << ", num_vars: " << num_vars << endl;
 
 		if (attack_vars.find(var) == attack_vars.end()) {
 			// This is a fix var
@@ -228,7 +235,7 @@ void FixActionsSearch::create_new_variable_indices() {
 	}
 
 	// Changing indices in g_goal to attack_var indices and ensuring that there is no fix goal variable
-	for(size_t i = 0; i < g_goal.size(); i++) {
+	for (size_t i = 0; i < g_goal.size(); i++) {
 		int var = g_goal[i].first;
 		if (attack_vars.find(var) == attack_vars.end()) {
 			cout << "There should be no goal defined for a non-attack var! Error in PDDL!" << endl;
@@ -240,24 +247,27 @@ void FixActionsSearch::create_new_variable_indices() {
 	// Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
 	assert(fix_variable_domain.size() == fix_initial_state_data.size());
 #ifndef NDEBUG
-for(unsigned var = 0; var < fix_variable_domain.size(); var++) {
-	assert(fix_initial_state_data[var] < fix_variable_domain[var]);
-}
+	for (unsigned var = 0; var < fix_variable_domain.size(); var++) {
+		assert(fix_initial_state_data[var] < fix_variable_domain[var]);
+	}
 #endif
 	IntPacker *fix_vars_state_packer = new IntPacker(fix_variable_domain);
 	fix_vars_state_registry = new StateRegistry(fix_vars_state_packer, fix_initial_state_data);
 	delete g_state_packer;
 	g_state_packer = new IntPacker(g_variable_domain);
 	delete g_state_registry;
-	g_state_registry  = new StateRegistry(g_state_packer, g_initial_state_data);
+	g_state_registry = new StateRegistry(g_state_packer, g_initial_state_data);
 }
 
-
-bool cond_comp_func (GlobalCondition cond1, GlobalCondition cond2) { return cond1.var < cond2. var; }
-bool eff_comp_func (GlobalEffect eff1, GlobalEffect eff2) { return eff1.var < eff2. var; }
+bool cond_comp_func(GlobalCondition cond1, GlobalCondition cond2) {
+	return cond1.var < cond2.var;
+}
+bool eff_comp_func(GlobalEffect eff1, GlobalEffect eff2) {
+	return eff1.var < eff2.var;
+}
 void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 	// Adjust indices in preconditions and effects of all operators in ops vector
-	for(size_t op_no = 0; op_no < ops.size(); op_no++) {
+	for (size_t op_no = 0; op_no < ops.size(); op_no++) {
 		vector<GlobalCondition> &conditions = ops[op_no].get_preconditions();
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			conditions[cond_no].var = map_var_id_to_new_var_id[conditions[cond_no].var];
@@ -277,12 +287,14 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 /**
  * returns a SuccessorGeneratorSwitch based on the preconditions of the ops in pre_cond_ops and entailing the ops from ops vector in the leaves
  */
-SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops) {
+SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
+		const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops) {
 	int root_var_index = 0;
 
 	cout << "root var is " << root_var_index << endl;
 
-	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index, fix_variable_domain[root_var_index]);
+	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index,
+			fix_variable_domain[root_var_index]);
 	SuccessorGeneratorSwitch *root_node = current_node;
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
@@ -298,7 +310,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 			while (var != current_node->switch_var) {
 				if (current_node->default_generator == NULL) {
 					int next_fix_var_index = current_node->switch_var + 1;
-					current_node->default_generator = new SuccessorGeneratorSwitch(next_fix_var_index, fix_variable_domain[next_fix_var_index]);
+					current_node->default_generator = new SuccessorGeneratorSwitch(next_fix_var_index,
+							fix_variable_domain[next_fix_var_index]);
 				}
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->default_generator;
@@ -315,7 +328,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 			} else {
 				if (current_node->generator_for_value[val] == NULL) {
-					current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(next_fix_var_index, fix_variable_domain[next_fix_var_index]);
+					current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(next_fix_var_index,
+							fix_variable_domain[next_fix_var_index]);
 				}
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->generator_for_value[val];
@@ -336,7 +350,63 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 	return root_node;
 }
 
-void expand_all_successors(const GlobalState &state, vector<const GlobalOperator* > &op_sequence) {
+/**
+ * For every pair of ops op1 and op2, this method checks whether op1 has a precond on var v on which op2 has an effect and vice versa.
+ * If this is the case, op1 and op2 are not commutative. If op1 and op2 both effect a var v with different effect values,
+ * there are also not commutative. Otherwise, they are commutative.
+ */
+void FixActionsSearch::compute_commutative_fix_ops_matrix() {
+	cout << "Begin compute_commutative_fix_ops_matrix()..." << endl;
+	vector<bool> val(fix_operators.size());
+	commutative_fix_ops.assign(fix_operators.size(), val);
+	for (size_t op_no1 = 0; op_no1 < fix_operators.size(); op_no1++) {
+		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
+			cout << "Comparing op1 with id " << op_no1 << ":" << endl;
+			fix_operators[op_no1].dump(fix_variable_name);
+			cout << "to op2 with id " << op_no2 << ":" << endl;
+			fix_operators[op_no2].dump(fix_variable_name);
+
+			const vector<GlobalCondition> &conditions1 = fix_operators[op_no1].get_preconditions();
+			const vector<GlobalCondition> &conditions2 = fix_operators[op_no2].get_preconditions();
+			const vector<GlobalEffect> &effects1 = fix_operators[op_no1].get_effects();
+			const vector<GlobalEffect> &effects2 = fix_operators[op_no2].get_effects();
+
+			bool commutative = true;
+			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
+			for (int var = 0; var < num_fix_vars; var++) {
+				while (conditions1[i_cond1].var < var && i_cond1 < ((int) conditions1.size() - 1)) {
+					i_cond1++;
+				}
+				while (conditions2[i_cond2].var < var && i_cond2 < ((int) conditions2.size() - 1)) {
+					i_cond2++;
+				}
+				while (effects1[i_eff1].var < var && i_eff1 < ((int) effects1.size() - 1)) {
+					i_eff1++;
+				}
+				while (effects2[i_eff2].var < var && i_eff2 < ((int) effects2.size() - 1)) {
+					i_eff2++;
+				}
+				if ((conditions1[i_cond1].var == var && effects2[i_eff2].var == var)
+						|| (conditions2[i_cond2].var == var && effects1[i_eff1].var == var)) {
+					commutative = false;
+				} else {
+					if (effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
+						if (effects1[i_eff1].val != effects2[i_eff2].val) {
+							commutative = false;
+						}
+					}
+				}
+				if(!commutative) {
+					break;
+				}
+			}
+			cout << "ops are commutative?: " << commutative << endl;
+			commutative_fix_ops[op_no1][op_no2] = commutative;
+			commutative_fix_ops[op_no2][op_no1] = commutative;
+		}
+	}
+}
+void expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence) {
 	cout << "expand all successors of state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	vector<const GlobalOperator *> all_operators;
@@ -345,9 +415,9 @@ void expand_all_successors(const GlobalState &state, vector<const GlobalOperator
 
 	cout << "9" << endl;
 
-	for (size_t op_no = 0; op_no < all_operators.size(); op_no++){
+	for (size_t op_no = 0; op_no < all_operators.size(); op_no++) {
 		cout << "10" << endl;
-		if(find(op_sequence.begin(), op_sequence.end(), all_operators[op_no]) != op_sequence.end()) {
+		if (find(op_sequence.begin(), op_sequence.end(), all_operators[op_no]) != op_sequence.end()) {
 			// Continue, if op is already in sequence
 			cout << "11 op already in sequence" << endl;
 			continue;
@@ -363,18 +433,16 @@ void expand_all_successors(const GlobalState &state, vector<const GlobalOperator
 
 SearchStatus FixActionsSearch::step() {
 	vector<const GlobalOperator *> op_sequnce;
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce);
+	//expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce);
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
 }
-
-
 
 void FixActionsSearch::add_options_to_parser(OptionParser &parser) {
 	SearchEngine::add_options_to_parser(parser);
 }
 
-SearchEngine *_parse(OptionParser &parser) {
+SearchEngine * _parse(OptionParser & parser) {
 	FixActionsSearch::add_options_to_parser(parser);
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
