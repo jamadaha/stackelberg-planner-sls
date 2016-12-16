@@ -108,11 +108,11 @@ void FixActionsSearch::initialize() {
 
 	cout << "5" << endl;
 
-	fix_operators_successor_generator = create_fix_vars_successor_generator(fix_operators, fix_operators);
+	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
 
 	cout << "6" << endl;
 
-	attack_operators_for_fix_vars_successor_generator = create_fix_vars_successor_generator(
+	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
 
 	cout << "7" << endl;
@@ -289,19 +289,19 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 /**
  * returns a SuccessorGeneratorSwitch based on the preconditions of the ops in pre_cond_ops and entailing the ops from ops vector in the leaves
  */
-SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
+SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vector<int> &variable_domain,
 		const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops) {
 	int root_var_index = 0;
 
 	cout << "root var is " << root_var_index << endl;
 
 	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index,
-			fix_variable_domain[root_var_index]);
+			variable_domain[root_var_index]);
 	SuccessorGeneratorSwitch *root_node = current_node;
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
 		cout << "Consider op " << op_no << endl;
-		pre_cond_ops[op_no].dump(fix_variable_name, g_variable_name);
+		//pre_cond_ops[op_no].dump(fix_variable_name, g_variable_name); // TODO Fix this stupid dump for all combinations
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
@@ -311,9 +311,9 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 			while (var != current_node->switch_var) {
 				if (current_node->default_generator == NULL) {
-					int next_fix_var_index = current_node->switch_var + 1;
-					current_node->default_generator = new SuccessorGeneratorSwitch(next_fix_var_index,
-							fix_variable_domain[next_fix_var_index]);
+					int next_var_index = current_node->switch_var + 1;
+					current_node->default_generator = new SuccessorGeneratorSwitch(next_var_index,
+							variable_domain[next_var_index]);
 				}
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->default_generator;
@@ -321,8 +321,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 			// Here: var == current_node->switch_var
 
-			int next_fix_var_index = current_node->switch_var + 1;
-			if (next_fix_var_index >= num_fix_vars) {
+			int next_var_index = current_node->switch_var + 1;
+			if (next_var_index >= num_fix_vars) {
 				if (current_node->generator_for_value[val] == NULL) {
 					current_node->generator_for_value[val] = new SuccessorGeneratorGenerate();
 				}
@@ -330,8 +330,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 			} else {
 				if (current_node->generator_for_value[val] == NULL) {
-					current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(next_fix_var_index,
-							fix_variable_domain[next_fix_var_index]);
+					current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(next_var_index,
+							variable_domain[next_var_index]);
 				}
 
 				current_node = (SuccessorGeneratorSwitch*) current_node->generator_for_value[val];
@@ -410,21 +410,21 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 }
 
 int num_recursive_calls = 0;
-void expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence, vector<int> &sleep,
+void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
 
 	vector<const GlobalOperator *> all_attack_operators;
 	attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
 	g_operators.clear();
-	for(size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
+	for (size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
 		g_operators.push_back(*all_attack_operators[op_no]);
 	}
 	cout << "New g_operators size is: " << g_operators.size() << endl;
+	g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
 	search_engine->search();
 	int plan_cost = calculate_plan_cost(g_plan);
 	cout << "Attack plan cost is " << plan_cost << endl;
-
 
 	cout << "expand all successors of state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
