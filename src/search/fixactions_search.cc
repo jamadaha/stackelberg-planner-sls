@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include "option_parser.h"
 #include "plugin.h"
+#include <cassert>
 
 using namespace std;
 
@@ -237,6 +238,12 @@ void FixActionsSearch::create_new_variable_indices() {
 	}
 
 	// Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
+	assert(fix_variable_domain.size() == fix_initial_state_data.size());
+#ifndef NDEBUG
+for(unsigned var = 0; var < fix_variable_domain.size(); var++) {
+	assert(fix_initial_state_data[var] < fix_variable_domain[var]);
+}
+#endif
 	IntPacker *fix_vars_state_packer = new IntPacker(fix_variable_domain);
 	fix_vars_state_registry = new StateRegistry(fix_vars_state_packer, fix_initial_state_data);
 	delete g_state_packer;
@@ -329,6 +336,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 }
 
 void expand_all_successors(const GlobalState &state, vector<const GlobalOperator* > &op_sequence) {
+	cout << "expand all successors of state: " << endl;
+	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	vector<const GlobalOperator *> all_operators;
 	cout << "8" << endl;
 	fix_operators_successor_generator->generate_applicable_ops(state, all_operators);

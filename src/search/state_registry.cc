@@ -52,7 +52,7 @@ const GlobalState &StateRegistry::get_initial_state() {
         for (size_t i = 0; i < initial_state_data.size(); ++i) {
         	state_packer->set(buffer, i, initial_state_data[i]);
         }
-        g_axiom_evaluator->evaluate(buffer);
+        // g_axiom_evaluator->evaluate(buffer);
         state_data_pool.push_back(buffer);
         // buffer is copied by push_back
         delete[] buffer;
@@ -74,7 +74,7 @@ GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor, c
         if (effect.does_fire(predecessor))
         	state_packer->set(buffer, effect.var, effect.val);
     }
-    g_axiom_evaluator->evaluate(buffer);
+    //g_axiom_evaluator->evaluate(buffer);
     StateID id = insert_id_or_pop_state();
     return lookup_state(id);
 }
