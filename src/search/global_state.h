@@ -51,6 +51,8 @@ public:
 
     void dump_pddl() const;
     void dump_fdr() const;
+    void dump_pddl(const std::vector<int> &variable_domain, const std::vector<std::vector<std::string>> &fact_names) const;
+    void dump_fdr(const std::vector<int> &variable_domain, const std::vector<std::string> &variable_name) const;
 };
 
 #endif

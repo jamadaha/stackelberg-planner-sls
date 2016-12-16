@@ -27,15 +27,29 @@ int GlobalState::operator[](size_t index) const {
 }
 
 void GlobalState::dump_pddl() const {
- /*   for (size_t i = 0; i < g_variable_domain.size(); ++i) {
+    for (size_t i = 0; i < g_variable_domain.size(); ++i) {
         const string &fact_name = g_fact_names[i][(*this)[i]];
         if (fact_name != "<none of those>")
             cout << fact_name << endl;
-    } */
+    }
 }
 
 void GlobalState::dump_fdr() const {
- /*   for (size_t i = 0; i < g_variable_domain.size(); ++i)
+	for (size_t i = 0; i < g_variable_domain.size(); ++i)
         cout << "  #" << i << " [" << g_variable_name[i] << "] -> "
-             << (*this)[i] << endl; */
+             << (*this)[i] << endl;
+}
+
+void GlobalState::dump_pddl(const vector<int> &variable_domain, const vector<vector<string>> &fact_names) const {
+    for (size_t i = 0; i < variable_domain.size(); ++i) {
+        const string &fact_name = fact_names[i][(*this)[i]];
+        if (fact_name != "<none of those>")
+            cout << fact_name << endl;
+    }
+}
+
+void GlobalState::dump_fdr(const vector<int> &variable_domain, const vector<string> &variable_name) const {
+	for (size_t i = 0; i < g_variable_domain.size(); ++i)
+        cout << "  #" << i << " [" << g_variable_name[i] << "] -> "
+             << (*this)[i] << endl;
 }
