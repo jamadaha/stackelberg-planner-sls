@@ -396,7 +396,7 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 						}
 					}
 				}
-				if(!commutative) {
+				if (!commutative) {
 					break;
 				}
 			}
@@ -406,7 +406,11 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 		}
 	}
 }
-void expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence) {
+
+int num_recursive_calls = 0;
+void expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence, vector<int> &sleep,
+		bool use_partial_order_reduction) {
+	num_recursive_calls++;
 	cout << "expand all successors of state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	vector<const GlobalOperator *> all_operators;
@@ -422,18 +426,45 @@ void expand_all_successors(const GlobalState &state, vector<const GlobalOperator
 			cout << "11 op already in sequence" << endl;
 			continue;
 		}
-		cout << "12" << endl;
+		if (sleep[op_no] != 0) {
+			// Continue, if op is in sleep set
+			cout << "12 op is skipped, because it's in the sleep set" << endl;
+			continue;
+		}
+		cout << "13" << endl;
+
+		// Add all ops before op_no in all_operators to sleep set if they are commutative
+		if (use_partial_order_reduction) {
+			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
+				if (commutative_fix_ops[op_no][op_no2]) {
+					sleep[op_no2]++;
+				}
+			}
+		}
 		op_sequence.push_back(all_operators[op_no]);
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
-		expand_all_successors(next_state, op_sequence);
-		cout << "13" << endl;
+		expand_all_successors(next_state, op_sequence, sleep, use_partial_order_reduction);
+		cout << "14" << endl;
+
+		// Remove all ops before op_no in all_operators from sleep set if they are commutative
+		if (use_partial_order_reduction) {
+			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
+				if (commutative_fix_ops[op_no][op_no2]) {
+					sleep[op_no2]--;
+				}
+			}
+		}
+
 		op_sequence.pop_back();
 	}
 }
 
 SearchStatus FixActionsSearch::step() {
 	vector<const GlobalOperator *> op_sequnce;
-	//expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce);
+	vector<int> sleep(fix_operators.size(), 0);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, false);
+	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
+	cout << "15" << endl;
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
 }
