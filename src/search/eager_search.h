@@ -44,7 +44,7 @@ protected:
 public:
     EagerSearch(const Options &opts);
     void statistics() const;
-
+    void reset();
     void dump_search_space();
 };
 

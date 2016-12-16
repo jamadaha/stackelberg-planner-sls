@@ -71,6 +71,7 @@ extern RandomNumberGenerator g_rng;
 // for each problem in this case the method GlobalState::get_id would also have to be
 // changed.
 extern StateRegistry *g_state_registry;
+extern std::vector<const GlobalOperator*> g_plan;
 
 
 

@@ -57,10 +57,10 @@ int calculate_plan_cost(const vector<const GlobalOperator *> &plan) {
     return plan_cost;
 }
 
-void save_plan(const vector<const GlobalOperator *> &plan, int iter) {
+void save_plan(const vector<const GlobalOperator *> &plan, int) {
     // TODO: Refactor: this is only used by the SearchEngine classes
     //       and hence should maybe be moved into the SearchEngine.
-    ofstream outfile;
+ /*   ofstream outfile;
     if (iter == 0) {
         outfile.open(g_plan_filename.c_str(), ios::out);
     } else {
@@ -78,6 +78,9 @@ void save_plan(const vector<const GlobalOperator *> &plan, int iter) {
     outfile.close();
     cout << "Plan length: " << plan.size() << " step(s)." << endl;
     cout << "Plan cost: " << plan_cost << endl;
+*/
+    g_plan.clear();
+    g_plan.insert(g_plan.begin(), plan.begin(), plan.end());
 }
 
 bool peek_magic(istream &in, string magic) {
@@ -385,3 +388,4 @@ Timer g_timer;
 string g_plan_filename = "sas_plan";
 RandomNumberGenerator g_rng(2011); // Use an arbitrary default seed.
 StateRegistry *g_state_registry = 0;
+vector<const GlobalOperator*> g_plan;

@@ -39,9 +39,11 @@ StateRegistry *fix_vars_state_registry;
 
 vector<vector<bool>> commutative_fix_ops;
 
+SearchEngine* search_engine;
+
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
-	// TODO Auto-generated constructor stub
+	search_engine = opts.get<SearchEngine*>("search_engine");
 
 }
 
@@ -419,6 +421,9 @@ void expand_all_successors(const GlobalState &state, vector<const GlobalOperator
 		g_operators.push_back(*all_attack_operators[op_no]);
 	}
 	cout << "New g_operators size is: " << g_operators.size() << endl;
+	search_engine->search();
+	int plan_cost = calculate_plan_cost(g_plan);
+	cout << "Attack plan cost is " << plan_cost << endl;
 
 
 	cout << "expand all successors of state: " << endl;
@@ -485,6 +490,7 @@ void FixActionsSearch::add_options_to_parser(OptionParser &parser) {
 
 SearchEngine * _parse(OptionParser & parser) {
 	FixActionsSearch::add_options_to_parser(parser);
+	parser.add_option<SearchEngine*>("search_engine");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
 		return new FixActionsSearch(opts);

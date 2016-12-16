@@ -29,6 +29,33 @@ EagerSearch::EagerSearch(
         preferred_operator_heuristics =
             opts.get_list<Heuristic *>("preferred");
     }
+
+    set<Heuristic *> hset;
+     open_list->get_involved_heuristics(hset);
+
+     for (set<Heuristic *>::iterator it = hset.begin(); it != hset.end(); ++it) {
+         estimate_heuristics.push_back(*it);
+         search_progress.add_heuristic(*it);
+     }
+
+     // add heuristics that are used for preferred operators (in case they are
+     // not also used in the open list)
+     hset.insert(preferred_operator_heuristics.begin(),
+                 preferred_operator_heuristics.end());
+
+     // add heuristics that are used in the f_evaluator. They are usually also
+     // used in the open list and hence already be included, but we want to be
+     // sure.
+     if (f_evaluator) {
+         f_evaluator->get_involved_heuristics(hset);
+     }
+
+     for (set<Heuristic *>::iterator it = hset.begin(); it != hset.end(); ++it) {
+         heuristics.push_back(*it);
+     }
+
+     assert(!heuristics.empty());
+
 }
 
 void EagerSearch::initialize() {
@@ -42,32 +69,6 @@ void EagerSearch::initialize() {
     if (use_multi_path_dependence)
         cout << "Using multi-path dependence (LM-A*)" << endl;
     assert(open_list != NULL);
-
-    set<Heuristic *> hset;
-    open_list->get_involved_heuristics(hset);
-
-    for (set<Heuristic *>::iterator it = hset.begin(); it != hset.end(); ++it) {
-        estimate_heuristics.push_back(*it);
-        search_progress.add_heuristic(*it);
-    }
-
-    // add heuristics that are used for preferred operators (in case they are
-    // not also used in the open list)
-    hset.insert(preferred_operator_heuristics.begin(),
-                preferred_operator_heuristics.end());
-
-    // add heuristics that are used in the f_evaluator. They are usually also
-    // used in the open list and hence already be included, but we want to be
-    // sure.
-    if (f_evaluator) {
-        f_evaluator->get_involved_heuristics(hset);
-    }
-
-    for (set<Heuristic *>::iterator it = hset.begin(); it != hset.end(); ++it) {
-        heuristics.push_back(*it);
-    }
-
-    assert(!heuristics.empty());
 
     const GlobalState &initial_state = g_initial_state();
     for (size_t i = 0; i < heuristics.size(); ++i)
@@ -329,6 +330,11 @@ void EagerSearch::print_heuristic_values(const vector<int> &values) const {
         if (i != values.size() - 1)
             cout << "/";
     }
+}
+
+void EagerSearch::reset() {
+	search_space.reset();
+	open_list->clear();
 }
 
 static SearchEngine *_parse(OptionParser &parser) {

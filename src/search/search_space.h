@@ -61,6 +61,9 @@ public:
     SearchNode get_node(const GlobalState &state);
     void trace_path(const GlobalState &goal_state,
                     std::vector<const GlobalOperator *> &path) const;
+    void reset() {
+    	search_node_infos.remove_state_registry(g_state_registry);
+    }
 
     void dump() const;
     void statistics() const;

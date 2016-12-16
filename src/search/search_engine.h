@@ -47,6 +47,7 @@ public:
     SearchProgress get_search_progress() const {return search_progress; }
     void set_bound(int b) {bound = b; }
     int get_bound() {return bound; }
+    virtual void reset(){};
     static void add_options_to_parser(OptionParser &parser);
 };
 
