@@ -79,31 +79,31 @@ GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _
 	marker1 = marker2 = false;
 }
 
-void GlobalCondition::dump() const {
-    cout << g_variable_name[var] << ": " << val;
+void GlobalCondition::dump(const vector<string> &variable_name) const {
+    cout << variable_name[var] << ": " << val;
 }
 
-void GlobalEffect::dump() const {
-    cout << g_variable_name[var] << ":= " << val;
+void GlobalEffect::dump(const vector<string> &variable_name) const {
+    cout << variable_name[var] << ":= " << val;
     if (!conditions.empty()) {
         cout << " if";
         for (size_t i = 0; i < conditions.size(); ++i) {
             cout << " ";
-            conditions[i].dump();
+            conditions[i].dump(variable_name);
         }
     }
 }
 
-void GlobalOperator::dump() const {
+void GlobalOperator::dump(const vector<string> &variable_name) const {
     cout << name << ":";
     for (size_t i = 0; i < preconditions.size(); ++i) {
         cout << " [";
-        preconditions[i].dump();
+        preconditions[i].dump(variable_name);
         cout << "]";
     }
     for (size_t i = 0; i < effects.size(); ++i) {
         cout << " [";
-        effects[i].dump();
+        effects[i].dump(variable_name);
         cout << "]";
     }
     cout << endl;

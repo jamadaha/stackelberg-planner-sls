@@ -252,6 +252,9 @@ for(unsigned var = 0; var < fix_variable_domain.size(); var++) {
 	g_state_registry  = new StateRegistry(g_state_packer, g_initial_state_data);
 }
 
+
+bool cond_comp_func (GlobalCondition cond1, GlobalCondition cond2) { return cond1.var < cond2. var; }
+bool eff_comp_func (GlobalEffect eff1, GlobalEffect eff2) { return eff1.var < eff2. var; }
 void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 	// Adjust indices in preconditions and effects of all operators in ops vector
 	for(size_t op_no = 0; op_no < ops.size(); op_no++) {
@@ -264,11 +267,12 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 		for (size_t eff_no = 0; eff_no < effects.size(); eff_no++) {
 			effects[eff_no].var = map_var_id_to_new_var_id[effects[eff_no].var];
 		}
+
+		// Sort the conditions and effects by their respective var id
+		sort(conditions.begin(), conditions.end(), cond_comp_func);
+		sort(effects.begin(), effects.end(), eff_comp_func);
 	}
 }
-
-
-bool cond_comp_func (GlobalCondition cond1, GlobalCondition cond2) { return cond1.var < cond2. var; }
 
 /**
  * returns a SuccessorGeneratorSwitch based on the preconditions of the ops in pre_cond_ops and entailing the ops from ops vector in the leaves
@@ -283,11 +287,8 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_fix_vars_successor_generator(
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
 		cout << "Consider op " << op_no << endl;
-		pre_cond_ops[op_no].dump();
+		pre_cond_ops[op_no].dump(fix_variable_name);
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
-
-		// Sort the conditions by their respective var id
-		sort(conditions.begin(), conditions.end(), cond_comp_func);
 
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
@@ -348,7 +349,7 @@ void expand_all_successors(const GlobalState &state, vector<const GlobalOperator
 		cout << "10" << endl;
 		if(find(op_sequence.begin(), op_sequence.end(), all_operators[op_no]) != op_sequence.end()) {
 			// Continue, if op is already in sequence
-			cout << "11" << endl;
+			cout << "11 op already in sequence" << endl;
 			continue;
 		}
 		cout << "12" << endl;
