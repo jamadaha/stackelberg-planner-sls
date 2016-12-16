@@ -411,6 +411,16 @@ int num_recursive_calls = 0;
 void expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
+
+	vector<const GlobalOperator *> all_attack_operators;
+	attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
+	g_operators.clear();
+	for(size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
+		g_operators.push_back(*all_attack_operators[op_no]);
+	}
+	cout << "New g_operators size is: " << g_operators.size() << endl;
+
+
 	cout << "expand all successors of state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	vector<const GlobalOperator *> all_operators;
@@ -462,7 +472,7 @@ void expand_all_successors(const GlobalState &state, vector<const GlobalOperator
 SearchStatus FixActionsSearch::step() {
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, false);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
 	exit(EXIT_CRITICAL_ERROR);
