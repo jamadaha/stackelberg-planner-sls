@@ -204,14 +204,16 @@ public:
         return (*entries)[state_id];
     }
 
-    void remove_state_registry(StateRegistry *registry) {
-        delete entries_by_registry[registry];
-        entries_by_registry.erase(registry);
-        if (registry == cached_registry) {
-            cached_registry = 0;
-            cached_entries = 0;
-        }
-    }
+	void remove_state_registry(StateRegistry *registry) {
+		if (entries_by_registry.count(registry)) {
+			delete entries_by_registry[registry];
+			entries_by_registry.erase(registry);
+			if (registry == cached_registry) {
+				cached_registry = 0;
+				cached_entries = 0;
+			}
+		}
+	}
 };
 
 #endif

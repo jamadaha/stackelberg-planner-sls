@@ -422,6 +422,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	}
 	cout << "New g_operators size is: " << g_operators.size() << endl;
 	g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+	search_engine->reset();
 	search_engine->search();
 	int plan_cost = calculate_plan_cost(g_plan);
 	cout << "Attack plan cost is " << plan_cost << endl;
