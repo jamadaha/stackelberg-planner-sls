@@ -335,6 +335,7 @@ void EagerSearch::print_heuristic_values(const vector<int> &values) const {
 void EagerSearch::reset() {
 	search_space.reset();
 	open_list->clear();
+	search_progress.reset();
 }
 
 static SearchEngine *_parse(OptionParser &parser) {

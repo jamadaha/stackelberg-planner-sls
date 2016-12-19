@@ -50,8 +50,10 @@ void SearchEngine::set_plan(const Plan &p) {
 }
 
 void SearchEngine::search() {
-    initialize();
     solution_found = false;
+    status = IN_PROGRESS;
+    initialize();
+
     CountdownTimer timer(max_time);
     while (status == IN_PROGRESS) {
         status = step();

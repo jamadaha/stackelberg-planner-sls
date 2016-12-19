@@ -12,6 +12,7 @@
 #include "option_parser.h"
 #include "plugin.h"
 #include <cassert>
+#include <algorithm>
 
 using namespace std;
 
@@ -39,6 +40,8 @@ StateRegistry *fix_vars_state_registry;
 vector<vector<bool>> commutative_fix_ops;
 
 SearchEngine* search_engine;
+
+vector<triple<int, int, vector<vector<const GlobalOperator* >>>> pareto_frontier;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
@@ -446,12 +449,25 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	//dump_everything();
 	search_engine->reset();
 	search_engine->search();
+	int attack_plan_cost = numeric_limits<int>::max();
 	if (search_engine->found_solution()) {
 		search_engine->save_plan_if_necessary();
-		int plan_cost = calculate_plan_cost(g_plan);
-		cout << "Attack plan cost is " << plan_cost << endl;
+		attack_plan_cost = calculate_plan_cost(g_plan);
+		cout << "Attack plan cost is " << attack_plan_cost << endl;
 	} else {
 		cout << "Attacker task was not solvable!" << endl;
+		attack_plan_cost = numeric_limits<int>::max();
+	}
+
+	int fix_actions_cost = calculate_plan_cost(op_sequence);
+	vector<vector<const GlobalOperator*>> temp_list_op_sequences;
+	temp_list_op_sequences.push_back(op_sequence);
+	triple<int, int, vector<vector<const GlobalOperator*>>> curr_node = make_tuple(fix_actions_cost, attack_plan_cost, temp_list_op_sequences);
+	add_node_to_pareto_frontier(curr_node);
+
+	if (attack_plan_cost == numeric_limits<int>::max()) {
+		// Return, if attacker task was not solvable
+		return;
 	}
 
 	vector<const GlobalOperator *> all_operators;
@@ -500,12 +516,83 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	}
 }
 
+bool pareto_node_comp_func(const triple<int, int, vector<vector<const GlobalOperator*>>> &node1, const triple<int, int, vector<vector<const GlobalOperator*>>> &node2) {
+	return get<0>(node1) < get<0>(node2);
+}
+
+void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
+	if(pareto_frontier.size() == 0) {
+		pareto_frontier.push_back(node);
+		return;
+	}
+
+	auto it = lower_bound(pareto_frontier.begin(), pareto_frontier.end(), node, pareto_node_comp_func);
+
+	if (it == pareto_frontier.end()) {
+		// Check whether node is dominated by last element
+		it--;
+		if(get<1>(*it) < get<1>(node)) {
+			pareto_frontier.push_back(node);
+		}
+		return;
+	}
+
+	if(get<0>(*it) == get<0>(node)) {
+		if(get<1>(*it) < get<1>(node)) {
+			it = pareto_frontier.erase(it);
+			it = pareto_frontier.insert(it, node);
+			it++;
+		} else if (get<1>(*it) == get<1>(node)) {
+			get<2>(*it).push_back(get<2>(node)[0]);
+			return;
+		} else {
+			return;
+		}
+	} else {
+		if(get<1>(*it) <= get<1>(node)) {
+			it = pareto_frontier.erase(it);
+			it = pareto_frontier.insert(it, node);
+			it++;
+		}
+	}
+
+	while(it != pareto_frontier.end() && get<1>(*it) <= get<1>(node)) {
+		it = pareto_frontier.erase(it);
+	}
+
+}
+
+void dump_op_sequence(const vector<const GlobalOperator*> &op_sequence) {
+    for (size_t i = 0; i < op_sequence.size(); ++i) {
+        cout << op_sequence[i]->get_name() << " (" << op_sequence[i]->get_cost() << ")" << endl;
+    }
+}
+
+void dump_op_sequence_sequence(const vector<vector<const GlobalOperator*>> &op_sequence_sequence) {
+	for (size_t i = 0; i < op_sequence_sequence.size(); ++i) {
+		cout << "sequence " << i << ":" << endl;
+		dump_op_sequence(op_sequence_sequence[i]);
+	}
+}
+
+void dump_pareto_frontier_node(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
+	cout << "fix ops costs: " << get<0>(node) << ", attack prob cost: " << get<1>(node) << ", sequences: " << endl;
+	dump_op_sequence_sequence(get<2>(node));
+}
+
+void dump_pareto_frontier () {
+	for (size_t i = 0; i < pareto_frontier.size(); ++i) {
+		dump_pareto_frontier_node(pareto_frontier[i]);
+	}
+}
+
 SearchStatus FixActionsSearch::step() {
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
 	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
+	dump_pareto_frontier();
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
 }

@@ -11,6 +11,8 @@
 #include "search_engine.h"
 #include "successor_generator.h"
 
+template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
+
 class FixActionsSearch: public SearchEngine
 {
 
@@ -26,6 +28,7 @@ protected:
     void compute_commutative_fix_ops_matrix();
     void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &op_sequence, std::vector<int> &sleep,
     		bool use_partial_order_reduction);
+    void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
 public:
     FixActionsSearch(const Options &opts);
