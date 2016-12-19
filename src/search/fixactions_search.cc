@@ -56,7 +56,8 @@ void FixActionsSearch::initialize() {
 	// Sort the operators
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 		string op_name = g_operators[op_no].get_name();
-		cout << "For op: " << op_name << endl;
+		cout << "For op " << op_no << ": " << endl;
+		g_operators[op_no].dump();
 
 		size_t whitespace = op_name.find(" ");
 		if (whitespace == string::npos) {
@@ -114,6 +115,8 @@ void FixActionsSearch::initialize() {
 
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
+	cout << "attack_operators_for_fix_vars_successor_generator: " << endl;
+	//attack_operators_for_fix_vars_successor_generator->dump();
 
 	cout << "7" << endl;
 
@@ -295,15 +298,24 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 
 	cout << "root var is " << root_var_index << endl;
 
-	SuccessorGeneratorSwitch *current_node = new SuccessorGeneratorSwitch(root_var_index,
+	SuccessorGeneratorSwitch *root_node = new SuccessorGeneratorSwitch(root_var_index,
 			variable_domain[root_var_index]);
-	SuccessorGeneratorSwitch *root_node = current_node;
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
 		cout << "Consider op " << op_no << endl;
 		//pre_cond_ops[op_no].dump(fix_variable_name, g_variable_name); // TODO Fix this stupid dump for all combinations
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
+		if(conditions.size() == 0) {
+			// This op has no preconditions, add it immediately to the root node
+			if (root_node->immediate_ops == NULL) {
+				root_node->immediate_ops = new SuccessorGeneratorGenerate();
+			}
+			((SuccessorGeneratorGenerate*) root_node->immediate_ops)->add_op(&ops[op_no]);
+			continue;
+		}
+
+		SuccessorGeneratorSwitch *current_node = root_node;
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
 			int val = conditions[cond_no].val;
@@ -322,7 +334,7 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 			// Here: var == current_node->switch_var
 
 			int next_var_index = current_node->switch_var + 1;
-			if (next_var_index >= num_fix_vars) {
+			if (next_var_index >= (int) variable_domain.size()) {
 				if (current_node->generator_for_value[val] == NULL) {
 					current_node->generator_for_value[val] = new SuccessorGeneratorGenerate();
 				}
@@ -344,9 +356,6 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 				}
 			}
 		}
-
-		// After processing an op, start at root again
-		current_node = root_node;
 	}
 
 	return root_node;
@@ -417,11 +426,16 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	vector<const GlobalOperator *> all_attack_operators;
 	attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
 	g_operators.clear();
+	//cout << "g_operators: " << endl;
 	for (size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
 		g_operators.push_back(*all_attack_operators[op_no]);
+		//all_attack_operators[op_no]->dump();
 	}
 	cout << "New g_operators size is: " << g_operators.size() << endl;
 	g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+	//g_successor_generator->dump();
+	//cout << "Attacker dump everything: " << endl;
+	//dump_everything();
 	search_engine->reset();
 	search_engine->search();
 	int plan_cost = calculate_plan_cost(g_plan);

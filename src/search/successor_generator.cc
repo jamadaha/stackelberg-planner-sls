@@ -44,13 +44,25 @@ void SuccessorGeneratorSwitch::generate_applicable_ops(
 void SuccessorGeneratorSwitch::_dump(string indent) {
     cout << indent << "switch on " << g_variable_name[switch_var] << endl;
     cout << indent << "immediately:" << endl;
-    immediate_ops->_dump(indent + "  ");
+    if (immediate_ops != NULL) {
+    	immediate_ops->_dump(indent + "  ");
+    } else {
+    	cout << indent << "NULL" << endl;
+    }
     for (int i = 0; i < var_range; ++i) {
         cout << indent << "case " << i << ":" << endl;
-        generator_for_value[i]->_dump(indent + "  ");
+        if (generator_for_value[i] != NULL) {
+        	generator_for_value[i]->_dump(indent + "  ");
+        } else {
+        	cout << indent << "NULL" << endl;
+        }
     }
     cout << indent << "always:" << endl;
-    default_generator->_dump(indent + "  ");
+    if (default_generator != NULL) {
+    	default_generator->_dump(indent + "  ");
+    } else {
+    	cout << indent << "NULL" << endl;
+    }
 }
 
 void SuccessorGeneratorGenerate::generate_applicable_ops(const GlobalState &,
