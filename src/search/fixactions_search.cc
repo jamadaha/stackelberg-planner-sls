@@ -42,6 +42,7 @@ vector<vector<bool>> commutative_fix_ops;
 SearchEngine* search_engine;
 
 vector<triple<int, int, vector<vector<const GlobalOperator* >>>> pareto_frontier;
+PerStateInformation<FixSearchInfo> fix_search_node_infos;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
@@ -434,29 +435,37 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		op_sequence[i]->dump(fix_variable_name, fix_variable_name);
 	}
 
-	vector<const GlobalOperator *> all_attack_operators;
-	attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
-	g_operators.clear();
-	//cout << "g_operators: " << endl;
-	for (size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
-		g_operators.push_back(*all_attack_operators[op_no]);
-		//all_attack_operators[op_no]->dump();
-	}
-	cout << "New g_operators size is: " << g_operators.size() << endl;
-	g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
-	//g_successor_generator->dump();
-	//cout << "Attacker dump everything: " << endl;
-	//dump_everything();
-	search_engine->reset();
-	search_engine->search();
 	int attack_plan_cost = numeric_limits<int>::max();
-	if (search_engine->found_solution()) {
-		search_engine->save_plan_if_necessary();
-		attack_plan_cost = calculate_plan_cost(g_plan);
-		cout << "Attack plan cost is " << attack_plan_cost << endl;
+	FixSearchInfo &info = fix_search_node_infos[state];
+	if (info.attack_plan_prob_cost != -1) {
+		attack_plan_cost = info.attack_plan_prob_cost;
+		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
 	} else {
-		cout << "Attacker task was not solvable!" << endl;
-		attack_plan_cost = numeric_limits<int>::max();
+		vector<const GlobalOperator *> all_attack_operators;
+		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
+		g_operators.clear();
+		//cout << "g_operators: " << endl;
+		for (size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
+			g_operators.push_back(*all_attack_operators[op_no]);
+			//all_attack_operators[op_no]->dump();
+		}
+		cout << "New g_operators size is: " << g_operators.size() << endl;
+		g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+		//g_successor_generator->dump();
+		//cout << "Attacker dump everything: " << endl;
+		//dump_everything();
+		search_engine->reset();
+		search_engine->search();
+
+		if (search_engine->found_solution()) {
+			search_engine->save_plan_if_necessary();
+			attack_plan_cost = calculate_plan_cost(g_plan);
+			cout << "Attack plan cost is " << attack_plan_cost << endl;
+		} else {
+			cout << "Attacker task was not solvable!" << endl;
+			attack_plan_cost = numeric_limits<int>::max();
+		}
+		info.attack_plan_prob_cost = attack_plan_cost;
 	}
 
 	int fix_actions_cost = calculate_plan_cost(op_sequence);
