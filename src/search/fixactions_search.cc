@@ -439,9 +439,13 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	//dump_everything();
 	search_engine->reset();
 	search_engine->search();
-	search_engine->save_plan_if_necessary();
-	int plan_cost = calculate_plan_cost(g_plan);
-	cout << "Attack plan cost is " << plan_cost << endl;
+	if (search_engine->found_solution()) {
+		search_engine->save_plan_if_necessary();
+		int plan_cost = calculate_plan_cost(g_plan);
+		cout << "Attack plan cost is " << plan_cost << endl;
+	} else {
+		cout << "Attacker task was not solvable!" << endl;
+	}
 
 	cout << "expand all successors of state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
