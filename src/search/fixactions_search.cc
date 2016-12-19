@@ -424,6 +424,13 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
 
+	cout << "in call of expand_all_successors for state: " << endl;
+	state.dump_fdr(fix_variable_domain, fix_variable_name);
+	cout << "and current fix actions op_sequence: " << endl;
+	for (size_t i = 0; i < op_sequence.size(); i++) {
+		op_sequence[i]->dump(fix_variable_name, fix_variable_name);
+	}
+
 	vector<const GlobalOperator *> all_attack_operators;
 	attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
 	g_operators.clear();
@@ -447,8 +454,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		cout << "Attacker task was not solvable!" << endl;
 	}
 
-	cout << "expand all successors of state: " << endl;
-	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	vector<const GlobalOperator *> all_operators;
 	cout << "8" << endl;
 	fix_operators_successor_generator->generate_applicable_ops(state, all_operators);
