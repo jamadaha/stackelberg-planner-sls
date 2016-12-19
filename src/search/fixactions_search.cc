@@ -296,13 +296,13 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 		const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops) {
 	int root_var_index = 0;
 
-	cout << "root var is " << root_var_index << endl;
+	//cout << "root var is " << root_var_index << endl;
 
 	SuccessorGeneratorSwitch *root_node = new SuccessorGeneratorSwitch(root_var_index,
 			variable_domain[root_var_index]);
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
-		cout << "Consider op " << op_no << endl;
+		//cout << "Consider op " << op_no << endl;
 		//pre_cond_ops[op_no].dump(fix_variable_name, g_variable_name); // TODO Fix this stupid dump for all combinations
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
@@ -319,7 +319,7 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
 			int val = conditions[cond_no].val;
-			cout << "Consider precond with var: " << var << ", val: " << val << endl;
+			//cout << "Consider precond with var: " << var << ", val: " << val << endl;
 
 			while (var != current_node->switch_var) {
 				if (current_node->default_generator == NULL) {
@@ -438,6 +438,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	//dump_everything();
 	search_engine->reset();
 	search_engine->search();
+	search_engine->save_plan_if_necessary();
 	int plan_cost = calculate_plan_cost(g_plan);
 	cout << "Attack plan cost is " << plan_cost << endl;
 
