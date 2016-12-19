@@ -15,7 +15,6 @@
 
 using namespace std;
 
-//vector<GlobalOperator> all_operators;
 vector<GlobalOperator> fix_operators;
 vector<GlobalOperator> attack_operators;
 vector<GlobalOperator> attack_operators_with_fix_vars_preconds;
@@ -71,20 +70,21 @@ void FixActionsSearch::initialize() {
 		}
 
 		if (op_name.find("attack") == 0) {
-			attack_operators.push_back(g_operators[op_no]);
-			//all_operators.push_back(g_operators[op_no]);
-
 			string prob = everything_before_whitespace.substr(underscore + 1);
 			int success_prob_cost = parse_success_prob_cost(prob);
 			cout << "success_prob_cost: " << success_prob_cost << endl;
+			g_operators[op_no].set_cost2(success_prob_cost);
+
+			attack_operators.push_back(g_operators[op_no]);
 
 		} else if (op_name.find("fix") == 0) {
-			fix_operators.push_back(g_operators[op_no]);
-			//all_operators.push_back(g_operators[op_no]);
-
 			string invention_cost_string = everything_before_whitespace.substr(underscore + 1);
 			int invention_cost = stoi(invention_cost_string);
 			cout << "parsed invention_cost: " << invention_cost << endl;
+			g_operators[op_no].set_cost2(invention_cost);
+
+			fix_operators.push_back(g_operators[op_no]);
+
 		} else {
 			cout << "No op prefix found! Error in PDDL file?" << endl;
 			exit(EXIT_INPUT_ERROR);
@@ -137,7 +137,7 @@ int FixActionsSearch::parse_success_prob_cost(string prob) {
 	string denominator_string = prob.substr(backslash + 1);
 	double numerator = (double) stoi(numerator_string);
 	double denominator = (double) stoi(denominator_string);
-	return (int) (fabs(log2(numerator / denominator)) * 1000);
+	return (int) (fabs(log2(numerator / denominator)) * 100);
 }
 
 void FixActionsSearch::divideVariables() {
@@ -173,12 +173,13 @@ void FixActionsSearch::clean_attack_actions() {
 			}
 		}
 
+		// Note that cost and cost2 are swapped here on purpose!
 		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost(), op.get_cost2());
+				op.get_cost2(), op.get_cost());
 		attack_operators[op_no] = op_with_attack_preconds;
 
 		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost(), op.get_cost2());
+				op.get_cost2(), op.get_cost());
 		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }

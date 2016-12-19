@@ -79,6 +79,9 @@ void save_plan(const vector<const GlobalOperator *> &plan, int) {
     cout << "Plan length: " << plan.size() << " step(s)." << endl;
     cout << "Plan cost: " << plan_cost << endl;
 */
+    for (size_t i = 0; i < plan.size(); ++i) {
+        cout << plan[i]->get_name() << " (" << plan[i]->get_cost() << ")" << endl;
+    }
     g_plan.clear();
     g_plan.insert(g_plan.begin(), plan.begin(), plan.end());
 }

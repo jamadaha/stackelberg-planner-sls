@@ -98,6 +98,7 @@ public:
 
     int get_cost() const {return cost; }
     int get_cost2() const {return cost2; }
+    void set_cost2(int _cost2) {cost2 = _cost2; }
 };
 
 #endif
