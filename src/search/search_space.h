@@ -45,10 +45,13 @@ public:
     void update_parent(const SearchNode &parent_node,
                        const GlobalOperator *parent_op);
     void add_parent(const SearchNode &parent_node, const GlobalOperator *parent_op);
+    const std::vector<StateID> &get_all_parent_state_ids() const {return info.all_parent_state_ids; }
+    const std::vector<const GlobalOperator*> &get_all_parent_creating_operators() const {return info.all_parent_creating_operators; }
     void increase_h(int h);
     void close();
     void mark_as_dead_end();
     int increment_child_num();
+    int decrement_child_num();
     int get_child_num();
 
     void dump() const;

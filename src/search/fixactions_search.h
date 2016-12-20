@@ -10,6 +10,7 @@
 
 #include "search_engine.h"
 #include "successor_generator.h"
+#include "attack_success_prob_reuse_heuristic.h"
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
@@ -17,12 +18,6 @@ struct FixSearchInfo {
         int attack_plan_prob_cost;
         FixSearchInfo(int _attack_plan_prob_cost = -1)
         : attack_plan_prob_cost(_attack_plan_prob_cost) { }
-};
-
-struct AttackSearchInfo {
-        int attack_plan_prob_cost_heuristic_value;
-        AttackSearchInfo(int _attack_plan_prob_cost_heuristic_value = -1)
-        : attack_plan_prob_cost_heuristic_value(_attack_plan_prob_cost_heuristic_value) { }
 };
 
 

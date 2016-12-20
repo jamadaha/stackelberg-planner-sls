@@ -119,6 +119,11 @@ int SearchNode::increment_child_num() {
 	return info.num_non_dead_end_childs;
 }
 
+int SearchNode::decrement_child_num() {
+	info.num_non_dead_end_childs--;
+	return info.num_non_dead_end_childs;
+}
+
 int SearchNode::get_child_num() {
 	return info.num_non_dead_end_childs;
 }
