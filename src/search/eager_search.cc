@@ -144,6 +144,11 @@ SearchStatus EagerSearch::step() {
         if (succ_node.is_dead_end())
             continue;
 
+        if (succ_node.get_state_id() != node.get_state_id()) {
+        	node.increment_child_num();
+        	succ_node.add_parent(node, op);
+        }
+
         // update new path
         if (use_multi_path_dependence || succ_node.is_new()) {
             bool h_is_dirty = false;

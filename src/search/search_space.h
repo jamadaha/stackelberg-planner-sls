@@ -44,9 +44,12 @@ public:
                 const GlobalOperator *parent_op);
     void update_parent(const SearchNode &parent_node,
                        const GlobalOperator *parent_op);
+    void add_parent(const SearchNode &parent_node, const GlobalOperator *parent_op);
     void increase_h(int h);
     void close();
     void mark_as_dead_end();
+    int increment_child_num();
+    int get_child_num();
 
     void dump() const;
 };

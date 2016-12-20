@@ -19,6 +19,12 @@ struct FixSearchInfo {
         : attack_plan_prob_cost(_attack_plan_prob_cost) { }
 };
 
+struct AttackSearchInfo {
+        int attack_plan_prob_cost_heuristic_value;
+        AttackSearchInfo(int _attack_plan_prob_cost_heuristic_value = -1)
+        : attack_plan_prob_cost_heuristic_value(_attack_plan_prob_cost_heuristic_value) { }
+};
+
 
 
 class FixActionsSearch: public SearchEngine
@@ -35,7 +41,7 @@ protected:
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_fix_ops_matrix();
     void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &op_sequence, std::vector<int> &sleep,
-    		bool use_partial_order_reduction);
+    		bool use_partial_order_reduction, std::vector<PerStateInformation<AttackSearchInfo>> &per_state_information_sequence);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
 public:

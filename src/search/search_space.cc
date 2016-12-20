@@ -109,6 +109,20 @@ void SearchNode::update_parent(const SearchNode &parent_node,
     info.creating_operator = parent_op;
 }
 
+void SearchNode::add_parent(const SearchNode &parent_node, const GlobalOperator *parent_op) {
+	info.all_parent_state_ids.push_back(parent_node.get_state_id());
+	info.all_parent_creating_operators.push_back(parent_op);
+}
+
+int SearchNode::increment_child_num() {
+	info.num_non_dead_end_childs++;
+	return info.num_non_dead_end_childs;
+}
+
+int SearchNode::get_child_num() {
+	return info.num_non_dead_end_childs;
+}
+
 void SearchNode::increase_h(int h) {
     assert(h >= info.h);
     info.h = h;

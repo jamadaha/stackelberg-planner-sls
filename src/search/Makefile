@@ -78,6 +78,7 @@ HEADERS = \
           variable_order_finder.h \
           weighted_evaluator.h \
           fixactions_search.h \
+          attack_success_prob_reuse_heuristic.h \
           \
           open_lists/alternation_open_list.h \
           open_lists/open_list_buckets.h \

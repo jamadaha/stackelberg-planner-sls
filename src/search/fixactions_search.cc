@@ -426,7 +426,7 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 
 int num_recursive_calls = 0;
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence, vector<int> &sleep,
-		bool use_partial_order_reduction) {
+		bool use_partial_order_reduction, vector<PerStateInformation<AttackSearchInfo>> &per_state_information_sequence) {
 	num_recursive_calls++;
 
 	cout << "in call of expand_all_successors for state: " << endl;
@@ -517,7 +517,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 		op_sequence.push_back(all_operators[op_no]);
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
-		expand_all_successors(next_state, op_sequence, sleep, use_partial_order_reduction);
+		expand_all_successors(next_state, op_sequence, sleep, use_partial_order_reduction, per_state_information_sequence);
 		cout << "14" << endl;
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
@@ -612,10 +612,11 @@ void dump_pareto_frontier () {
 }
 
 SearchStatus FixActionsSearch::step() {
+	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
-	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
+	vector<PerStateInformation<AttackSearchInfo>> per_state_information_sequence;
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true, per_state_information_sequence);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
 	dump_pareto_frontier();
