@@ -11,6 +11,7 @@ class Options;
 #include "operator_cost.h"
 #include "search_space.h"
 #include "search_progress.h"
+#include "open_lists/open_list.h"
 
 enum SearchStatus {IN_PROGRESS, TIMEOUT, FAILED, SOLVED};
 
@@ -27,6 +28,7 @@ protected:
     int bound;
     OperatorCost cost_type;
     double max_time;
+    const GlobalState* goal_state;
 
     virtual void initialize() {}
     virtual SearchStatus step() = 0;
@@ -48,6 +50,9 @@ public:
     void set_bound(int b) {bound = b; }
     int get_bound() {return bound; }
     virtual void reset(){};
+    SearchSpace* get_search_space() {return &search_space; }
+    virtual OpenList<StateID>* get_open_list(){return NULL; }
+    const GlobalState* get_goal_state() {return goal_state; }
     static void add_options_to_parser(OptionParser &parser);
 };
 

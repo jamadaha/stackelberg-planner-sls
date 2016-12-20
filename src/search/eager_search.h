@@ -45,6 +45,7 @@ public:
     EagerSearch(const Options &opts);
     void statistics() const;
     void reset();
+    OpenList<StateID>* get_open_list() {return open_list; }
     void dump_search_space();
 };
 
