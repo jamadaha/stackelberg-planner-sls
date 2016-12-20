@@ -42,6 +42,7 @@ vector<vector<bool>> commutative_fix_ops;
 SearchEngine* search_engine;
 
 vector<triple<int, int, vector<vector<const GlobalOperator* >>>> pareto_frontier;
+int fix_action_costs_for_no_attacker_solution;
 PerStateInformation<FixSearchInfo> fix_search_node_infos;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
@@ -469,6 +470,13 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	}
 
 	int fix_actions_cost = calculate_plan_cost(op_sequence);
+	if(fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
+		// Return if the fix_action_cost is already greater than the cost of an already known sequence
+		// leading to a state where no attacker solution can be found
+		return;
+	}
+
+
 	vector<vector<const GlobalOperator*>> temp_list_op_sequences;
 	temp_list_op_sequences.push_back(op_sequence);
 	triple<int, int, vector<vector<const GlobalOperator*>>> curr_node = make_tuple(fix_actions_cost, attack_plan_cost, temp_list_op_sequences);
@@ -530,6 +538,14 @@ bool pareto_node_comp_func(const triple<int, int, vector<vector<const GlobalOper
 }
 
 void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
+
+	// First check whether attack_prob_costs == Intmax and fix_actions_cost < fix_action_costs_for_no_attacker_solution
+	if(get<1>(node) == numeric_limits<int>::max()) {
+		if(get<0>(node) < fix_action_costs_for_no_attacker_solution) {
+			fix_action_costs_for_no_attacker_solution = get<0>(node);
+		}
+	}
+
 	if(pareto_frontier.size() == 0) {
 		pareto_frontier.push_back(node);
 		return;
@@ -598,6 +614,7 @@ void dump_pareto_frontier () {
 SearchStatus FixActionsSearch::step() {
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
+	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
