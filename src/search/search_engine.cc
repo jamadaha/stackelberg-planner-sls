@@ -73,7 +73,9 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state) {
         Plan plan;
         search_space.trace_path(state, plan);
         set_plan(plan);
-        goal_state = &state;
+        if(goal_state != NULL)
+        	delete goal_state;
+        goal_state = new GlobalState(state);
         return true;
     }
     return false;

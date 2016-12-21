@@ -28,7 +28,7 @@ protected:
     int bound;
     OperatorCost cost_type;
     double max_time;
-    const GlobalState* goal_state;
+    const GlobalState* goal_state = NULL;
 
     virtual void initialize() {}
     virtual SearchStatus step() = 0;
