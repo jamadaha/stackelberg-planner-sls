@@ -13,6 +13,7 @@
 #include "plugin.h"
 #include <cassert>
 #include <algorithm>
+#include "attack_success_prob_reuse_heuristic.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ StateRegistry *fix_vars_state_registry;
 vector<vector<bool>> commutative_fix_ops;
 
 SearchEngine* search_engine;
+AttackSuccessProbReuseHeuristic* attack_heuristic;
 
 vector<triple<int, int, vector<vector<const GlobalOperator* >>>> pareto_frontier;
 int fix_action_costs_for_no_attacker_solution;
@@ -48,7 +50,7 @@ PerStateInformation<FixSearchInfo> fix_search_node_infos;
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
 	search_engine = opts.get<SearchEngine*>("search_engine");
-
+	attack_heuristic = (AttackSuccessProbReuseHeuristic*) opts.get<Heuristic*>("attack_heuristic");
 }
 
 FixActionsSearch::~FixActionsSearch() {
@@ -426,7 +428,7 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 
 int num_recursive_calls = 0;
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &op_sequence, vector<int> &sleep,
-		bool use_partial_order_reduction, vector<PerStateInformation<AttackSearchInfo>> &per_state_information_sequence) {
+		bool use_partial_order_reduction) {
 	num_recursive_calls++;
 
 	cout << "in call of expand_all_successors for state: " << endl;
@@ -435,12 +437,19 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	for (size_t i = 0; i < op_sequence.size(); i++) {
 		op_sequence[i]->dump(fix_variable_name, fix_variable_name);
 	}
+	int fix_actions_cost = calculate_plan_cost(op_sequence);
 
+	PerStateInformation<AttackSearchInfo> attack_heuristic_per_state_info;
 	int attack_plan_cost = numeric_limits<int>::max();
 	FixSearchInfo &info = fix_search_node_infos[state];
 	if (info.attack_plan_prob_cost != -1) {
 		attack_plan_cost = info.attack_plan_prob_cost;
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
+		if(info.fix_actions_cost != -1 && info.fix_actions_cost < fix_actions_cost) {
+			cout << "Known fix action sequence is cheaper than current... don't make further recursice calls. " << endl;
+			//attack_heuristic_per_state_info = info.attack_heuristic_per_state_info;
+			return;
+		}
 	} else {
 		vector<const GlobalOperator *> all_attack_operators;
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
@@ -462,14 +471,20 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			search_engine->save_plan_if_necessary();
 			attack_plan_cost = calculate_plan_cost(g_plan);
 			cout << "Attack plan cost is " << attack_plan_cost << endl;
+
+			SearchSpace *search_space = search_engine->get_search_space();
+			OpenList<StateID> *open_list = search_engine->get_open_list();
+			const GlobalState *goal_state = search_engine->get_goal_state();
+			attack_heuristic->reinitialize(attack_heuristic_per_state_info, search_space, open_list, goal_state);
 		} else {
 			cout << "Attacker task was not solvable!" << endl;
 			attack_plan_cost = numeric_limits<int>::max();
 		}
 		info.attack_plan_prob_cost = attack_plan_cost;
+		info.fix_actions_cost = fix_actions_cost;
+		//info.attack_heuristic_per_state_info = attack_heuristic_per_state_info;
 	}
 
-	int fix_actions_cost = calculate_plan_cost(op_sequence);
 	if(fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
 		// Return if the fix_action_cost is already greater than the cost of an already known sequence
 		// leading to a state where no attacker solution can be found
@@ -517,7 +532,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 		op_sequence.push_back(all_operators[op_no]);
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
-		expand_all_successors(next_state, op_sequence, sleep, use_partial_order_reduction, per_state_information_sequence);
+		attack_heuristic->set_curr_per_state_information(&attack_heuristic_per_state_info);
+		expand_all_successors(next_state, op_sequence, sleep, use_partial_order_reduction);
 		cout << "14" << endl;
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
@@ -615,8 +631,7 @@ SearchStatus FixActionsSearch::step() {
 	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
-	vector<PerStateInformation<AttackSearchInfo>> per_state_information_sequence;
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true, per_state_information_sequence);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
 	dump_pareto_frontier();
@@ -631,6 +646,7 @@ void FixActionsSearch::add_options_to_parser(OptionParser &parser) {
 SearchEngine * _parse(OptionParser & parser) {
 	FixActionsSearch::add_options_to_parser(parser);
 	parser.add_option<SearchEngine*>("search_engine");
+	parser.add_option<Heuristic*>("attack_heuristic");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
 		return new FixActionsSearch(opts);

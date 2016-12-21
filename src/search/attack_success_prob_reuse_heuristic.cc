@@ -16,7 +16,9 @@
 #include <utility>
 
 AttackSuccessProbReuseHeuristic::AttackSuccessProbReuseHeuristic(const Options &opts)
-: Heuristic(opts) {
+: Heuristic(opts),
+  curr_per_state_information(NULL){
+	default_heuristic = opts.get<Heuristic*>("default_heuristic");
 }
 
 
@@ -28,6 +30,7 @@ void AttackSuccessProbReuseHeuristic::initialize() {
 }
 
 void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSearchInfo> &per_state_information, SearchSpace* search_space, OpenList<StateID>* open_list, const GlobalState* goal_state) {
+	curr_per_state_information = &per_state_information;
 	vector<const GlobalState *> own_open_list;
 
 	AttackSearchInfo &goal_info = per_state_information[*goal_state];
@@ -74,10 +77,25 @@ void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSea
 }
 
 int AttackSuccessProbReuseHeuristic::compute_heuristic(const GlobalState &state) {
-    if (test_goal(state))
-        return 0;
-    else
-    	return 0;
+	if (test_goal(state))
+		return 0;
+
+	if(curr_per_state_information == NULL) {
+		// return heuristic value computed by default heuristic
+		default_heuristic->evaluate(state);
+		return default_heuristic->get_value();
+	}
+
+	AttackSearchInfo &info = (*curr_per_state_information)[state];
+	int attack_plan_prob_cost_heuristic_value = info.attack_plan_prob_cost_heuristic_value;
+	if (attack_plan_prob_cost_heuristic_value == numeric_limits<int>::max()) {
+		// return heuristic value computed by default heuristic
+		default_heuristic->evaluate(state);
+		return default_heuristic->get_value();
+	}
+
+	return attack_plan_prob_cost_heuristic_value;
+
 }
 
 static Heuristic *_parse(OptionParser &parser) {
@@ -93,7 +111,9 @@ static Heuristic *_parse(OptionParser &parser) {
     parser.document_property("safe", "yes");
     parser.document_property("preferred operators", "no");*/
 
+	parser.add_option<Heuristic*>("default_heuristic");
     Heuristic::add_options_to_parser(parser);
+
     Options opts = parser.parse();
     if (parser.dry_run())
         return 0;

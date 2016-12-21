@@ -21,12 +21,15 @@ struct AttackSearchInfo {
 
 
 class AttackSuccessProbReuseHeuristic: public Heuristic {
+	PerStateInformation<AttackSearchInfo> *curr_per_state_information;
+	Heuristic *default_heuristic;
 protected:
     virtual void initialize();
     virtual int compute_heuristic(const GlobalState &state);
 public:
     void reinitialize(PerStateInformation<AttackSearchInfo> &per_state_information, SearchSpace* search_space, OpenList<StateID>* open_list, const GlobalState* goal_state);
-	AttackSuccessProbReuseHeuristic(const Options &options);
+	void set_curr_per_state_information (PerStateInformation<AttackSearchInfo> *per_state_information) {curr_per_state_information = per_state_information; }
+    AttackSuccessProbReuseHeuristic(const Options &options);
 	virtual ~AttackSuccessProbReuseHeuristic();
 };
 

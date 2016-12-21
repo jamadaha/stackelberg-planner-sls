@@ -16,8 +16,11 @@ template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2
 
 struct FixSearchInfo {
         int attack_plan_prob_cost;
-        FixSearchInfo(int _attack_plan_prob_cost = -1)
-        : attack_plan_prob_cost(_attack_plan_prob_cost) { }
+        int fix_actions_cost;
+        // PerStateInformation<AttackSearchInfo> attack_heuristic_per_state_info;
+        FixSearchInfo(int _attack_plan_prob_cost = -1, int _fix_actions_cost = -1)
+        : attack_plan_prob_cost(_attack_plan_prob_cost),
+		  fix_actions_cost(_fix_actions_cost){ }
 };
 
 
@@ -36,7 +39,7 @@ protected:
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_fix_ops_matrix();
     void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &op_sequence, std::vector<int> &sleep,
-    		bool use_partial_order_reduction, std::vector<PerStateInformation<AttackSearchInfo>> &per_state_information_sequence);
+    		bool use_partial_order_reduction);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
 public:
