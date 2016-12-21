@@ -475,7 +475,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			SearchSpace *search_space = search_engine->get_search_space();
 			OpenList<StateID> *open_list = search_engine->get_open_list();
 			const GlobalState *goal_state = search_engine->get_goal_state();
-			attack_heuristic->reinitialize(attack_heuristic_per_state_info, search_space, open_list, goal_state);
+			attack_heuristic->reinitialize(attack_heuristic_per_state_info, search_space, open_list, *goal_state);
 		} else {
 			cout << "Attacker task was not solvable!" << endl;
 			attack_plan_cost = numeric_limits<int>::max();
