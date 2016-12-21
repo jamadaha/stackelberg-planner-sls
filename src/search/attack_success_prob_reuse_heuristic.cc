@@ -29,9 +29,9 @@ void AttackSuccessProbReuseHeuristic::initialize() {
     cout << "Initializing AttackSuccessProbReuse heuristic..." << endl;
 }
 
-void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSearchInfo> &per_state_information, SearchSpace* search_space, OpenList<StateID>* open_list, const GlobalState goal_state) {
+void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSearchInfo> &per_state_information, SearchSpace* search_space, OpenList<StateID>* open_list, GlobalState goal_state) {
 	curr_per_state_information = &per_state_information;
-	vector<const GlobalState> own_open_list;
+	vector<GlobalState> own_open_list;
 
 	AttackSearchInfo &goal_info = per_state_information[goal_state];
 	goal_info.attack_plan_prob_cost_heuristic_value = 0;
@@ -48,7 +48,7 @@ void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSea
 
 
 	while (!own_open_list.empty()) {
-		const GlobalState current_state = own_open_list.back();
+		GlobalState current_state = own_open_list.back();
 		own_open_list.pop_back();
 
 		const SearchNode &current_node = search_space->get_node(current_state);
