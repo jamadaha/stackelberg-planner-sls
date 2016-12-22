@@ -89,6 +89,9 @@ public:
         lastjump_generated_states = 0;
 
         lastjump_f_value = -1;
+
+        best_heuristic_values.assign(best_heuristic_values.size(), -1);
+        initial_h_values.clear();
     }
 };
 
