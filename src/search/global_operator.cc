@@ -68,13 +68,14 @@ GlobalOperator::GlobalOperator(istream &in, bool axiom, int cost_2)
     marker1 = marker2 = false;
 }
 
-GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _preconditions, std::vector<GlobalEffect> _effects, std::string _name, int _cost, int _cost2)
+GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _preconditions, std::vector<GlobalEffect> _effects, std::string _name, int _cost, int _cost2, int _scheme_id)
 : is_an_axiom(_is_an_axiom),
   preconditions(_preconditions),
   effects(_effects),
   name(_name),
   cost(_cost),
-  cost2(_cost2) {
+  cost2(_cost2),
+  scheme_id(_scheme_id){
 	marked = false;
 	marker1 = marker2 = false;
 }

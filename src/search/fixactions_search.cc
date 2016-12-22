@@ -85,10 +85,21 @@ void FixActionsSearch::initialize() {
 			attack_operators.push_back(g_operators[op_no]);
 
 		} else if (op_name.find("fix") == 0) {
-			string invention_cost_string = everything_before_whitespace.substr(underscore + 1);
+			string invention_cost_and_id_string = everything_before_whitespace.substr(underscore + 1);
+			size_t hash = invention_cost_and_id_string.find("#");
+			if (hash == string::npos) {
+				cout << "No correct invention_cost_and_id_string suffix found! Error in PDDL file?" << endl;
+				exit(EXIT_INPUT_ERROR);
+			}
+
+			string invention_cost_string = invention_cost_and_id_string.substr(0, hash);
+			string id_string = invention_cost_and_id_string.substr(hash + 1);
 			int invention_cost = stoi(invention_cost_string);
-			cout << "parsed invention_cost: " << invention_cost << endl;
+			int id = stoi(id_string);
+
+			cout << "parsed invention_cost: " << invention_cost << ", and fix action scheme id: " << id << endl;
 			g_operators[op_no].set_cost2(invention_cost);
+			g_operators[op_no].set_scheme_id(id);
 
 			fix_operators.push_back(g_operators[op_no]);
 
@@ -437,7 +448,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	for (size_t i = 0; i < op_sequence.size(); i++) {
 		op_sequence[i]->dump(fix_variable_name, fix_variable_name);
 	}
-	int fix_actions_cost = calculate_plan_cost(op_sequence);
+	int fix_actions_cost = calculate_fix_actions_plan_cost(op_sequence);
 
 	PerStateInformation<AttackSearchInfo>* attack_heuristic_per_state_info;
 	bool free_attack_heuristic_per_state_info = false;
