@@ -643,7 +643,7 @@ SearchStatus FixActionsSearch::step() {
 	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, false);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
 	dump_pareto_frontier();
