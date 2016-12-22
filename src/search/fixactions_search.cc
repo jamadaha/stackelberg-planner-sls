@@ -439,17 +439,20 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	}
 	int fix_actions_cost = calculate_plan_cost(op_sequence);
 
-	PerStateInformation<AttackSearchInfo> attack_heuristic_per_state_info;
+	PerStateInformation<AttackSearchInfo>* attack_heuristic_per_state_info;
+	bool free_attack_heuristic_per_state_info = false;
+
 	int attack_plan_cost = numeric_limits<int>::max();
 	FixSearchInfo &info = fix_search_node_infos[state];
+
 	if (info.attack_plan_prob_cost != -1) {
 		attack_plan_cost = info.attack_plan_prob_cost;
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
-		if(info.fix_actions_cost != -1 && info.fix_actions_cost < fix_actions_cost) {
-			cout << "Known fix action sequence is cheaper than current... don't make further recursice calls. " << endl;
-			//attack_heuristic_per_state_info = info.attack_heuristic_per_state_info;
+		if(info.fix_actions_cost != -1 && info.fix_actions_cost <= fix_actions_cost) {
+			cout << "Known fix action sequence is cheaper or equally as current... don't make further recursice calls. " << endl;
 			return;
 		}
+		attack_heuristic_per_state_info = attack_heuristic->get_curr_per_state_information();
 	} else {
 		vector<const GlobalOperator *> all_attack_operators;
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
@@ -472,6 +475,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_plan_cost = calculate_plan_cost(g_plan);
 			cout << "Attack plan cost is " << attack_plan_cost << endl;
 
+			attack_heuristic_per_state_info = new PerStateInformation<AttackSearchInfo>;
+			free_attack_heuristic_per_state_info = true;
+
 			SearchSpace *search_space = search_engine->get_search_space();
 			OpenList<StateID> *open_list = search_engine->get_open_list();
 			const GlobalState *goal_state = search_engine->get_goal_state();
@@ -482,15 +488,16 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 		info.attack_plan_prob_cost = attack_plan_cost;
 		info.fix_actions_cost = fix_actions_cost;
-		//info.attack_heuristic_per_state_info = attack_heuristic_per_state_info;
 	}
 
 	if(fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
 		// Return if the fix_action_cost is already greater than the cost of an already known sequence
 		// leading to a state where no attacker solution can be found
+		if(free_attack_heuristic_per_state_info) {
+			delete attack_heuristic_per_state_info;
+		}
 		return;
 	}
-
 
 	vector<vector<const GlobalOperator*>> temp_list_op_sequences;
 	temp_list_op_sequences.push_back(op_sequence);
@@ -532,7 +539,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 		op_sequence.push_back(all_operators[op_no]);
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
-		attack_heuristic->set_curr_per_state_information(&attack_heuristic_per_state_info);
+		attack_heuristic->set_curr_per_state_information(attack_heuristic_per_state_info);
 		expand_all_successors(next_state, op_sequence, sleep, use_partial_order_reduction);
 		cout << "14" << endl;
 
@@ -547,6 +554,11 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		op_sequence.pop_back();
 	}
+
+	if(free_attack_heuristic_per_state_info) {
+		delete attack_heuristic_per_state_info;
+	}
+
 }
 
 bool pareto_node_comp_func(const triple<int, int, vector<vector<const GlobalOperator*>>> &node1, const triple<int, int, vector<vector<const GlobalOperator*>>> &node2) {
@@ -631,7 +643,7 @@ SearchStatus FixActionsSearch::step() {
 	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, true);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, sleep, false);
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "15" << endl;
 	dump_pareto_frontier();

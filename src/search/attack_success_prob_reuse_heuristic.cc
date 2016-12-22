@@ -29,11 +29,11 @@ void AttackSuccessProbReuseHeuristic::initialize() {
     cout << "Initializing AttackSuccessProbReuse heuristic..." << endl;
 }
 
-void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSearchInfo> &per_state_information, SearchSpace* search_space, OpenList<StateID>* open_list, GlobalState goal_state) {
-	curr_per_state_information = &per_state_information;
+void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSearchInfo>* per_state_information, SearchSpace* search_space, OpenList<StateID>* open_list, GlobalState goal_state) {
+	curr_per_state_information = per_state_information;
 	vector<GlobalState> own_open_list;
 
-	AttackSearchInfo &goal_info = per_state_information[goal_state];
+	AttackSearchInfo &goal_info = (*per_state_information)[goal_state];
 	goal_info.attack_plan_prob_cost_heuristic_value = 0;
 	own_open_list.push_back(goal_state);
 
@@ -41,7 +41,7 @@ void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSea
         StateID id = open_list->remove_min(NULL);
         const GlobalState &state = g_state_registry->lookup_state(id);
         const SearchNode &node = search_space->get_node(state);
-    	AttackSearchInfo &info = per_state_information[state];
+    	AttackSearchInfo &info = (*per_state_information)[state];
     	info.attack_plan_prob_cost_heuristic_value = node.get_h();
     	own_open_list.push_back(state);
 	}
@@ -57,12 +57,12 @@ void AttackSuccessProbReuseHeuristic::reinitialize(PerStateInformation<AttackSea
 		const std::vector<const GlobalOperator*> &all_parent_creating_operators =
 				current_node.get_all_parent_creating_operators();
 
-		AttackSearchInfo &node_info = per_state_information[current_state];
+		AttackSearchInfo &node_info = (*per_state_information)[current_state];
 
 		for (size_t state_no = 0; state_no < all_parent_state_ids.size(); state_no++) {
 			const GlobalState &parent_state = g_state_registry->lookup_state(all_parent_state_ids[state_no]);
 			SearchNode parent_node = search_space->get_node(parent_state);
-			AttackSearchInfo &parent_info = per_state_information[parent_state];
+			AttackSearchInfo &parent_info = (*per_state_information)[parent_state];
 			int temp_attack_plan_prob_cost_heuristic_value = node_info.attack_plan_prob_cost_heuristic_value
 					+ get_adjusted_cost(*all_parent_creating_operators[state_no]);
 			if (parent_info.attack_plan_prob_cost_heuristic_value > temp_attack_plan_prob_cost_heuristic_value) {
