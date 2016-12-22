@@ -448,8 +448,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	if (info.attack_plan_prob_cost != -1) {
 		attack_plan_cost = info.attack_plan_prob_cost;
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
-		if(info.fix_actions_cost != -1 && info.fix_actions_cost <= fix_actions_cost) {
-			cout << "Known fix action sequence is cheaper or equally as current... don't make further recursice calls. " << endl;
+		if(info.fix_actions_cost != -1 && info.fix_actions_cost < fix_actions_cost) {
+			cout << "Known fix action sequence is cheaper as current... don't make further recursive calls. " << endl;
 			return;
 		}
 		attack_heuristic_per_state_info = attack_heuristic->get_curr_per_state_information();
