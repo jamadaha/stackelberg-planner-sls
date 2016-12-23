@@ -182,11 +182,12 @@ SearchNode SearchSpace::get_node(const GlobalState &state, int budget) {
 }
 
 void SearchSpace::trace_path(const GlobalState &goal_state,
-                             vector<const GlobalOperator *> &path) const {
+                             vector<const GlobalOperator *> &path, int current_budget) {
     GlobalState current_state = goal_state;
     assert(path.empty());
     for (;;) {
-        const SearchNodeInfo &info = search_node_infos[current_state];
+    	SearchNode node = get_node(current_state, current_budget);
+        const SearchNodeInfo &info = node.info;
         const GlobalOperator *op = info.creating_operator;
         if (op == 0) {
             assert(info.parent_state_id == StateID::no_state);
@@ -194,6 +195,7 @@ void SearchSpace::trace_path(const GlobalState &goal_state,
         }
         path.push_back(op);
         current_state = g_state_registry->lookup_state(info.parent_state_id);
+        current_budget = compute_remaining_budget(current_budget, op->get_cost2());
     }
     reverse(path.begin(), path.end());
 }

@@ -16,6 +16,8 @@ class GlobalState;
 int compute_remaining_budget(int budget, int cost);
 
 class SearchNode {
+	friend class SearchSpace;
+
     StateID state_id;
     SearchNodeInfo &info;
     OperatorCost cost_type;
@@ -83,7 +85,7 @@ public:
     SearchSpace(OperatorCost cost_type_);
     SearchNode get_node(const GlobalState &state, int budget = UNLTD_BUDGET);
     void trace_path(const GlobalState &goal_state,
-                    std::vector<const GlobalOperator *> &path) const;
+                    std::vector<const GlobalOperator *> &path, int budget = UNLTD_BUDGET);
     void reset() {
     	search_node_infos.remove_state_registry(g_state_registry);
     	budget_search_node_infos.remove_state_registry(g_state_registry);
