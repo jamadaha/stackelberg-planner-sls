@@ -34,7 +34,7 @@ protected:
     virtual SearchStatus step() = 0;
 
     void set_plan(const Plan &plan);
-    bool check_goal_and_set_plan(const GlobalState &state);
+    bool check_goal_and_set_plan(const GlobalState &state, int budget = UNLTD_BUDGET);
     int get_adjusted_cost(const GlobalOperator &op) const;
 public:
     SearchEngine(const Options &opts);

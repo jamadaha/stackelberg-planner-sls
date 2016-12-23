@@ -67,11 +67,11 @@ void SearchEngine::search() {
          << " [t=" << g_timer << "]" << endl;
 }
 
-bool SearchEngine::check_goal_and_set_plan(const GlobalState &state) {
+bool SearchEngine::check_goal_and_set_plan(const GlobalState &state, int budget) {
     if (test_goal(state)) {
         cout << "Solution found!" << endl;
         Plan plan;
-        search_space.trace_path(state, plan);
+        search_space.trace_path(state, plan, budget);
         set_plan(plan);
         if(goal_state != NULL)
         	delete goal_state;

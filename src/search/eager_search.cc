@@ -107,7 +107,8 @@ SearchStatus EagerSearch::step() {
     SearchNode node = n.first;
 
     GlobalState s = node.get_state();
-    if (check_goal_and_set_plan(s))
+    int budget = node.get_budget();
+    if (check_goal_and_set_plan(s, budget))
         return SOLVED;
 
     vector<const GlobalOperator *> applicable_ops;
