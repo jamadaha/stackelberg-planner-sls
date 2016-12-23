@@ -14,6 +14,7 @@
 #include <cassert>
 #include <algorithm>
 #include "attack_success_prob_reuse_heuristic.h"
+#include "eager_search.h"
 
 using namespace std;
 
@@ -490,7 +491,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			free_attack_heuristic_per_state_info = true;
 
 			SearchSpace *search_space = search_engine->get_search_space();
-			OpenList<StateID> *open_list = search_engine->get_open_list();
+			OpenList<pair<StateID, int>> *open_list = ((EagerSearch*) search_engine)->get_open_list();
 			const GlobalState *goal_state = search_engine->get_goal_state();
 			attack_heuristic->reinitialize(attack_heuristic_per_state_info, search_space, open_list, *goal_state);
 		} else {

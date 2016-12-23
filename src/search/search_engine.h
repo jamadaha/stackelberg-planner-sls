@@ -51,7 +51,6 @@ public:
     int get_bound() {return bound; }
     virtual void reset(){};
     SearchSpace* get_search_space() {return &search_space; }
-    virtual OpenList<StateID>* get_open_list(){return NULL; }
     const GlobalState* get_goal_state() {return goal_state; }
     static void add_options_to_parser(OptionParser &parser);
 };

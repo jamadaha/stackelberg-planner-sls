@@ -23,7 +23,7 @@ class EagerSearch : public SearchEngine {
     bool do_pathmax; // whether to use pathmax correction
     bool use_multi_path_dependence;
 
-    OpenList<StateID> *open_list;
+    OpenList<std::pair<StateID, int>> *open_list;
     ScalarEvaluator *f_evaluator;
 
 protected:
@@ -45,7 +45,7 @@ public:
     EagerSearch(const Options &opts);
     void statistics() const;
     void reset();
-    OpenList<StateID>* get_open_list() {return open_list; }
+    OpenList<std::pair<StateID, int>>* get_open_list() {return open_list; }
     void dump_search_space();
 };
 

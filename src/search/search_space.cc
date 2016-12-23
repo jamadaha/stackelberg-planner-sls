@@ -10,10 +10,17 @@
 using namespace std;
 using namespace __gnu_cxx;
 
+int compute_remaining_budget(int budget, int cost) {
+	if(budget == UNLTD_BUDGET) {
+		return UNLTD_BUDGET;
+	} else {
+		return budget - cost;
+	}
+}
 
 SearchNode::SearchNode(StateID state_id_, SearchNodeInfo &info_,
-                       OperatorCost cost_type_)
-    : state_id(state_id_), info(info_), cost_type(cost_type_) {
+                       OperatorCost cost_type_, int _budget)
+    : state_id(state_id_), info(info_), cost_type(cost_type_), budget(_budget) {
     assert(state_id != StateID::no_state);
 }
 
@@ -110,7 +117,7 @@ void SearchNode::update_parent(const SearchNode &parent_node,
 }
 
 void SearchNode::add_parent(const SearchNode &parent_node, const GlobalOperator *parent_op) {
-	info.all_parent_state_ids.push_back(parent_node.get_state_id());
+	info.all_parent_state_ids.push_back(pair<StateID, int>(parent_node.get_state_id(), parent_node.get_budget()));
 	info.all_parent_creating_operators.push_back(parent_op);
 }
 
@@ -157,8 +164,21 @@ SearchSpace::SearchSpace(OperatorCost cost_type_)
     : cost_type(cost_type_) {
 }
 
-SearchNode SearchSpace::get_node(const GlobalState &state) {
-    return SearchNode(state.get_id(), search_node_infos[state], cost_type);
+SearchNode SearchSpace::get_node(const GlobalState &state, int budget) {
+	BudgetSearchNodeInfo &budget_search_node_info = budget_search_node_infos[state];
+	int index;
+
+	if(budget_search_node_info.search_node_info_for_budget.find(budget) != budget_search_node_info.search_node_info_for_budget.end()) {
+		index = budget_search_node_info.search_node_info_for_budget[budget];
+	} else {
+		all_search_node_infos.push_back(SearchNodeInfo());
+		index = (int) all_search_node_infos.size() - 1;
+		budget_search_node_info.search_node_info_for_budget[budget] = index;
+	}
+
+	return SearchNode(state.get_id(), all_search_node_infos[index], cost_type, budget);
+
+	// return SearchNode(state.get_id(), search_node_infos[state], cost_type);
 }
 
 void SearchSpace::trace_path(const GlobalState &goal_state,

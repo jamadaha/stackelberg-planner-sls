@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#define UNLTD_BUDGET std::numeric_limits<int>::max()
+
 class Axiom;
 class AxiomEvaluator;
 class CausalGraph;
@@ -73,6 +75,8 @@ extern RandomNumberGenerator g_rng;
 // changed.
 extern StateRegistry *g_state_registry;
 extern std::vector<const GlobalOperator*> g_plan;
+
+extern int g_initial_budget;
 
 
 

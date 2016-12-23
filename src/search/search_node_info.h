@@ -15,7 +15,7 @@ struct SearchNodeInfo {
     int h : 31; // TODO:CR - should we get rid of it
     bool h_is_dirty : 1;
     StateID parent_state_id;
-    std::vector<StateID> all_parent_state_ids;
+    std::vector<std::pair<StateID, int>> all_parent_state_ids;
     std::vector<const GlobalOperator*> all_parent_creating_operators;
     int num_non_dead_end_childs = 0;
     const GlobalOperator *creating_operator;
