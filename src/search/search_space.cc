@@ -195,7 +195,7 @@ void SearchSpace::trace_path(const GlobalState &goal_state,
         }
         path.push_back(op);
         current_state = g_state_registry->lookup_state(info.parent_state_id);
-        current_budget = current_budget + op->get_cost2();
+        current_budget = current_budget == UNLTD_BUDGET? current_budget : current_budget + op->get_cost2();
     }
     reverse(path.begin(), path.end());
 }

@@ -25,11 +25,16 @@ void Heuristic::set_preferred(const GlobalOperator *op) {
     }
 }
 
-void Heuristic::evaluate(const GlobalState &state) {
+void Heuristic::evaluate(const GlobalState &state, int budget) {
     if (heuristic == NOT_INITIALIZED)
         initialize();
     preferred_operators.clear();
-    heuristic = compute_heuristic(state);
+    if(needs_buget()) {
+    	heuristic = compute_heuristic(state, budget);
+    } else {
+    	heuristic = compute_heuristic(state, budget);
+    }
+
     for (size_t i = 0; i < preferred_operators.size(); ++i)
         preferred_operators[i]->unmark();
     assert(heuristic == DEAD_END || heuristic >= 0);

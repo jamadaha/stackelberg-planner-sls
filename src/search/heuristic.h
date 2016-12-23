@@ -3,6 +3,7 @@
 
 #include "scalar_evaluator.h"
 #include "operator_cost.h"
+#include "globals.h"
 
 #include <map>
 #include <set>
@@ -27,6 +28,8 @@ protected:
     enum {DEAD_END = -1};
     virtual void initialize() {}
     virtual int compute_heuristic(const GlobalState &state) = 0;
+    virtual int compute_heuristic(const GlobalState&, int) {return 0; }
+    virtual bool needs_buget() {return false; }
     // Usage note: It's OK to set the same operator as preferred
     // multiple times -- it will still only appear in the list of
     // preferred operators for this heuristic once.
@@ -36,7 +39,7 @@ public:
     Heuristic(const Options &options);
     virtual ~Heuristic();
 
-    void evaluate(const GlobalState &state);
+    void evaluate(const GlobalState &state, int budget = UNLTD_BUDGET);
     bool is_dead_end() const;
     int get_heuristic();
     // changed to virtual, so HeuristicProxy can delegate this:

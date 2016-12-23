@@ -29,6 +29,7 @@ protected:
     OperatorCost cost_type;
     double max_time;
     const GlobalState* goal_state = NULL;
+    int goal_state_budget = UNLTD_BUDGET;
 
     virtual void initialize() {}
     virtual SearchStatus step() = 0;
@@ -52,6 +53,7 @@ public:
     virtual void reset(){};
     SearchSpace* get_search_space() {return &search_space; }
     const GlobalState* get_goal_state() {return goal_state; }
+    int get_goal_state_budget() {return goal_state_budget; }
     static void add_options_to_parser(OptionParser &parser);
 };
 

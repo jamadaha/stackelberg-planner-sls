@@ -72,7 +72,7 @@ void EagerSearch::initialize() {
 
     const GlobalState &initial_state = g_initial_state();
     for (size_t i = 0; i < heuristics.size(); ++i)
-        heuristics[i]->evaluate(initial_state);
+        heuristics[i]->evaluate(initial_state, g_initial_budget);
     open_list->evaluate(0, false);
     search_progress.inc_evaluated_states();
     search_progress.inc_evaluations(heuristics.size());
@@ -118,7 +118,7 @@ SearchStatus EagerSearch::step() {
     // This evaluates the expanded state (again) to get preferred ops
     for (size_t i = 0; i < preferred_operator_heuristics.size(); ++i) {
         Heuristic *h = preferred_operator_heuristics[i];
-        h->evaluate(s);
+        h->evaluate(s, budget);
         if (!h->is_dead_end()) {
             // In an alternation search with unreliable heuristics, it is
             // possible that this heuristic considers the state a dead end.
@@ -176,7 +176,7 @@ SearchStatus EagerSearch::step() {
             // We have not seen this state before.
             // Evaluate and create a new node.
             for (size_t j = 0; j < heuristics.size(); ++j)
-                heuristics[j]->evaluate(succ_state);
+                heuristics[j]->evaluate(succ_state, new_budget);
             succ_node.clear_h_dirty();
             search_progress.inc_evaluated_states();
             search_progress.inc_evaluations(heuristics.size());
@@ -287,7 +287,7 @@ pair<SearchNode, bool> EagerSearch::fetch_next_node() {
             assert(node.get_h() == pushed_h);
             if (!node.is_closed() && node.is_h_dirty()) {
                 for (size_t i = 0; i < heuristics.size(); ++i)
-                    heuristics[i]->evaluate(node.get_state());
+                    heuristics[i]->evaluate(node.get_state(), node.get_budget());
                 node.clear_h_dirty();
                 search_progress.inc_evaluations(heuristics.size());
 

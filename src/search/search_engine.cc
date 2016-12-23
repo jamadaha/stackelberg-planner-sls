@@ -76,6 +76,7 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state, int budget)
         if(goal_state != NULL)
         	delete goal_state;
         goal_state = new GlobalState(state);
+        goal_state_budget = budget;
         return true;
     }
     return false;
