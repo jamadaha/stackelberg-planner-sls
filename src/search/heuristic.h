@@ -26,10 +26,13 @@ class Heuristic : public ScalarEvaluator {
 protected:
     OperatorCost cost_type;
     enum {DEAD_END = -1};
+
+    bool needs_buget = false;
+
     virtual void initialize() {}
     virtual int compute_heuristic(const GlobalState &state) = 0;
     virtual int compute_heuristic(const GlobalState&, int) {return 0; }
-    virtual bool needs_buget() {return false; }
+
     // Usage note: It's OK to set the same operator as preferred
     // multiple times -- it will still only appear in the list of
     // preferred operators for this heuristic once.

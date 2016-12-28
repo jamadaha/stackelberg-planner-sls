@@ -32,7 +32,6 @@ protected:
     virtual void initialize();
     virtual int compute_heuristic(const GlobalState&) {std::cout << "compute_heuristic() without budget not supported here!" << std::endl; exit(-1);}
     virtual int compute_heuristic(const GlobalState &state, int budget);
-    virtual bool needs_budget() {return true; }
 public:
     void reinitialize(AttackSearchSpace* attack_search_space, SearchSpace* search_space, OpenList<std::pair<StateID, int>>* open_list, GlobalState goal_state, int goal_state_budget);
 	void set_curr_attack_search_space (AttackSearchSpace* attack_search_space) {curr_attack_search_space = attack_search_space; }

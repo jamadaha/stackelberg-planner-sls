@@ -29,10 +29,10 @@ void Heuristic::evaluate(const GlobalState &state, int budget) {
     if (heuristic == NOT_INITIALIZED)
         initialize();
     preferred_operators.clear();
-    if(needs_buget()) {
+    if(needs_buget) {
     	heuristic = compute_heuristic(state, budget);
     } else {
-    	heuristic = compute_heuristic(state, budget);
+    	heuristic = compute_heuristic(state);
     }
 
     for (size_t i = 0; i < preferred_operators.size(); ++i)

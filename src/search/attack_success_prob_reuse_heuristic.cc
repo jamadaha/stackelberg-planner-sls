@@ -18,6 +18,7 @@
 AttackSuccessProbReuseHeuristic::AttackSuccessProbReuseHeuristic(const Options &opts)
 : Heuristic(opts),
   curr_attack_search_space(NULL){
+	needs_buget = true;
 	default_heuristic = opts.get<Heuristic*>("default_heuristic");
 }
 
