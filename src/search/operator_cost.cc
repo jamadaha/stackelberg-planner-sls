@@ -22,6 +22,8 @@ int get_adjusted_action_cost(const GlobalOperator &op, OperatorCost cost_type) {
             return 1;
         else
             return op.get_cost() + 1;
+    case COST2:
+    	return op.get_cost2();
     default:
         ABORT("Unknown cost type");
     }
