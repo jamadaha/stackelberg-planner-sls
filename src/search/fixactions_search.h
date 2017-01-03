@@ -16,10 +16,8 @@ template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2
 
 struct FixSearchInfo {
         int attack_plan_prob_cost;
-        int fix_actions_cost;
-        FixSearchInfo(int _attack_plan_prob_cost = -1, int _fix_actions_cost = -1)
-        : attack_plan_prob_cost(_attack_plan_prob_cost),
-		  fix_actions_cost(_fix_actions_cost){ }
+        FixSearchInfo(int _attack_plan_prob_cost = -1)
+        : attack_plan_prob_cost(_attack_plan_prob_cost){ }
 };
 
 

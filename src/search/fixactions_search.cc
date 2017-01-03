@@ -47,13 +47,14 @@ AttackSuccessProbReuseHeuristic* attack_heuristic;
 vector<triple<int, int, vector<vector<const GlobalOperator* >>>> pareto_frontier;
 int fix_action_costs_for_no_attacker_solution;
 PerStateInformation<FixSearchInfo> fix_search_node_infos;
+int initial_fix_actions_budget = UNLTD_BUDGET;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
 	search_engine = opts.get<SearchEngine*>("search_engine");
 	attack_heuristic = (AttackSuccessProbReuseHeuristic*) opts.get<Heuristic*>("attack_heuristic");
 	g_initial_budget = opts.get<int>("initial_attack_budget");
-	cout << "Initial attacker Budget is " << g_initial_budget << endl;
+	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
 }
 
 FixActionsSearch::~FixActionsSearch() {
@@ -462,10 +463,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	if (info.attack_plan_prob_cost != -1) {
 		attack_plan_cost = info.attack_plan_prob_cost;
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
-		if(info.fix_actions_cost != -1 && info.fix_actions_cost < fix_actions_cost) {
-			cout << "Known fix action sequence is cheaper as current... don't make further recursive calls. " << endl;
-			return;
-		}
 		attack_heuristic_search_space = attack_heuristic->get_curr_attack_search_space();
 	} else {
 		vector<const GlobalOperator *> all_attack_operators;
@@ -502,7 +499,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_plan_cost = numeric_limits<int>::max();
 		}
 		info.attack_plan_prob_cost = attack_plan_cost;
-		info.fix_actions_cost = fix_actions_cost;
 	}
 
 	if(fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
@@ -675,6 +671,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<SearchEngine*>("search_engine");
 	parser.add_option<Heuristic*>("attack_heuristic");
 	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
+	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
 		return new FixActionsSearch(opts);
