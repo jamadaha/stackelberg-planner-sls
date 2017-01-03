@@ -52,6 +52,8 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
 	search_engine = opts.get<SearchEngine*>("search_engine");
 	attack_heuristic = (AttackSuccessProbReuseHeuristic*) opts.get<Heuristic*>("attack_heuristic");
+	g_initial_budget = opts.get<int>("initial_attack_budget");
+	cout << "Initial attacker Budget is " << g_initial_budget << endl;
 }
 
 FixActionsSearch::~FixActionsSearch() {
@@ -672,6 +674,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	FixActionsSearch::add_options_to_parser(parser);
 	parser.add_option<SearchEngine*>("search_engine");
 	parser.add_option<Heuristic*>("attack_heuristic");
+	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
 		return new FixActionsSearch(opts);
