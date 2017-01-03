@@ -20,6 +20,7 @@ protected:
 	virtual int compute_heuristic(const GlobalState&) {std::cout << "compute_heuristic() without budget not supported here!" << std::endl; exit(-1);}
 	virtual int compute_heuristic(const GlobalState &state, int budget);
 public:
+	Heuristic* get_prob_cost_heuristic() {return prob_cost_heuristic; }
 	BudgetDeadEndHeuristic(const Options &opts);
 	virtual ~BudgetDeadEndHeuristic();
 };

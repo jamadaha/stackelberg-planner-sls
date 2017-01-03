@@ -46,6 +46,9 @@ void add_cost_type_option_to_parser(OptionParser &parser) {
         "This is the behaviour known for the heuristics of the LAMA planner. "
         "This is intended to be used by the heuristics, not search engines, "
         "but is supported for both.");
+    cost_types.push_back("COST2");
+    cost_types_doc.push_back(
+        "all actions are accounted for as their real cost2");
     parser.add_enum_option(
         "cost_type",
         cost_types,

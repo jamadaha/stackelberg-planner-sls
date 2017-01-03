@@ -15,7 +15,10 @@
 #include <algorithm>
 #include "attack_success_prob_reuse_heuristic.h"
 #include "eager_search.h"
+#include "budget_dead_end_heuristic.h"
 #include <chrono>
+
+//#define FIX_SEARCH_DEBUG
 
 using namespace std;
 
@@ -61,7 +64,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	search_engine = opts.get<SearchEngine*>("search_engine");
 
 	if(opts.contains("attack_heuristic")) {
-		attack_heuristic = (AttackSuccessProbReuseHeuristic*) opts.get<Heuristic*>("attack_heuristic");
+		attack_heuristic = (AttackSuccessProbReuseHeuristic*) (((BudgetDeadEndHeuristic*)opts.get<Heuristic*>("attack_heuristic"))->get_prob_cost_heuristic());
 	} else {
 		attack_heuristic = NULL;
 	}
@@ -468,7 +471,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
 #endif
-		if(attack_heuristic != NULL) {
+		if (attack_heuristic != NULL) {
 			attack_heuristic_search_space = attack_heuristic->get_curr_attack_search_space();
 		}
 	} else {

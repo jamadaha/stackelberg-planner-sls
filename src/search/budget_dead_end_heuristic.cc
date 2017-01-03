@@ -13,6 +13,7 @@ using namespace std;
 
 BudgetDeadEndHeuristic::BudgetDeadEndHeuristic(const Options &opts)
 : Heuristic(opts) {
+	needs_buget = true;
 	budget_heuristic = opts.get<Heuristic*>("budget_heuristic");
 	prob_cost_heuristic = opts.get<Heuristic*>("prob_cost_heuristic");
 }
@@ -29,7 +30,17 @@ int BudgetDeadEndHeuristic::compute_heuristic(const GlobalState &state, int budg
 	if (test_goal(state))
 		return 0;
 
-	return budget;
+	budget_heuristic->evaluate(state);
+	int budget_heuristic_value = budget_heuristic->get_value();
+	if(budget_heuristic_value == DEAD_END || budget_heuristic_value > budget) {
+		//cout << "Actually detected DEAD_END!" << endl;
+		return DEAD_END;
+	}
+
+	prob_cost_heuristic->evaluate(state, budget);
+	int prob_cost_heuristic_value = prob_cost_heuristic->get_value();
+
+	return prob_cost_heuristic_value;
 }
 
 static Heuristic *_parse(OptionParser &parser) {
