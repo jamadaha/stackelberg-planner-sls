@@ -92,6 +92,8 @@ public:
     	all_search_node_infos.resize(0);
     }
 
+    int get_num_search_node_infos() {return all_search_node_infos.size(); }
+
     void dump() const;
     void statistics() const;
 };

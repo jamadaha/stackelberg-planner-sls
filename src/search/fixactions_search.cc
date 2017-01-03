@@ -53,11 +53,19 @@ int initial_fix_actions_budget = UNLTD_BUDGET;
 int num_recursive_calls = 0;
 int num_attacker_searches = 0;
 long attack_search_duration_sum = 0;
+int all_attacker_states = 0;
+int all_attacker_states_modulo_budget = 0;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
 	search_engine = opts.get<SearchEngine*>("search_engine");
-	attack_heuristic = (AttackSuccessProbReuseHeuristic*) opts.get<Heuristic*>("attack_heuristic");
+
+	if(opts.contains("attack_heuristic")) {
+		attack_heuristic = (AttackSuccessProbReuseHeuristic*) opts.get<Heuristic*>("attack_heuristic");
+	} else {
+		attack_heuristic = NULL;
+	}
+
 	g_initial_budget = opts.get<int>("initial_attack_budget");
 	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
 }
@@ -460,7 +468,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
 #endif
-		attack_heuristic_search_space = attack_heuristic->get_curr_attack_search_space();
+		if(attack_heuristic != NULL) {
+			attack_heuristic_search_space = attack_heuristic->get_curr_attack_search_space();
+		}
 	} else {
 		num_attacker_searches++;
 		vector<const GlobalOperator *> all_attack_operators;
@@ -493,6 +503,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		cout.rdbuf (old);   			// <-- restore
 #endif
 
+		SearchSpace *search_space = search_engine->get_search_space();
+		all_attacker_states += search_space->get_num_search_node_infos();
+		all_attacker_states_modulo_budget += g_state_registry->size();
 
 		if (search_engine->found_solution()) {
 			search_engine->save_plan_if_necessary();
@@ -501,14 +514,16 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			cout << "Attack plan cost is " << attack_plan_cost << endl;
 #endif
 
-			attack_heuristic_search_space = new AttackSearchSpace();
-			free_attack_heuristic_per_state_info = true;
+			if (attack_heuristic != NULL) {
+				attack_heuristic_search_space = new AttackSearchSpace();
+				free_attack_heuristic_per_state_info = true;
 
-			SearchSpace *search_space = search_engine->get_search_space();
-			OpenList<pair<StateID, int>> *open_list = ((EagerSearch*) search_engine)->get_open_list();
-			const GlobalState *goal_state = search_engine->get_goal_state();
-			const int goal_state_budget = search_engine->get_goal_state_budget();
-			attack_heuristic->reinitialize(attack_heuristic_search_space, search_space, open_list, *goal_state, goal_state_budget);
+				OpenList<pair<StateID, int>> *open_list = ((EagerSearch*) search_engine)->get_open_list();
+				const GlobalState *goal_state = search_engine->get_goal_state();
+				const int goal_state_budget = search_engine->get_goal_state_budget();
+				attack_heuristic->reinitialize(attack_heuristic_search_space, search_space, open_list, *goal_state,
+						goal_state_budget);
+			}
 		} else {
 #ifdef FIX_SEARCH_DEBUG
 			cout << "Attacker task was not solvable!" << endl;
@@ -559,7 +574,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
-		attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
+		if (attack_heuristic != NULL) {
+			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
+		}
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, sleep, use_partial_order_reduction);
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
@@ -671,6 +688,8 @@ SearchStatus FixActionsSearch::step() {
     cout << "Search in Fixactions Statespace took " << (duration - attack_search_duration_sum) << "ms" << endl;
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "They were " << num_attacker_searches << " searches in Attacker Statespace" << endl;
+	cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
+	cout << "Attacker Searchspace had " << (all_attacker_states_modulo_budget / num_attacker_searches) << " states (modulo budget) on average" << endl;
 	dump_pareto_frontier();
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
@@ -683,7 +702,7 @@ void FixActionsSearch::add_options_to_parser(OptionParser &parser) {
 SearchEngine * _parse(OptionParser & parser) {
 	FixActionsSearch::add_options_to_parser(parser);
 	parser.add_option<SearchEngine*>("search_engine");
-	parser.add_option<Heuristic*>("attack_heuristic");
+	parser.add_option<Heuristic*>("attack_heuristic", "The heuristic used for search in AttackerStateSpace", "", OptionFlags(false));
 	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
 	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
 	Options opts = parser.parse();
