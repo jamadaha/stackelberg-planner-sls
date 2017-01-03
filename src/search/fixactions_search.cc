@@ -57,7 +57,6 @@ int num_recursive_calls = 0;
 int num_attacker_searches = 0;
 long attack_search_duration_sum = 0;
 int all_attacker_states = 0;
-int all_attacker_states_modulo_budget = 0;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
@@ -508,7 +507,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		SearchSpace *search_space = search_engine->get_search_space();
 		all_attacker_states += search_space->get_num_search_node_infos();
-		all_attacker_states_modulo_budget += g_state_registry->size();
 
 		if (search_engine->found_solution()) {
 			search_engine->save_plan_if_necessary();
@@ -692,7 +690,7 @@ SearchStatus FixActionsSearch::step() {
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "They were " << num_attacker_searches << " searches in Attacker Statespace" << endl;
 	cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
-	cout << "Attacker Searchspace had " << (all_attacker_states_modulo_budget / num_attacker_searches) << " states (modulo budget) on average" << endl;
+	cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
 	dump_pareto_frontier();
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
