@@ -15,6 +15,7 @@
 #include <algorithm>
 #include "attack_success_prob_reuse_heuristic.h"
 #include "eager_search.h"
+#include <chrono>
 
 using namespace std;
 
@@ -49,6 +50,10 @@ int fix_action_costs_for_no_attacker_solution;
 PerStateInformation<FixSearchInfo> fix_search_node_infos;
 int initial_fix_actions_budget = UNLTD_BUDGET;
 
+int num_recursive_calls = 0;
+int num_attacker_searches = 0;
+long attack_search_duration_sum = 0;
+
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
 	search_engine = opts.get<SearchEngine*>("search_engine");
@@ -62,12 +67,11 @@ FixActionsSearch::~FixActionsSearch() {
 }
 
 void FixActionsSearch::initialize() {
+	cout << "Initializing FixActionsSearch..." << endl;
 
 	// Sort the operators
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 		string op_name = g_operators[op_no].get_name();
-		cout << "For op " << op_no << ": " << endl;
-		g_operators[op_no].dump();
 
 		size_t whitespace = op_name.find(" ");
 		if (whitespace == string::npos) {
@@ -83,7 +87,6 @@ void FixActionsSearch::initialize() {
 		if (op_name.find("attack") == 0) {
 			string prob = everything_before_whitespace.substr(underscore + 1);
 			int success_prob_cost = parse_success_prob_cost(prob);
-			cout << "success_prob_cost: " << success_prob_cost << endl;
 			g_operators[op_no].set_cost2(success_prob_cost);
 
 			attack_operators.push_back(g_operators[op_no]);
@@ -101,7 +104,6 @@ void FixActionsSearch::initialize() {
 			int invention_cost = stoi(invention_cost_string);
 			int id = stoi(id_string);
 
-			cout << "parsed invention_cost: " << invention_cost << ", and fix action scheme id: " << id << endl;
 			g_operators[op_no].set_cost2(invention_cost);
 			g_operators[op_no].set_scheme_id(id);
 
@@ -113,39 +115,21 @@ void FixActionsSearch::initialize() {
 		}
 	}
 
-	cout << "1" << endl;
 	// Sort the variables
 	divideVariables();
 
-	cout << "2" << endl;
-
 	clean_attack_actions();
-
-	cout << "3" << endl;
 
 	g_operators.clear();
 
-	cout << "4" << endl;
-
 	create_new_variable_indices();
-
-	cout << "5" << endl;
 
 	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
 
-	cout << "6" << endl;
-
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
-	cout << "attack_operators_for_fix_vars_successor_generator: " << endl;
-	//attack_operators_for_fix_vars_successor_generator->dump();
-
-	cout << "7" << endl;
 
 	compute_commutative_fix_ops_matrix();
-
-	cout << "8" << endl;
-
 }
 
 int FixActionsSearch::parse_success_prob_cost(string prob) {
@@ -235,13 +219,8 @@ void FixActionsSearch::create_new_variable_indices() {
 	int var = 0;
 	for (int i = 0; i < num_vars_temp; i++) {
 
-		cout << "i: " << i << ", var: " << var << ", num_vars: " << num_vars << endl;
-
 		if (attack_vars.find(var) == attack_vars.end()) {
 			// This is a fix var
-
-			cout << "is a fix var" << endl;
-
 			// Save it to local vectors
 			fix_variable_domain.push_back(g_variable_domain[i]);
 			fix_variable_name.push_back(g_variable_name[i]);
@@ -395,10 +374,12 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 	commutative_fix_ops.assign(fix_operators.size(), val);
 	for (size_t op_no1 = 0; op_no1 < fix_operators.size(); op_no1++) {
 		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
+#ifdef FIX_SEARCH_DEBUG
 			cout << "Comparing op1 with id " << op_no1 << ":" << endl;
 			fix_operators[op_no1].dump(fix_variable_name);
 			cout << "to op2 with id " << op_no2 << ":" << endl;
 			fix_operators[op_no2].dump(fix_variable_name);
+#endif
 
 			const vector<GlobalCondition> &conditions1 = fix_operators[op_no1].get_preconditions();
 			const vector<GlobalCondition> &conditions2 = fix_operators[op_no2].get_preconditions();
@@ -434,18 +415,20 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 					break;
 				}
 			}
+#ifdef FIX_SEARCH_DEBUG
 			cout << "ops are commutative?: " << commutative << endl;
+#endif
 			commutative_fix_ops[op_no1][op_no2] = commutative;
 			commutative_fix_ops[op_no2][op_no1] = commutative;
 		}
 	}
 }
 
-int num_recursive_calls = 0;
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
 
+#ifdef FIX_SEARCH_DEBUG
 	cout << "in call of expand_all_successors for state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	cout << "and current fix actions op_sequence: " << endl;
@@ -455,10 +438,14 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	cout << "fix_actions_cost: " << fix_actions_cost << endl;
 	cout << "fix_action_costs_for_no_attacker_solution: " << fix_action_costs_for_no_attacker_solution << endl;
+#endif
+
 	if(fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
 		// Return if the fix_action_cost is already greater than the cost of an already known sequence
 		// leading to a state where no attacker solution can be found
+#ifdef FIX_SEARCH_DEBUG
 		cout << "Return, because the fix_action_cost is already greater than fix_action_costs_for_no_attacker_solution" << endl;
+#endif
 		return;
 	}
 
@@ -470,9 +457,12 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	if (info.attack_plan_prob_cost != -1) {
 		attack_plan_cost = info.attack_plan_prob_cost;
+#ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known: " << attack_plan_cost << endl;
+#endif
 		attack_heuristic_search_space = attack_heuristic->get_curr_attack_search_space();
 	} else {
+		num_attacker_searches++;
 		vector<const GlobalOperator *> all_attack_operators;
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
 		g_operators.clear();
@@ -481,18 +471,35 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			g_operators.push_back(*all_attack_operators[op_no]);
 			//all_attack_operators[op_no]->dump();
 		}
-		cout << "New g_operators size is: " << g_operators.size() << endl;
 		g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
 		//g_successor_generator->dump();
 		//cout << "Attacker dump everything: " << endl;
 		//dump_everything();
 		search_engine->reset();
-		search_engine->search();
+
+		// Call search, but make sure that no stuff is written to cout when we are not debugging
+#ifndef FIX_SEARCH_DEBUG
+		streambuf *old = cout.rdbuf(); // <-- save
+		stringstream ss;
+		cout.rdbuf (ss.rdbuf());       // <-- redirect
+#endif
+		chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+		search_engine->search();       // <-- call
+	    chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+	    auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
+	    attack_search_duration_sum += duration;
+
+#ifndef FIX_SEARCH_DEBUG
+		cout.rdbuf (old);   			// <-- restore
+#endif
+
 
 		if (search_engine->found_solution()) {
 			search_engine->save_plan_if_necessary();
 			attack_plan_cost = calculate_plan_cost(g_plan);
+#ifdef FIX_SEARCH_DEBUG
 			cout << "Attack plan cost is " << attack_plan_cost << endl;
+#endif
 
 			attack_heuristic_search_space = new AttackSearchSpace();
 			free_attack_heuristic_per_state_info = true;
@@ -503,7 +510,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			const int goal_state_budget = search_engine->get_goal_state_budget();
 			attack_heuristic->reinitialize(attack_heuristic_search_space, search_space, open_list, *goal_state, goal_state_budget);
 		} else {
+#ifdef FIX_SEARCH_DEBUG
 			cout << "Attacker task was not solvable!" << endl;
+#endif
 			attack_plan_cost = numeric_limits<int>::max();
 		}
 		info.attack_plan_prob_cost = attack_plan_cost;
@@ -520,24 +529,17 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	}
 
 	vector<const GlobalOperator *> all_operators;
-	cout << "8" << endl;
 	fix_operators_successor_generator->generate_applicable_ops(state, all_operators);
 
-	cout << "9" << endl;
-
 	for (size_t op_no = 0; op_no < all_operators.size(); op_no++) {
-		cout << "10" << endl;
 		if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(), all_operators[op_no]) != fix_ops_sequence.end()) {
 			// Continue, if op is already in sequence
-			cout << "11 op already in sequence" << endl;
 			continue;
 		}
 		if (sleep[op_no] != 0) {
 			// Continue, if op is in sleep set
-			cout << "12 op is skipped, because it's in the sleep set" << endl;
 			continue;
 		}
-		cout << "13" << endl;
 
 		fix_ops_sequence.push_back(all_operators[op_no]);
 		int new_fix_actions_cost = calculate_fix_actions_plan_cost(fix_ops_sequence);
@@ -559,7 +561,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
 		attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, sleep, use_partial_order_reduction);
-		cout << "14" << endl;
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
 		if (use_partial_order_reduction) {
@@ -661,9 +662,15 @@ SearchStatus FixActionsSearch::step() {
 	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
+	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, sleep, true);
+    chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
+    cout << "Everything took: " << duration << "ms" << endl;
+    cout << "Search in Attacker Statespace took " << attack_search_duration_sum << "ms" << endl;
+    cout << "Search in Fixactions Statespace took " << (duration - attack_search_duration_sum) << "ms" << endl;
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
-	cout << "15" << endl;
+	cout << "They were " << num_attacker_searches << " searches in Attacker Statespace" << endl;
 	dump_pareto_frontier();
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
