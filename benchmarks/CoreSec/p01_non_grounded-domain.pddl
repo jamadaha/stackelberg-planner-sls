@@ -87,19 +87,19 @@
     :effect (and (increase (total-cost) 3) (and (controlling ?t)))
 )
 
-(:action FIX_install_firewall_0
+(:action FIX_install_firewall_0#1
     :parameters (?src ?dest - host ?p - port)
     :precondition (and (hacl ?src ?dest ?p))
     :effect (and (increase (total-cost) 1) (and (not (hacl ?src ?dest ?p))))
 )
 
-(:action FIX_upgrade_os_5
+(:action FIX_upgrade_os_0#2
     :parameters (?h - host ?os - operatingsystem ?osv1 - osversion ?osv2 - osversion)
     :precondition (and (has_OS ?h ?os) (has_OS_version ?h ?osv1) (os_upgrade ?os ?osv1 ?osv2))
     :effect (and (increase (total-cost) 1) (and (not (has_OS_version ?h ?osv1)) (has_OS_version ?h ?osv2)))
 )
 
-(:action FIX_upgrade_service_5
+(:action FIX_upgrade_service_0#3
     :parameters (?h - host ?s - service ?sv1 - serviceversion ?sv2 - serviceversion)
     :precondition (and (has_service ?h ?s) (has_service_version ?h ?s ?sv1) (service_upgrade ?s ?sv1 ?sv2))
     :effect (and (increase (total-cost) 1) (and (not (has_service_version ?h ?s ?sv1)) (has_service_version ?h ?s ?sv2)))
