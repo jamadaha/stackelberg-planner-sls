@@ -399,23 +399,24 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 			bool commutative = true;
 			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
 			for (int var = 0; var < num_fix_vars; var++) {
-				while (conditions1[i_cond1].var < var && i_cond1 < ((int) conditions1.size() - 1)) {
+				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
 					i_cond1++;
 				}
-				while (conditions2[i_cond2].var < var && i_cond2 < ((int) conditions2.size() - 1)) {
+				while (i_cond2 < ((int) conditions2.size() - 1) && conditions2[i_cond2].var < var) {
 					i_cond2++;
 				}
-				while (effects1[i_eff1].var < var && i_eff1 < ((int) effects1.size() - 1)) {
+				while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
 					i_eff1++;
 				}
-				while (effects2[i_eff2].var < var && i_eff2 < ((int) effects2.size() - 1)) {
+				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
 					i_eff2++;
 				}
-				if ((conditions1[i_cond1].var == var && effects2[i_eff2].var == var)
-						|| (conditions2[i_cond2].var == var && effects1[i_eff1].var == var)) {
+				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var) {
+					commutative = false;
+				}else if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var) {
 					commutative = false;
 				} else {
-					if (effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
+					if (i_eff1 < (int) effects1.size() && i_eff2 < (int) effects2.size() && effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
 						if (effects1[i_eff1].val != effects2[i_eff2].val) {
 							commutative = false;
 						}
