@@ -386,9 +386,9 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
 #ifdef FIX_SEARCH_DEBUG
 			cout << "Comparing op1 with id " << op_no1 << ":" << endl;
-			fix_operators[op_no1].dump(fix_variable_name);
+			fix_operators[op_no1].dump(fix_variable_name, fix_variable_name);
 			cout << "to op2 with id " << op_no2 << ":" << endl;
-			fix_operators[op_no2].dump(fix_variable_name);
+			fix_operators[op_no2].dump(fix_variable_name, fix_variable_name);
 #endif
 
 			const vector<GlobalCondition> &conditions1 = fix_operators[op_no1].get_preconditions();
@@ -459,7 +459,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		return;
 	}
 
-	AttackSearchSpace* attack_heuristic_search_space;
+	AttackSearchSpace* attack_heuristic_search_space = NULL;
 	bool free_attack_heuristic_per_state_info = false;
 
 	int attack_plan_cost = numeric_limits<int>::max();
