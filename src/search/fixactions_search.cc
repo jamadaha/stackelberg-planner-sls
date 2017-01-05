@@ -678,6 +678,7 @@ void dump_pareto_frontier () {
 }
 
 SearchStatus FixActionsSearch::step() {
+	cout << "Starting fix-actions search..." << endl;
 	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> sleep(fix_operators.size(), 0);
