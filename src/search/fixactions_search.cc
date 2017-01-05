@@ -442,7 +442,7 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 	}
 }
 
-void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, vector<const GlobalOperator*> parent_attack_plan, vector<int> &sleep,
+void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, vector<int> parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
 
@@ -473,9 +473,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		parent_attack_plan_applicable = true;
 		// Check whether parent_attack_plan is still applicable in current fix-state
 		for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
-			const GlobalOperator *op = parent_attack_plan[op_no];
-			op->dump(g_variable_name, g_variable_name);
-			if(!attack_operators_with_fix_vars_preconds[op->get_op_id()].is_applicable(state)) {
+			if(!attack_operators_with_fix_vars_preconds[parent_attack_plan[op_no]].is_applicable(state)) {
 				parent_attack_plan_applicable = false;
 				break;
 			}
@@ -495,7 +493,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		cout << "Attack prob cost for this state is already known in PerStateInformation: " << attack_plan_cost << endl;
 #endif
 		} else {
-			attack_plan_cost = calculate_plan_cost(parent_attack_plan);
+			attack_plan_cost = parent_attack_plan_cost;
 			info.attack_plan_prob_cost = attack_plan_cost;
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known from parent_attack_plan: " << attack_plan_cost << endl;
@@ -577,11 +575,13 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	}
 
 	// Copy found plan to local vector
-	vector<const GlobalOperator*> plan;
+	vector<int> plan;
 	if (parent_attack_plan_applicable) {
 		copy(parent_attack_plan.begin(), parent_attack_plan.end(), back_inserter(plan));
 	} else {
-		copy(g_plan.begin(), g_plan.end(), back_inserter(plan));
+		for(size_t op_no = 0; op_no < g_plan.size(); op_no++) {
+			plan.push_back(g_plan[op_no]->get_op_id());
+		}
 	}
 
 	vector<const GlobalOperator *> all_operators;
@@ -618,7 +618,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		if (attack_heuristic != NULL) {
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
-		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, plan, sleep, use_partial_order_reduction);
+		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, plan, attack_plan_cost, sleep, use_partial_order_reduction);
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
 		if (use_partial_order_reduction) {
@@ -720,10 +720,10 @@ SearchStatus FixActionsSearch::step() {
 	cout << "Starting fix-actions search..." << endl;
 	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
-	vector<const GlobalOperator*> parent_attack_plan;
+	vector<int> parent_attack_plan;
 	vector<int> sleep(fix_operators.size(), 0);
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, sleep, true);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, true);
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
     cout << "Everything took: " << duration << "ms" << endl;
