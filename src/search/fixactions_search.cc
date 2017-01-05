@@ -579,9 +579,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	// Copy found plan to local vector
 	vector<const GlobalOperator*> plan;
 	if (parent_attack_plan_applicable) {
-		copy(parent_attack_plan.begin(), parent_attack_plan.end(), plan.begin());
+		copy(parent_attack_plan.begin(), parent_attack_plan.end(), back_inserter(plan));
 	} else {
-		copy(g_plan.begin(), g_plan.end(), plan.begin());
+		copy(g_plan.begin(), g_plan.end(), back_inserter(plan));
 	}
 
 	vector<const GlobalOperator *> all_operators;
