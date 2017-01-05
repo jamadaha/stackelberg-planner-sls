@@ -4,6 +4,7 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+#include <limits>
 
 #define UNLTD_BUDGET std::numeric_limits<int>::max()
 
@@ -23,7 +24,8 @@ class StateRegistry;
 bool test_goal(const GlobalState &state);
 void save_plan(const std::vector<const GlobalOperator *> &plan, int iter);
 int calculate_plan_cost(const std::vector<const GlobalOperator *> &plan);
-int calculate_fix_actions_plan_cost(const std::vector<const GlobalOperator *> &plan);
+int calculate_fix_actions_plan_cost(const std::vector<const GlobalOperator *>
+                                    &plan);
 
 void read_everything(std::istream &in);
 void dump_everything();
@@ -74,7 +76,7 @@ extern RandomNumberGenerator g_rng;
 // for each problem in this case the method GlobalState::get_id would also have to be
 // changed.
 extern StateRegistry *g_state_registry;
-extern std::vector<const GlobalOperator*> g_plan;
+extern std::vector<const GlobalOperator *> g_plan;
 
 extern int g_initial_budget;
 
