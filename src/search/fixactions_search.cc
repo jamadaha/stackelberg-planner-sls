@@ -386,9 +386,9 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
 #ifdef FIX_SEARCH_DEBUG
 			cout << "Comparing op1 with id " << op_no1 << ":" << endl;
-			fix_operators[op_no1].dump(fix_variable_name);
+			fix_operators[op_no1].dump(fix_variable_name, fix_variable_name);
 			cout << "to op2 with id " << op_no2 << ":" << endl;
-			fix_operators[op_no2].dump(fix_variable_name);
+			fix_operators[op_no2].dump(fix_variable_name, fix_variable_name);
 #endif
 
 			const vector<GlobalCondition> &conditions1 = fix_operators[op_no1].get_preconditions();
@@ -399,23 +399,24 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 			bool commutative = true;
 			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
 			for (int var = 0; var < num_fix_vars; var++) {
-				while (conditions1[i_cond1].var < var && i_cond1 < ((int) conditions1.size() - 1)) {
+				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
 					i_cond1++;
 				}
-				while (conditions2[i_cond2].var < var && i_cond2 < ((int) conditions2.size() - 1)) {
+				while (i_cond2 < ((int) conditions2.size() - 1) && conditions2[i_cond2].var < var) {
 					i_cond2++;
 				}
-				while (effects1[i_eff1].var < var && i_eff1 < ((int) effects1.size() - 1)) {
+				while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
 					i_eff1++;
 				}
-				while (effects2[i_eff2].var < var && i_eff2 < ((int) effects2.size() - 1)) {
+				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
 					i_eff2++;
 				}
-				if ((conditions1[i_cond1].var == var && effects2[i_eff2].var == var)
-						|| (conditions2[i_cond2].var == var && effects1[i_eff1].var == var)) {
+				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var) {
+					commutative = false;
+				}else if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var) {
 					commutative = false;
 				} else {
-					if (effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
+					if (i_eff1 < (int) effects1.size() && i_eff2 < (int) effects2.size() && effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
 						if (effects1[i_eff1].val != effects2[i_eff2].val) {
 							commutative = false;
 						}
@@ -459,7 +460,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		return;
 	}
 
-	AttackSearchSpace* attack_heuristic_search_space;
+	AttackSearchSpace* attack_heuristic_search_space = NULL;
 	bool free_attack_heuristic_per_state_info = false;
 
 	int attack_plan_cost = numeric_limits<int>::max();
