@@ -9,9 +9,6 @@
 #define SRC_SEARCH_ATTACK_SUCCESS_PROB_REUSE_HEURISTIC_H_
 
 #include "heuristic.h"
-#include "search_space.h"
-#include "open_lists/open_list.h"
-#include <limits>
 
 struct AttackSearchInfo {
         int attack_plan_prob_cost_heuristic_value;
@@ -32,11 +29,11 @@ protected:
     virtual void initialize();
     virtual int compute_heuristic(const GlobalState&) {std::cout << "compute_heuristic() without budget not supported here!" << std::endl; exit(-1);}
     virtual int compute_heuristic(const GlobalState &state, int budget);
-public:
-    void reinitialize(AttackSearchSpace* attack_search_space, SearchSpace* search_space, OpenList<std::pair<StateID, int>>* open_list, GlobalState goal_state, int goal_state_budget);
-	void set_curr_attack_search_space (AttackSearchSpace* attack_search_space) {curr_attack_search_space = attack_search_space; }
-	AttackSearchSpace* get_curr_attack_search_space () {return curr_attack_search_space; }
 	AttackSearchInfo& get_attack_search_info (const GlobalState &state, int budget);
+public:
+    virtual void reinitialize(AttackSearchSpace* attack_search_space, SearchSpace* search_space, OpenList<std::pair<StateID, int>>* open_list, GlobalState goal_state, int goal_state_budget);
+	virtual void set_curr_attack_search_space (AttackSearchSpace* attack_search_space) {curr_attack_search_space = attack_search_space; }
+	virtual AttackSearchSpace* get_curr_attack_search_space () {return curr_attack_search_space; }
     AttackSuccessProbReuseHeuristic(const Options &options);
 	virtual ~AttackSuccessProbReuseHeuristic();
 };

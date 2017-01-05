@@ -4,16 +4,23 @@
 #include "scalar_evaluator.h"
 #include "operator_cost.h"
 #include "globals.h"
+#include "search_space.h"
+#include "open_lists/open_list.h"
 
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
+#include <limits>
 
 class GlobalOperator;
 class GlobalState;
 class OptionParser;
 class Options;
+
+struct AttackSearchInfo;
+struct AttackSearchSpace;
+
 
 class Heuristic : public ScalarEvaluator {
     enum {NOT_INITIALIZED = -2};
@@ -61,6 +68,10 @@ public:
 
     static void add_options_to_parser(OptionParser &parser);
     static Options default_options();
+
+    virtual void reinitialize(AttackSearchSpace* , SearchSpace* , OpenList<std::pair<StateID, int>>* , GlobalState , int ) { }
+    virtual void set_curr_attack_search_space (AttackSearchSpace* ) { }
+    virtual AttackSearchSpace* get_curr_attack_search_space () {return NULL; }
 };
 
 #endif
