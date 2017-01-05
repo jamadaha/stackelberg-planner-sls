@@ -153,7 +153,7 @@ int FixActionsSearch::parse_success_prob_cost(string prob) {
 	string denominator_string = prob.substr(backslash + 1);
 	double numerator = (double) stoi(numerator_string);
 	double denominator = (double) stoi(denominator_string);
-	return (int) (fabs(log2(numerator / denominator)) * 100);
+	return (int) (fabs(log2(numerator / denominator)) * 1000);
 }
 
 void FixActionsSearch::divideVariables() {
