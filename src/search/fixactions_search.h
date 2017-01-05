@@ -29,6 +29,7 @@ protected:
     virtual void initialize();
     virtual SearchStatus step();
     int parse_success_prob_cost(std::string prob);
+    double prob_cost_to_prob(int prob_cost);
     void divideVariables();
     void clean_attack_actions();
     void create_new_variable_indices();
@@ -38,6 +39,11 @@ protected:
     void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, std::vector<int> &sleep,
     		bool use_partial_order_reduction);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
+
+    void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence);
+    void dump_op_sequence_sequence(const std::vector<std::vector<const GlobalOperator*>> &op_sequence_sequence);
+    void dump_pareto_frontier_node(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
+    void dump_pareto_frontier ();
 
 public:
     FixActionsSearch(const Options &opts);

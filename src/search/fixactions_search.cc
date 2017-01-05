@@ -156,6 +156,10 @@ int FixActionsSearch::parse_success_prob_cost(string prob) {
 	return (int) (fabs(log2(numerator / denominator)) * 1000);
 }
 
+double FixActionsSearch::prob_cost_to_prob(int prob_cost) {
+	return pow (2.0, -(prob_cost / 1000));
+}
+
 void FixActionsSearch::divideVariables() {
 	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
 		const vector<GlobalEffect> &effects = attack_operators[op_no].get_effects();
@@ -653,25 +657,25 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 
 }
 
-void dump_op_sequence(const vector<const GlobalOperator*> &op_sequence) {
+void FixActionsSearch::dump_op_sequence(const vector<const GlobalOperator*> &op_sequence) {
     for (size_t i = 0; i < op_sequence.size(); ++i) {
         cout << op_sequence[i]->get_name() << " (" << op_sequence[i]->get_cost() << ")" << endl;
     }
 }
 
-void dump_op_sequence_sequence(const vector<vector<const GlobalOperator*>> &op_sequence_sequence) {
+void FixActionsSearch::dump_op_sequence_sequence(const vector<vector<const GlobalOperator*>> &op_sequence_sequence) {
 	for (size_t i = 0; i < op_sequence_sequence.size(); ++i) {
 		cout << "sequence " << i << ":" << endl;
 		dump_op_sequence(op_sequence_sequence[i]);
 	}
 }
 
-void dump_pareto_frontier_node(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
-	cout << "fix ops costs: " << get<0>(node) << ", attack prob cost: " << get<1>(node) << ", sequences: " << endl;
+void FixActionsSearch::dump_pareto_frontier_node(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
+	cout << "fix ops costs: " << get<0>(node) << ", attack prob: " << prob_cost_to_prob(get<1>(node)) << ", sequences: " << endl;
 	dump_op_sequence_sequence(get<2>(node));
 }
 
-void dump_pareto_frontier () {
+void FixActionsSearch::dump_pareto_frontier () {
 	for (size_t i = 0; i < pareto_frontier.size(); ++i) {
 		dump_pareto_frontier_node(pareto_frontier[i]);
 	}
