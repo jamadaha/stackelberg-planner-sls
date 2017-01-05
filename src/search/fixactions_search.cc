@@ -157,7 +157,10 @@ int FixActionsSearch::parse_success_prob_cost(string prob) {
 }
 
 double FixActionsSearch::prob_cost_to_prob(int prob_cost) {
-	return pow (2.0, -(prob_cost / 1000));
+	if(prob_cost == numeric_limits<int>::max()) {
+		return 0.0;
+	}
+	return pow (2.0, -(((double)prob_cost) / 1000));
 }
 
 void FixActionsSearch::divideVariables() {
