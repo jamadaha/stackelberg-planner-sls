@@ -36,7 +36,7 @@ protected:
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_fix_ops_matrix();
-    void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, std::vector<int> &sleep,
+    void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, std::vector<const GlobalOperator*> parent_attack_plan, std::vector<int> &sleep,
     		bool use_partial_order_reduction);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
