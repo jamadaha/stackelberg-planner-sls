@@ -442,7 +442,7 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 	}
 }
 
-void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, vector<int> parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
+void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
 
@@ -576,9 +576,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	// Copy found plan to local vector
 	vector<int> plan;
-	if (parent_attack_plan_applicable) {
-		copy(parent_attack_plan.begin(), parent_attack_plan.end(), back_inserter(plan));
-	} else {
+	if (!parent_attack_plan_applicable) {
 		for(size_t op_no = 0; op_no < g_plan.size(); op_no++) {
 			plan.push_back(g_plan[op_no]->get_op_id());
 		}
@@ -618,7 +616,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		if (attack_heuristic != NULL) {
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
-		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, plan, attack_plan_cost, sleep, use_partial_order_reduction);
+		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : plan, attack_plan_cost, sleep, use_partial_order_reduction);
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
 		if (use_partial_order_reduction) {
