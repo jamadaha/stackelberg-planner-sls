@@ -8,6 +8,7 @@
 #ifndef SRC_SEARCH_FIXACTIONS_SEARCH_H_
 #define SRC_SEARCH_FIXACTIONS_SEARCH_H_
 
+#include <unordered_set>
 #include "search_engine.h"
 #include "successor_generator.h"
 #include "attack_success_prob_reuse_heuristic.h"
@@ -24,7 +25,40 @@ struct FixSearchInfo {
 
 class FixActionsSearch: public SearchEngine
 {
+private:
+	std::vector<GlobalOperator> fix_operators;
+	std::vector<GlobalOperator> attack_operators;
+	std::vector<GlobalOperator> attack_operators_with_fix_vars_preconds;
 
+	SuccessorGeneratorSwitch *fix_operators_successor_generator = NULL;
+	SuccessorGeneratorSwitch *attack_operators_for_fix_vars_successor_generator = NULL;
+
+	std::unordered_set<int> attack_vars;
+	int num_vars = 0;
+	int num_attack_vars = 0;
+	int num_fix_vars = 0;
+
+	std::vector<int> map_var_id_to_new_var_id; // Vector indexed by old id, encloses new id
+	std::vector<int> fix_variable_domain;
+	std::vector<std::string> fix_variable_name;
+	std::vector<std::vector<std::string> > fix_fact_names;
+	std::vector<int> fix_initial_state_data;
+	StateRegistry *fix_vars_state_registry = NULL;
+
+	std::vector<std::vector<bool>> commutative_fix_ops;
+
+	SearchEngine* search_engine;
+	AttackSuccessProbReuseHeuristic* attack_heuristic;
+
+	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
+	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
+	PerStateInformation<FixSearchInfo> fix_search_node_infos;
+	int initial_fix_actions_budget = UNLTD_BUDGET;
+
+	int num_recursive_calls = 0;
+	int num_attacker_searches = 0;
+	long attack_search_duration_sum = 0;
+	int all_attacker_states = 0;
 protected:
     virtual void initialize();
     virtual SearchStatus step();

@@ -8,7 +8,6 @@
 #include "fixactions_search.h"
 #include <vector>
 #include <math.h>
-#include <unordered_set>
 #include "option_parser.h"
 #include "plugin.h"
 #include <cassert>
@@ -18,45 +17,10 @@
 #include "budget_dead_end_heuristic.h"
 #include <chrono>
 
-//#define FIX_SEARCH_DEBUG
+#define FIX_SEARCH_DEBUG
 
 using namespace std;
 
-vector<GlobalOperator> fix_operators;
-vector<GlobalOperator> attack_operators;
-vector<GlobalOperator> attack_operators_with_fix_vars_preconds;
-
-SuccessorGeneratorSwitch *fix_operators_successor_generator;
-SuccessorGeneratorSwitch *attack_operators_for_fix_vars_successor_generator;
-
-unordered_set<int> attack_vars;
-int num_vars;
-int num_attack_vars;
-int num_fix_vars;
-//vector<int> attack_vars_indices;
-
-// Vector indexed by old id, encloses new id
-vector<int> map_var_id_to_new_var_id;
-vector<int> fix_variable_domain;
-vector<string> fix_variable_name;
-vector<vector<string> > fix_fact_names;
-vector<int> fix_initial_state_data;
-StateRegistry *fix_vars_state_registry;
-
-vector<vector<bool>> commutative_fix_ops;
-
-SearchEngine* search_engine;
-AttackSuccessProbReuseHeuristic* attack_heuristic;
-
-vector<triple<int, int, vector<vector<const GlobalOperator* >>>> pareto_frontier;
-int fix_action_costs_for_no_attacker_solution;
-PerStateInformation<FixSearchInfo> fix_search_node_infos;
-int initial_fix_actions_budget = UNLTD_BUDGET;
-
-int num_recursive_calls = 0;
-int num_attacker_searches = 0;
-long attack_search_duration_sum = 0;
-int all_attacker_states = 0;
 
 FixActionsSearch::FixActionsSearch(const Options &opts) :
 		SearchEngine(opts) {
@@ -73,7 +37,6 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 }
 
 FixActionsSearch::~FixActionsSearch() {
-	// TODO Auto-generated destructor stub
 }
 
 void FixActionsSearch::initialize() {
@@ -716,7 +679,6 @@ void FixActionsSearch::dump_pareto_frontier () {
 
 SearchStatus FixActionsSearch::step() {
 	cout << "Starting fix-actions search..." << endl;
-	fix_action_costs_for_no_attacker_solution = numeric_limits<int>::max();
 	vector<const GlobalOperator *> op_sequnce;
 	vector<int> parent_attack_plan;
 	vector<int> sleep(fix_operators.size(), 0);
