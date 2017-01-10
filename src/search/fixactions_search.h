@@ -62,6 +62,7 @@ private:
 protected:
     virtual void initialize();
     virtual SearchStatus step();
+    void sort_operators();
     int parse_success_prob_cost(std::string prob);
     double prob_cost_to_prob(int prob_cost);
     void divideVariables();

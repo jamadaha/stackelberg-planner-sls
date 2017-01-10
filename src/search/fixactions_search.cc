@@ -17,7 +17,7 @@
 #include "budget_dead_end_heuristic.h"
 #include <chrono>
 
-#define FIX_SEARCH_DEBUG
+//#define FIX_SEARCH_DEBUG
 
 using namespace std;
 
@@ -42,7 +42,25 @@ FixActionsSearch::~FixActionsSearch() {
 void FixActionsSearch::initialize() {
 	cout << "Initializing FixActionsSearch..." << endl;
 
-	// Sort the operators
+	sort_operators();
+
+	divideVariables();
+
+	clean_attack_actions();
+
+	g_operators.clear();
+
+	create_new_variable_indices();
+
+	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
+
+	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
+			attack_operators_with_fix_vars_preconds, attack_operators);
+
+	compute_commutative_fix_ops_matrix();
+}
+
+void FixActionsSearch::sort_operators() {
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 		string op_name = g_operators[op_no].get_name();
 
@@ -87,22 +105,6 @@ void FixActionsSearch::initialize() {
 			exit(EXIT_INPUT_ERROR);
 		}
 	}
-
-	// Sort the variables
-	divideVariables();
-
-	clean_attack_actions();
-
-	g_operators.clear();
-
-	create_new_variable_indices();
-
-	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
-
-	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
-			attack_operators_with_fix_vars_preconds, attack_operators);
-
-	compute_commutative_fix_ops_matrix();
 }
 
 int FixActionsSearch::parse_success_prob_cost(string prob) {
@@ -137,17 +139,14 @@ void FixActionsSearch::divideVariables() {
 	num_vars = g_variable_domain.size();
 	num_attack_vars = attack_vars.size();
 	num_fix_vars = num_vars - num_attack_vars;
-	// copy(attack_vars.begin(), attack_vars.end(), back_inserter(attack_vars_indices));
-	// sort(attack_vars_indices.begin(), attack_vars_indices.end());
 }
 
 void FixActionsSearch::clean_attack_actions() {
-
 	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
 		const GlobalOperator &op = attack_operators[op_no];
 		const vector<GlobalCondition> &conditions = op.get_preconditions();
-		std::vector<GlobalCondition> fix_preconditions;
-		std::vector<GlobalCondition> attack_preconditions;
+		vector<GlobalCondition> fix_preconditions;
+		vector<GlobalCondition> attack_preconditions;
 		for (size_t i = 0; i < conditions.size(); i++) {
 			int var = conditions[i].var;
 			if (attack_vars.find(var) != attack_vars.end()) {
@@ -198,7 +197,6 @@ void FixActionsSearch::create_new_variable_indices() {
 	int num_vars_temp = num_vars;
 	int var = 0;
 	for (int i = 0; i < num_vars_temp; i++) {
-
 		if (attack_vars.find(var) == attack_vars.end()) {
 			// This is a fix var
 			// Save it to local vectors
@@ -232,12 +230,6 @@ void FixActionsSearch::create_new_variable_indices() {
 	}
 
 	// Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
-	assert(fix_variable_domain.size() == fix_initial_state_data.size());
-#ifndef NDEBUG
-	for (unsigned var = 0; var < fix_variable_domain.size(); var++) {
-		assert(fix_initial_state_data[var] < fix_variable_domain[var]);
-	}
-#endif
 	IntPacker *fix_vars_state_packer = new IntPacker(fix_variable_domain);
 	fix_vars_state_registry = new StateRegistry(fix_vars_state_packer, fix_initial_state_data);
 	delete g_state_packer;
@@ -277,8 +269,6 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vector<int> &variable_domain,
 		const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops) {
 	int root_var_index = 0;
-
-	//cout << "root var is " << root_var_index << endl;
 
 	SuccessorGeneratorSwitch *root_node = new SuccessorGeneratorSwitch(root_var_index,
 			variable_domain[root_var_index]);
@@ -432,7 +422,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	bool parent_attack_plan_applicable = false;
 	if(parent_attack_plan.size() > 0) {
-		cout << "Check parent attack plan... " << endl;
 		parent_attack_plan_applicable = true;
 		// Check whether parent_attack_plan is still applicable in current fix-state
 		for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
