@@ -96,6 +96,8 @@ void FixActionsSearch::sort_operators() {
 			int id = stoi(id_string);
 
 			g_operators[op_no].set_cost2(invention_cost);
+			g_operators[op_no].set_conds_variable_name(fix_variable_name);
+			g_operators[op_no].set_effs_variable_name(fix_variable_name);
 			g_operators[op_no].set_scheme_id(id);
 
 			fix_operators.push_back(g_operators[op_no]);
@@ -160,11 +162,11 @@ void FixActionsSearch::clean_attack_actions() {
 
 		// Note that cost and cost2 are swapped here on purpose!
 		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost2(), op.get_cost(), op_no);
+				op.get_cost2(), op.get_cost(), op_no, g_variable_name, g_variable_name);
 		attack_operators[op_no] = op_with_attack_preconds;
 
 		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost2(), op.get_cost(), op_no);
+				op.get_cost2(), op.get_cost(), op_no, fix_variable_name, g_variable_name);
 		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }
@@ -268,14 +270,20 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
  */
 SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vector<int> &variable_domain,
 		const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops) {
+#ifdef FIX_SEARCH_DEBUG
+	cout << "Begin create_successor_generator..." << endl;
+#endif
+
 	int root_var_index = 0;
 
 	SuccessorGeneratorSwitch *root_node = new SuccessorGeneratorSwitch(root_var_index,
 			variable_domain[root_var_index]);
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
-		//cout << "Consider op " << op_no << endl;
-		//pre_cond_ops[op_no].dump(fix_variable_name, g_variable_name); // TODO Fix this stupid dump for all combinations
+#ifdef FIX_SEARCH_DEBUG
+		cout << "Consider op " << op_no << endl;
+		pre_cond_ops[op_no].dump();
+#endif
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
 		if(conditions.size() == 0) {
@@ -346,9 +354,9 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
 #ifdef FIX_SEARCH_DEBUG
 			cout << "Comparing op1 with id " << op_no1 << ":" << endl;
-			fix_operators[op_no1].dump(fix_variable_name, fix_variable_name);
+			fix_operators[op_no1].dump();
 			cout << "to op2 with id " << op_no2 << ":" << endl;
-			fix_operators[op_no2].dump(fix_variable_name, fix_variable_name);
+			fix_operators[op_no2].dump();
 #endif
 
 			const vector<GlobalCondition> &conditions1 = fix_operators[op_no1].get_preconditions();
@@ -404,7 +412,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
 	cout << "and current fix actions op_sequence: " << endl;
 	for (size_t i = 0; i < fix_ops_sequence.size(); i++) {
-		fix_ops_sequence[i]->dump(fix_variable_name, fix_variable_name);
+		fix_ops_sequence[i]->dump();
 	}
 
 	cout << "fix_actions_cost: " << fix_actions_cost << endl;

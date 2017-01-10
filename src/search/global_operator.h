@@ -60,15 +60,17 @@ class GlobalOperator {
     int cost;
     int cost2;
     int op_id;
+    const std::vector<std::string> *conds_variable_name;
+    const std::vector<std::string> *effs_variable_name;
     int scheme_id;
 
     mutable bool marked; // Used for short-term marking of preferred operators
     void read_pre_post(std::istream &in);
 public:
     explicit GlobalOperator(std::istream &in, bool is_axiom, int cost2 = 0);
-    explicit GlobalOperator(bool is_an_axiom, std::vector<GlobalCondition> preconditions, std::vector<GlobalEffect> effects, std::string name, int cost, int cost2, int op_id, int scheme_id = 0);
+    explicit GlobalOperator(bool is_an_axiom, std::vector<GlobalCondition> preconditions, std::vector<GlobalEffect> effects, std::string name, int cost, int cost2, int op_id, const std::vector<std::string> &conds_variable_name = g_variable_name, const std::vector<std::string> &effs_variable_name = g_variable_name, int scheme_id = 0);
 
-    void dump(const std::vector<std::string> &conds_variable_name = g_variable_name, const std::vector<std::string> &effs_variable_name = g_variable_name) const;
+    void dump() const;
     std::string get_name() const {return name; }
 
     bool is_axiom() const {return is_an_axiom; }
@@ -102,6 +104,8 @@ public:
     int get_cost2() const {return cost2; }
     void set_cost2(int _cost2) {cost2 = _cost2; }
     int get_op_id() const {return op_id; }
+    void set_conds_variable_name (const std::vector<std::string> &_conds_variable_name) {conds_variable_name = &_conds_variable_name; }
+    void set_effs_variable_name(const std::vector<std::string> &_effs_variable_name) {effs_variable_name = &_effs_variable_name; }
     int get_scheme_id() const {return scheme_id; }
     void set_scheme_id(int _scheme_id) {scheme_id = _scheme_id; }
 };

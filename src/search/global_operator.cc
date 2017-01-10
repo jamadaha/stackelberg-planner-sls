@@ -33,7 +33,9 @@ void GlobalOperator::read_pre_post(istream &in) {
 }
 
 GlobalOperator::GlobalOperator(istream &in, bool axiom, int cost_2)
-: cost2(cost_2){
+: cost2(cost_2),
+  conds_variable_name(&g_variable_name),
+  effs_variable_name(&g_variable_name){
     marked = false;
 
     is_an_axiom = axiom;
@@ -68,7 +70,7 @@ GlobalOperator::GlobalOperator(istream &in, bool axiom, int cost_2)
     marker1 = marker2 = false;
 }
 
-GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _preconditions, std::vector<GlobalEffect> _effects, std::string _name, int _cost, int _cost2, int _op_id, int _scheme_id)
+GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _preconditions, std::vector<GlobalEffect> _effects, std::string _name, int _cost, int _cost2, int _op_id, const std::vector<std::string> &_conds_variable_name, const std::vector<std::string> &_effs_variable_name, int _scheme_id)
 : is_an_axiom(_is_an_axiom),
   preconditions(_preconditions),
   effects(_effects),
@@ -76,6 +78,8 @@ GlobalOperator::GlobalOperator(bool _is_an_axiom, std::vector<GlobalCondition> _
   cost(_cost),
   cost2(_cost2),
   op_id(_op_id),
+  conds_variable_name(&_conds_variable_name),
+  effs_variable_name(&_effs_variable_name),
   scheme_id(_scheme_id){
 	marked = false;
 	marker1 = marker2 = false;
@@ -96,16 +100,16 @@ void GlobalEffect::dump(const vector<string> &conds_variable_name, const vector<
     }
 }
 
-void GlobalOperator::dump(const vector<string> &conds_variable_name, const vector<string> &effs_variable_name) const {
+void GlobalOperator::dump() const {
     cout << name << ":";
     for (size_t i = 0; i < preconditions.size(); ++i) {
         cout << " [";
-        preconditions[i].dump(conds_variable_name);
+        preconditions[i].dump(*conds_variable_name);
         cout << "]";
     }
     for (size_t i = 0; i < effects.size(); ++i) {
         cout << " [";
-        effects[i].dump(conds_variable_name, effs_variable_name);
+        effects[i].dump(*conds_variable_name, *effs_variable_name);
         cout << "]";
     }
     cout << endl;
