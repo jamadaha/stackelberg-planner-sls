@@ -11,16 +11,22 @@ class Vulnerability(object):
     severity = 1
     port = 0
     risk_factor = "None"
+    CVEs = []
 
     # The class "constructor" - It's actually an initializer
-    def __init__(self, host, severity, port, risk_factor):
+    def __init__(self, host, severity, port, risk_factor, CVEs):
         self.host = host
         self.severity = severity
         self.port = port
         self.risk_factor = risk_factor
+        self.CVEs = CVEs
 
     def __str__(self):
         return json.dumps(self.__dict__)
+
+
+with open(sys.argv[2]) as nvd_file:
+   nvd_dict = json.load(nvd_file)
 
 
 tree = ET.parse(sys.argv[1])
@@ -30,19 +36,22 @@ for child in root:
 report = root[1]
 for reportHost in report:
     print(reportHost.tag, reportHost.attrib)
-    name = protocol = reportHost.attrib['name']
+    name = reportHost.attrib['name']
     for reportItem in reportHost:
         print(reportItem.tag, reportItem.attrib)
         if (reportItem.tag == 'ReportItem'):
             protocol = reportItem.attrib['protocol']
             severity = reportItem.attrib['severity']
             port = reportItem.attrib['port']
+            CVEs = []
             for reportItemChild in reportItem:
                 print(reportItemChild.tag, reportItemChild.attrib)
                 if (reportItemChild.tag == 'risk_factor'):
                     risk_factor = reportItemChild.text
-            if (int(severity) > 0):
-                vuln = Vulnerability(name, severity, port, risk_factor)
+                if (reportItemChild.tag == 'cve'):
+                    CVEs.append(reportItemChild.text)
+            if (int(severity) > 0 and len(CVEs) > 0):
+                vuln = Vulnerability(name, severity, port, risk_factor, CVEs)
                 print('bla')
                 vulnerabilities.append(vuln)
 print '[' + ', '.join(map(str, vulnerabilities)) + ']'
