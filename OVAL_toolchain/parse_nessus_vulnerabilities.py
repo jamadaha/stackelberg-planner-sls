@@ -72,18 +72,18 @@ class PDDLDomain(object):
                 res += ")\n"
         for vul in self.vulnerabilities:
             f = Fraction(round_float(vul.prob)).limit_denominator(DENOMINATOR)
-            res += "(:action ATTACK_exploit_%s_%s\n" % (vul.id, f)
-            res += " " * 4 + ":parameters (?src - host ?t - host)\n"
+            res += "(:action ATTACK_exploit_%s_%s_%s\n" % (vul.id, vul.host, f)
+            res += " " * 4 + ":parameters (?src - host)\n"
             res += " " * 4 + ":precondition (and (controlling ?src)"
-            res += " (connected ?src ?t p{0})".format(vul.port)
-            res += " (not (vuln_fixed ?t %s))" % vul.id
+            res += " (connected ?src %s p%d)" % (vul.host, vul.port)
+            res += " (not (vuln_fixed %s %s))" % (vul.host, vul.id)
 
             if self.apply_once:
-                res += " (not (applied ?t %s))" % vul.id
+                res += " (not (applied %s %s))" % (vul.host, vul.id)
             res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d) (controlling ?t)" % vul.cost
+            res += " " * 4 + ":effect (and (increase (total-cost) %d) (controlling %s)" % (vul.cost, vul.host)
             if self.apply_once:
-                res += " (applied ?t %s)" % vul.id
+                res += " (applied %s %s)" % (vul.host, vul.id)
             res += ")\n"
             res += ")\n"
         fix_action_scheme = 0
@@ -192,7 +192,7 @@ for reportHost in report:
                 if (reportItemChild.tag == 'cve'):
                     CVEs.append(reportItemChild.text)
             if (severity > 0 and len(CVEs) > 0):
-                vuln = Vulnerability("vul%d" % vuln_id, name, severity, port, risk_factor, CVEs, 0.5, 0)
+                vuln = Vulnerability("vul%d" % vuln_id, name, severity, port, risk_factor, CVEs, 0.5, 1)
                 vuln_id += 1
                 vulnerabilities.append(vuln)
                 if not port in uniq_ports:
