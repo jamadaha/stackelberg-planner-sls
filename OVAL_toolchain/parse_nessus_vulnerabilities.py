@@ -88,14 +88,14 @@ class PDDLDomain(object):
             res += ")\n"
             res += ")\n"
         fix_action_scheme = 0
-        for vul in self.exploit_actions:
-            initial_cost = 0
+        for cve in CVEs:
+            initial_cost = 1
             cost = 1
-            res += "(:action FIX_exploit_%s_%s_%d#%d\n" % (vul.CVE, vul.host, initial_cost, fix_action_scheme)
+            res += "(:action FIX_exploit_%s_%d#%d\n" % (cve, initial_cost, fix_action_scheme)
             res += " " * 4 + ":parameters (?t - host)\n"
-            res += " " * 4 + ":precondition (and (not (vuln_fixed ?t %s))" % vul.CVE
+            res += " " * 4 + ":precondition (and (not (vuln_fixed ?t %s))" % cve
             res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d) (vuln_fixed ?t %s)" % (cost, vul.CVE)
+            res += " " * 4 + ":effect (and (increase (total-cost) %d) (vuln_fixed ?t %s)" % (cost, cve)
             res += ")\n"
             res += ")\n"
             fix_action_scheme += 1
