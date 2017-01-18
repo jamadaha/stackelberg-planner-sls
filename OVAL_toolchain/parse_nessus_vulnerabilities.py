@@ -12,15 +12,16 @@ DENOMINATOR = int(math.pow(10, DIGITS))
 def round_float(f):
     return float(("%%.%df" % DIGITS) % f)
 
-vulnerabilities = []
+exploit_actions = []
+CVEs = []
 hosts = ["internet"]
 uniq_ports = []
 
 
 class PDDLDomain(object):
-    def __init__(self, name, vulnerabilities, goal, uniq_ports, fixes = [], comment = None, apply_once=True):
+    def __init__(self, name, exploit_actions, goal, uniq_ports, fixes = [], comment = None, apply_once=True):
         self.name = name
-        self.vulnerabilities = vulnerabilities
+        self.exploit_actions = exploit_actions
         self.comment = comment
         self.goal = goal
         self.uniq_ports = uniq_ports
@@ -41,7 +42,7 @@ class PDDLDomain(object):
         res += "\n"
         res += " " * 4 + "(controlling ?h - host)\n"
         res += " " * 4 + "(connected ?src ?dest - host ?p - port)\n"
-        res += " " * 4 + "(vuln_fixed ?h - host ?v - vuln)\n"
+        res += " " * 4 + "(vuln_fixed ?h - host ?v - vul)\n"
         if self.apply_once:
             res += " " * 4 + "(applied ?h - host ?v - vul)\n"
         res += ")\n"
@@ -57,10 +58,10 @@ class PDDLDomain(object):
         res += "pnone - port\n"
         res += " " * 4
         uniq = []
-        for vul in self.vulnerabilities:
+        for vul in self.exploit_actions:
             if not vul in uniq:
                 uniq.append(vul)
-                res += "%s " % vul.id
+                res += "%s " % vul.CVE
         res += "- vul\n"
         res += ")\n"
         for i in range(len(self.goal)):
@@ -70,31 +71,31 @@ class PDDLDomain(object):
                 res += " " * 4 + ":precondition (and (not (target%d_under_control)) (controlling %s))\n" % (i, host)
                 res += " " * 4 + ":effect (and (target%d_under_control) (increase (total-cost) 0))\n" % i
                 res += ")\n"
-        for vul in self.vulnerabilities:
+        for vul in self.exploit_actions:
             f = Fraction(round_float(vul.prob)).limit_denominator(DENOMINATOR)
-            res += "(:action ATTACK_exploit_%s_%s_%s\n" % (vul.id, vul.host, f)
+            res += "(:action ATTACK_exploit_%s_%s_%s\n" % (vul.CVE, vul.host, f)
             res += " " * 4 + ":parameters (?src - host)\n"
             res += " " * 4 + ":precondition (and (controlling ?src)"
             res += " (connected ?src %s p%d)" % (vul.host, vul.port)
-            res += " (not (vuln_fixed %s %s))" % (vul.host, vul.id)
+            res += " (not (vuln_fixed %s %s))" % (vul.host, vul.CVE)
 
             if self.apply_once:
-                res += " (not (applied %s %s))" % (vul.host, vul.id)
+                res += " (not (applied %s %s))" % (vul.host, vul.CVE)
             res += ")\n"
             res += " " * 4 + ":effect (and (increase (total-cost) %d) (controlling %s)" % (vul.cost, vul.host)
             if self.apply_once:
-                res += " (applied %s %s)" % (vul.host, vul.id)
+                res += " (applied %s %s)" % (vul.host, vul.CVE)
             res += ")\n"
             res += ")\n"
         fix_action_scheme = 0
-        for vul in self.vulnerabilities:
+        for vul in self.exploit_actions:
             initial_cost = 0
             cost = 1
-            res += "(:action FIX_exploit_%s_%s_%d#%d\n" % (vul.id, vul.host, initial_cost, fix_action_scheme)
+            res += "(:action FIX_exploit_%s_%s_%d#%d\n" % (vul.CVE, vul.host, initial_cost, fix_action_scheme)
             res += " " * 4 + ":parameters (?t - host)\n"
-            res += " " * 4 + ":precondition (and (not (vuln_fixed ?t %s))" % vul.id
+            res += " " * 4 + ":precondition (and (not (vuln_fixed ?t %s))" % vul.CVE
             res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d) (vuln_fixed ?t %s)" % (cost, vul.id)
+            res += " " * 4 + ":effect (and (increase (total-cost) %d) (vuln_fixed ?t %s)" % (cost, vul.CVE)
             res += ")\n"
             res += ")\n"
             fix_action_scheme += 1
@@ -129,24 +130,22 @@ class PDDLProblem(object):
         return res
 
 
-class Vulnerability(object):
-    id = "vul0"
+class ExploitAction(object):
     host = ""
     severity = 1
     port = 0
     risk_factor = "None"
-    CVEs = []
+    CVE = ""
     prob = 0
     cost = 0
 
     # The class "constructor" - It's actually an initializer
-    def __init__(self, id, host, severity, port, risk_factor, CVEs, prob, cost):
-        self.id = id
+    def __init__(self, host, severity, port, risk_factor, CVE, prob, cost):
         self.host = host
         self.severity = severity
         self.port = port
         self.risk_factor = risk_factor
-        self.CVEs = CVEs
+        self.CVE = CVE
         self.prob = prob
         self.cost = cost
 
@@ -168,7 +167,6 @@ with open(args.nvd) as nvd_file:
    nvd_dict = json.load(nvd_file)
 
 
-vuln_id = 0
 tree = ET.parse(args.nessus)
 root = tree.getroot()
 for child in root:
@@ -184,29 +182,31 @@ for reportHost in report:
             protocol = reportItem.attrib['protocol']
             severity = int(reportItem.attrib['severity'])
             port = int(reportItem.attrib['port'])
-            CVEs = []
+            ecploit_CVEs = []
             for reportItemChild in reportItem:
                 print(reportItemChild.tag, reportItemChild.attrib)
                 if (reportItemChild.tag == 'risk_factor'):
                     risk_factor = reportItemChild.text
                 if (reportItemChild.tag == 'cve'):
-                    CVEs.append(reportItemChild.text)
-            if (severity > 0 and len(CVEs) > 0):
-                vuln = Vulnerability("vul%d" % vuln_id, name, severity, port, risk_factor, CVEs, 0.5, 1)
-                vuln_id += 1
-                vulnerabilities.append(vuln)
-                if not port in uniq_ports:
-                    uniq_ports.append(port)
-print '[' + ', '.join(map(str, vulnerabilities)) + ']'
+                    ecploit_CVEs.append(reportItemChild.text)
+            if severity > 0:
+                for cve in ecploit_CVEs:
+                    vuln = ExploitAction(name, severity, port, risk_factor, cve, 0.5, 1)
+                    exploit_actions.append(vuln)
+                    if not cve in CVEs:
+                        CVEs.append(cve)
+                    if not port in uniq_ports:
+                        uniq_ports.append(port)
+print '[' + ', '.join(map(str, exploit_actions)) + ']'
 
-for i in range(0, len(vulnerabilities)):
-    vuln = vulnerabilities[i]
+for i in range(0, len(exploit_actions)):
+    vuln = exploit_actions[i]
 
 fixes = []
 goal = [[hosts[len(hosts) - 1]]]
 
 with open(args.domain, "w") as f:
-    f.write(str(PDDLDomain("coresec", vulnerabilities, goal, uniq_ports, fixes,
+    f.write(str(PDDLDomain("coresec", exploit_actions, goal, uniq_ports, fixes,
                                "Bla",
                                apply_once=not args.disable_apply_once)))
 
