@@ -129,7 +129,6 @@ class PDDLProblem(object):
         res += ")\n"
         return res
 
-
 class ExploitAction(object):
     host = ""
     severity = 1
@@ -151,6 +150,16 @@ class ExploitAction(object):
 
     def __str__(self):
         return json.dumps(self.__dict__)
+
+
+def cvss_metrics_to_prob(cvss_metrics):
+    access_complexity = cvss_metrics['access_complexity']
+    if access_complexity == 'LOW':
+        return 0.8
+    elif access_complexity == 'MEDIUM':
+        return 0.5
+    elif access_complexity == 'HIGH':
+        return 0.2
 
 
 p = argparse.ArgumentParser(description="Nessus CoreSec Problem Generator")
@@ -191,12 +200,15 @@ for reportHost in report:
                     ecploit_CVEs.append(reportItemChild.text)
             if severity > 0:
                 for cve in ecploit_CVEs:
-                    vuln = ExploitAction(name, severity, port, risk_factor, cve, 0.5, 1)
-                    exploit_actions.append(vuln)
-                    if not cve in CVEs:
-                        CVEs.append(cve)
-                    if not port in uniq_ports:
-                        uniq_ports.append(port)
+                    cvss_metrics = json.loads(nvd_dict[cve])
+                    print cvss_metrics
+                    if(cvss_metrics['access_vector'] != 'LOCAL' and cvss_metrics['integrity_impact'] != 'NONE'):
+                        vuln = ExploitAction(name, severity, port, risk_factor, cve, cvss_metrics_to_prob(cvss_metrics), 1)
+                        exploit_actions.append(vuln)
+                        if not cve in CVEs:
+                            CVEs.append(cve)
+                        if not port in uniq_ports:
+                            uniq_ports.append(port)
 print '[' + ', '.join(map(str, exploit_actions)) + ']'
 
 for i in range(0, len(exploit_actions)):
