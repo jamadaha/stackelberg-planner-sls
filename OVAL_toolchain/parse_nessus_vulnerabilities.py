@@ -17,6 +17,8 @@ CVEs = []
 hosts = ["internet"]
 uniq_ports = []
 open_ports_for_host = {'internet': []}
+compromised_types = ['confidentiality', 'integrity', 'availability']
+protocols = []
 
 
 class PDDLDomain(object):
@@ -34,18 +36,18 @@ class PDDLDomain(object):
             res += ';;; %s\n' % self.comment
         res += "(define (domain %s)\n" % self.name
         res += "; (:requirements strips)\n"
-        res += "(:types host port vul"
+        res += "(:types host port vul compromised_type"
         res += ")\n"
         res += "(:predicates\n"
         res += " " * 3
         for i in range(len(self.goal)):
             res += " (target%d_under_control)" % i
         res += "\n"
-        res += " " * 4 + "(controlling ?h - host)\n"
-        res += " " * 4 + "(connected ?src ?dest - host ?p - port)\n"
-        res += " " * 4 + "(has_vuln ?h - host ?v - vul)\n"
+        res += " " * 4 + "(compromised ?h - host ?ct - compromised_type)\n"
+        res += " " * 4 + "(connected ?src ?dest - host ?po - port ?pr - protocol)\n"
+        res += " " * 4 + "(vul_exists ?v - vul ?h - host ?po - port ?pr - protocol)\n"
         if self.apply_once:
-            res += " " * 4 + "(applied ?h - host ?v - vul)\n"
+            res += " " * 4 + "(applied ?v - vul ?h - host)\n"
         res += ")\n"
         res += "(:functions (total-cost))\n"
         res += "(:constants\n"
@@ -58,34 +60,41 @@ class PDDLDomain(object):
             res += "p%d " % p
         res += "pnone - port\n"
         res += " " * 4
-        uniq = []
-        for vul in self.exploit_actions:
-            if not vul in uniq:
-                uniq.append(vul)
-                res += "%s " % vul.CVE
+        for cve in CVEs:
+            res += "%s " % cve
         res += "- vul\n"
+        res += " " * 4
+        for ct in compromised_types:
+            res += "%s " % ct
+        res += "- compromised_type\n"
+        res += " " * 4
+        for protocol in protocols:
+            res += "%s " % protocol
+        res += "- protocol\n"
         res += ")\n"
         for i in range(len(self.goal)):
             for host in self.goal[i]:
                 res += "(:action ATTACK_set_target%d_under_control_%s_1/1\n" % (i, host)
                 res += " " * 4 + ":parameters ()\n"
-                res += " " * 4 + ":precondition (and (not (target%d_under_control)) (controlling %s))\n" % (i, host)
+                res += " " * 4 + ":precondition (and (not (target%d_under_control)) (compromised %s integrity))\n" % (i, host)
                 res += " " * 4 + ":effect (and (target%d_under_control) (increase (total-cost) 0))\n" % i
                 res += ")\n"
-        for vul in self.exploit_actions:
-            f = Fraction(round_float(vul.prob)).limit_denominator(DENOMINATOR)
-            res += "(:action ATTACK_exploit_%s_%s_%s\n" % (vul.CVE, vul.host, f)
-            res += " " * 4 + ":parameters (?src - host)\n"
-            res += " " * 4 + ":precondition (and (controlling ?src)"
-            res += " (connected ?src %s p%d)" % (vul.host, vul.port)
-            res += " (has_vuln %s %s)" % (vul.host, vul.CVE)
+        for cve in CVEs:
+            f = Fraction(round_float(get_prob_of_CVE(cve))).limit_denominator(DENOMINATOR)
+            res += "(:action ATTACK_exploit_%s_%s\n" % (cve, f)
+            res += " " * 4 + ":parameters (?src - host ?t - host ?po - port ?pr - protocol)\n"
+            res += " " * 4 + ":precondition (and (compromised ?src integrity)"
+            res += " (connected ?src ?t ?po ?pr)"
+            res += " (vul_exists %s ?t ?po ?pr)" % cve
 
             if self.apply_once:
-                res += " (not (applied %s %s))" % (vul.host, vul.CVE)
+                res += " (not (applied %s ?t))" % cve
             res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d) (controlling %s)" % (vul.cost, vul.host)
+            res += " " * 4 + ":effect (and (increase (total-cost) %d)" % get_cost_of_CVE(cve)
+            for ct in get_compromised_types_of_CVE(cve):
+                res += " (compromised ?t %s)" % ct
             if self.apply_once:
-                res += " (applied %s %s)" % (vul.host, vul.CVE)
+                res += " (applied %s ?t)" % cve
             res += ")\n"
             res += ")\n"
         fix_action_scheme = 0
@@ -94,9 +103,9 @@ class PDDLDomain(object):
             cost = 1
             res += "(:action FIX_exploit_%s_%d#%d\n" % (cve, initial_cost, fix_action_scheme)
             res += " " * 4 + ":parameters (?t - host)\n"
-            res += " " * 4 + ":precondition (and (has_vuln ?t %s)" % cve
+            res += " " * 4 + ":precondition (and (vul_exists %s ?t)" % cve
             res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d) (not (has_vuln ?t %s))" % (cost, cve)
+            res += " " * 4 + ":effect (and (increase (total-cost) %d) (not (vul_exists ?t %s))" % (cost, cve)
             res += ")\n"
             res += ")\n"
             fix_action_scheme += 1
@@ -130,7 +139,7 @@ class PDDLProblem(object):
                         for port in open_ports_for_host[host_target]:
                             res += " " * 4 + "(connected %s %s p%d)\n" % (host_source, host_target, port)
         for vul in self.exploit_actions:
-            res += " " * 4 + "(has_vuln %s %s)\n" % (vul.host, vul.CVE)
+            res += " " * 4 + "(vul_exists %s %s p%d %s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol)
         res += ")\n"
         res += "(:goal (and\n"
         for i in range(len(self.goal)):
@@ -144,16 +153,18 @@ class ExploitAction(object):
     host = ""
     severity = 1
     port = 0
+    protocol = ""
     risk_factor = "None"
     CVE = ""
     prob = 0
     cost = 0
 
     # The class "constructor" - It's actually an initializer
-    def __init__(self, host, severity, port, risk_factor, CVE, prob, cost):
+    def __init__(self, host, severity, port, protocol, risk_factor, CVE, prob, cost):
         self.host = host
         self.severity = severity
         self.port = port
+        self.protocol = protocol
         self.risk_factor = risk_factor
         self.CVE = CVE
         self.prob = prob
@@ -171,6 +182,36 @@ def cvss_metrics_to_prob(cvss_metrics):
         return 0.5
     elif access_complexity == 'HIGH':
         return 0.2
+
+
+def get_prob_of_CVE (cve):
+    cvss_metrics = json.loads(nvd_dict[cve])
+    return  cvss_metrics_to_prob(cvss_metrics)
+
+
+def get_cost_of_CVE (cve):
+    return 1
+
+
+def get_compromised_types_of_CVE(cve):
+    cvss_metrics = json.loads(nvd_dict[cve])
+    res = []
+
+    confidentiality_impact = cvss_metrics['confidentiality_impact']
+    if confidentiality_impact != 'NONE':
+        res.append('confidentiality')
+
+    integrity_impact = cvss_metrics['integrity_impact']
+    if integrity_impact != 'NONE':
+        res.append('integrity')
+
+    availability_impact = cvss_metrics['availability_impact']
+    if availability_impact != 'NONE':
+        res.append('availability')
+
+    return res
+
+
 
 
 p = argparse.ArgumentParser(description="Nessus CoreSec Problem Generator")
@@ -207,6 +248,8 @@ for reportHost in report:
                 uniq_ports.append(port)
             if not port in open_ports_for_host[name]:
                 open_ports_for_host[name].append(port)
+            if not protocol in protocols:
+                protocols.append(protocol)
             ecploit_CVEs = []
             for reportItemChild in reportItem:
                 print(reportItemChild.tag, reportItemChild.attrib)
@@ -219,7 +262,7 @@ for reportHost in report:
                     cvss_metrics = json.loads(nvd_dict[cve])
                     print cvss_metrics
                     if(cvss_metrics['access_vector'] != 'LOCAL' and cvss_metrics['integrity_impact'] != 'NONE'):
-                        vuln = ExploitAction(name, severity, port, risk_factor, cve, cvss_metrics_to_prob(cvss_metrics), 1)
+                        vuln = ExploitAction(name, severity, port, protocol, risk_factor, cve, cvss_metrics_to_prob(cvss_metrics), 1)
                         exploit_actions.append(vuln)
                         if not cve in CVEs:
                             CVEs.append(cve)
