@@ -4,6 +4,8 @@ import json
 import sys
 from fractions import Fraction
 import math
+from collections import defaultdict
+
 
 DIGITS = 2
 DENOMINATOR = int(math.pow(10, DIGITS))
@@ -19,10 +21,12 @@ uniq_ports = []
 open_ports_for_host = {'internet': []}
 compromised_types = ['confidentiality', 'integrity', 'availability']
 protocols = []
+probabilities = []
+probabilities_for_CVE = defaultdict(lambda: [])
 
 
 class PDDLDomain(object):
-    def __init__(self, name, exploit_actions, goal, uniq_ports, fixes = [], comment = None, apply_once=True):
+    def __init__(self, name, exploit_actions, goal, uniq_ports, fixes = "", comment = None, apply_once=True):
         self.name = name
         self.exploit_actions = exploit_actions
         self.comment = comment
@@ -44,8 +48,10 @@ class PDDLDomain(object):
             res += " (target%d_under_control)" % i
         res += "\n"
         res += " " * 4 + "(compromised ?h - host ?ct - compromised_type)\n"
-        res += " " * 4 + "(connected ?src ?dest - host ?po - port ?pr - protocol)\n"
-        res += " " * 4 + "(vul_exists ?v - vul ?h - host ?po - port ?pr - protocol)\n"
+        res += " " * 4 + "(hacl ?src ?dest - host ?po - port ?pr - protocol)\n"
+        res += " " * 4 + "(haclz ?src ?dest - zone ?po - port ?pr - protocol)\n"
+        res += " " * 4 + "(subnet ?z - zone ?h - host)\n"
+        res += " " * 4 + "(vul_exists ?v - vul ?h - host ?po - port ?pr - protocol ?prob - probability)\n"
         if self.apply_once:
             res += " " * 4 + "(applied ?v - vul ?h - host)\n"
         res += ")\n"
@@ -71,6 +77,10 @@ class PDDLDomain(object):
         for protocol in protocols:
             res += "%s " % protocol
         res += "- protocol\n"
+        res += " " * 4
+        for prob in probabilities:
+            res += "%s " % prob
+        res += "- probability\n"
         res += ")\n"
         for i in range(len(self.goal)):
             for host in self.goal[i]:
@@ -80,35 +90,50 @@ class PDDLDomain(object):
                 res += " " * 4 + ":effect (and (target%d_under_control) (increase (total-cost) 0))\n" % i
                 res += ")\n"
         for cve in CVEs:
-            f = Fraction(round_float(get_prob_of_CVE(cve))).limit_denominator(DENOMINATOR)
-            res += "(:action ATTACK_exploit_%s_%s\n" % (cve, f)
-            res += " " * 4 + ":parameters (?src - host ?t - host ?po - port ?pr - protocol)\n"
-            res += " " * 4 + ":precondition (and (compromised ?src integrity)"
-            res += " (connected ?src ?t ?po ?pr)"
-            res += " (vul_exists %s ?t ?po ?pr)" % cve
+            for prob in (probabilities_for_CVE[cve] + probabilities_for_CVE['*']):
+                f = Fraction(round_float(float(prob))).limit_denominator(DENOMINATOR)
+                res += "(:action ATTACK_exploit_%s_%s\n" % (cve, f)
+                res += " " * 4 + ":parameters (?src - host ?t - host ?po - port ?pr - protocol)\n"
+                res += " " * 4 + ":precondition (and (compromised ?src integrity)"
+                res += " (hacl ?src ?t ?po ?pr)"
+                res += " (vul_exists %s ?t ?po ?pr %s)" % (cve, prob)
 
-            if self.apply_once:
-                res += " (not (applied %s ?t))" % cve
-            res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d)" % get_cost_of_CVE(cve)
-            for ct in get_compromised_types_of_CVE(cve):
-                res += " (compromised ?t %s)" % ct
-            if self.apply_once:
-                res += " (applied %s ?t)" % cve
-            res += ")\n"
-            res += ")\n"
-        fix_action_scheme = 0
-        for cve in CVEs:
-            initial_cost = 1
-            cost = 1
-            res += "(:action FIX_exploit_%s_%d#%d\n" % (cve, initial_cost, fix_action_scheme)
-            res += " " * 4 + ":parameters (?t - host)\n"
-            res += " " * 4 + ":precondition (and (vul_exists %s ?t)" % cve
-            res += ")\n"
-            res += " " * 4 + ":effect (and (increase (total-cost) %d) (not (vul_exists ?t %s))" % (cost, cve)
-            res += ")\n"
-            res += ")\n"
-            fix_action_scheme += 1
+                if self.apply_once:
+                   res += " (not (applied %s ?t))" % cve
+                res += ")\n"
+                res += " " * 4 + ":effect (and (increase (total-cost) %d)" % get_cost_of_CVE(cve)
+                for ct in get_compromised_types_of_CVE(cve):
+                    res += " (compromised ?t %s)" % ct
+                if self.apply_once:
+                    res += " (applied %s ?t)" % cve
+                res += ")\n"
+                res += ")\n"
+        res += "(:action ATTACK_conntect_inter_subnets_1/1\n"
+        res += " " * 4 + ":parameters (?h1 ?h2 - host ?z1 ?z2 - zone ?po - port ?pr - protocol)\n"
+        res += " " * 4 + ":precondition (and (subnet ?z1 ?h1)"
+        res += " (subnet ?z2 ?h2)"
+        res += " (haclz ?z1 ?z2 ?po ?pr)"
+        res += ")\n"
+        res += " " * 4 + ":effect (and (increase (total-cost) 0)"
+        res += " (hacl ?h1 ?h2 ?po ?pr)"
+        res += ")\n"
+        res += ")\n"
+
+        if self.fixes is not "":
+            res += self.fixes
+        else:
+            fix_action_scheme_id = 0
+            for cve in CVEs:
+                initial_cost = 1
+                cost = 1
+                res += "(:action FIX_exploit_%s_%d#%d\n" % (cve, initial_cost, fix_action_scheme_id)
+                res += " " * 4 + ":parameters (?h - host ?po - port ?pr - protocol ?prob - probability)\n"
+                res += " " * 4 + ":precondition (and (vul_exists %s ?h ?po ?pr ?prob)" % cve
+                res += ")\n"
+                res += " " * 4 + ":effect (and (increase (total-cost) %d) (not (vul_exists %s ?h ?po ?pr ?prob))" % (cost, cve)
+                res += ")\n"
+                res += ")\n"
+                fix_action_scheme_id += 1
         res += ")\n"
         return res
 
@@ -129,7 +154,7 @@ class PDDLProblem(object):
         res += "(:init\n"
         res += " " * 4 + "(= (total-cost) 0)\n"
         res += " " * 4 + "(controlling %s)\n" % self.controlled
-        if args.net != None:
+        if args.net is not None:
             with open(args.net) as network_topology_file:
                 res += network_topology_file.read()
         else:
@@ -137,9 +162,9 @@ class PDDLProblem(object):
                 for host_target in hosts:
                     if host_source != host_target:
                         for port in open_ports_for_host[host_target]:
-                            res += " " * 4 + "(connected %s %s p%d)\n" % (host_source, host_target, port)
+                            res += " " * 4 + "(hacl %s %s p%d)\n" % (host_source, host_target, port)
         for vul in self.exploit_actions:
-            res += " " * 4 + "(vul_exists %s %s p%d %s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol)
+            res += " " * 4 + "(vul_exists %s %s p%d %s %s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol, vul.prob)
         res += ")\n"
         res += "(:goal (and\n"
         for i in range(len(self.goal)):
@@ -218,6 +243,7 @@ p = argparse.ArgumentParser(description="Nessus CoreSec Problem Generator")
 p.add_argument("--nessus", type=str, help="the Nessus output file in xml format", default=None)
 p.add_argument("--nvd", type=str, help="NVD vulnerability DB in json format", default=None)
 p.add_argument("--net", type=str, help="The network topology in PDDL format", default=None)
+p.add_argument("--fix", type=str, help="The Fix-Action set description in json format", default=None)
 p.add_argument("--disable-apply-once", help="disable apply once constraint", action="store_true", default=False)
 p.add_argument("--domain", type=str, help="path to file where the PDDL domain will be stored", default="domain.pddl")
 p.add_argument("--problem", type=str, help="path to file where the PDDL problem will be stored", default="problem.pddl")
@@ -248,8 +274,6 @@ for reportHost in report:
                 uniq_ports.append(port)
             if not port in open_ports_for_host[name]:
                 open_ports_for_host[name].append(port)
-            if not protocol in protocols:
-                protocols.append(protocol)
             ecploit_CVEs = []
             for reportItemChild in reportItem:
                 print(reportItemChild.tag, reportItemChild.attrib)
@@ -262,6 +286,13 @@ for reportHost in report:
                     cvss_metrics = json.loads(nvd_dict[cve])
                     print cvss_metrics
                     if(cvss_metrics['access_vector'] != 'LOCAL' and cvss_metrics['integrity_impact'] != 'NONE'):
+                        if not protocol in protocols:
+                            protocols.append(protocol)
+                        prob = cvss_metrics_to_prob(cvss_metrics)
+                        if not prob in probabilities:
+                            probabilities.append(prob)
+                        if prob not in probabilities_for_CVE[cve]:
+                            probabilities_for_CVE[cve].append(prob)
                         vuln = ExploitAction(name, severity, port, protocol, risk_factor, cve, cvss_metrics_to_prob(cvss_metrics), 1)
                         exploit_actions.append(vuln)
                         if not cve in CVEs:
@@ -272,8 +303,45 @@ print '[' + ', '.join(map(str, exploit_actions)) + ']'
 for i in range(0, len(exploit_actions)):
     vuln = exploit_actions[i]
 
-fixes = []
+fixes = ""
+if args.fix is not None:
+    with open(args.fix) as fix_actions_file:
+        fix_actions_json = json.load(fix_actions_file)
+        fix_action_scheme_id = 0
+        for fix_action_scheme in fix_actions_json:
+            cve = fix_action_scheme['CVE']
+            host = fix_action_scheme['host']
+            port = fix_action_scheme['port']
+            protocol = fix_action_scheme['protocol']
+            new_prob = float(fix_action_scheme['new_prob'])
+            initial_cost = fix_action_scheme['initial_cost']
+            cost = fix_action_scheme['cost']
+            if new_prob > 0.0 and new_prob not in probabilities:
+                probabilities.append(new_prob)
+            if new_prob > 0.0 and new_prob not in probabilities_for_CVE[cve]:
+                probabilities_for_CVE[cve].append(new_prob)
+            fixes += "(:action FIX_exploit_%s%s%s%s%s%d#%d\n" % (
+            "" if cve == '*' else cve + "_", "" if host == '*' else host + "_", "" if port == '*' else port + "_",
+            "" if protocol == '*' else protocol + "_", str(new_prob) + "_", initial_cost,
+            fix_action_scheme_id)
+            fixes += " " * 4 + ":parameters (%s%s%s%s?old_prob - probability)\n" % ("?v - vul " if cve == '*' else "", "?h - host " if host == '*' else "", "?po - port " if port == '*' else "",
+            "?pr - protocol " if protocol == '*' else "")
+            fixes += " " * 4 + ":precondition (and (vul_exists %s %s %s %s ?old_prob)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
+            "?pr" if protocol == '*' else protocol)
+            fixes += ")\n"
+            fixes += " " * 4 + ":effect (and (increase (total-cost) %d)" % cost
+            fixes += " (not (vul_exists %s %s %s %s ?old_prob))" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
+            "?pr" if protocol == '*' else protocol)
+            if new_prob > 0.0:
+                fixes += " (vul_exists %s %s %s %s %s)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
+            "?pr" if protocol == '*' else protocol, new_prob)
+            fixes += ")\n"
+            fixes += ")\n"
+            fix_action_scheme_id += 1
+
+
 goal = [[hosts[len(hosts) - 1]]]
+
 
 with open(args.domain, "w") as f:
     f.write(str(PDDLDomain("coresec", exploit_actions, goal, uniq_ports, fixes,
