@@ -48,7 +48,7 @@ class PDDLDomain(object):
             res += " (target%d_under_control)" % i
         res += "\n"
         res += " " * 4 + "(compromised ?h - host ?ct - compromised_type)\n"
-        res += " " * 4 + "(hacl ?src ?dest - host ?po - port ?pr - protocol)\n"
+        #res += " " * 4 + "(hacl ?src ?dest - host ?po - port ?pr - protocol)\n"
         res += " " * 4 + "(haclz ?src ?dest - zone ?po - port ?pr - protocol)\n"
         res += " " * 4 + "(subnet ?z - zone ?h - host)\n"
         res += " " * 4 + "(vul_exists ?v - vul ?h - host ?po - port ?pr - protocol ?prob - probability)\n"
@@ -93,9 +93,11 @@ class PDDLDomain(object):
             for prob in (probabilities_for_CVE[cve] + probabilities_for_CVE['*']):
                 f = Fraction(round_float(float(prob))).limit_denominator(DENOMINATOR)
                 res += "(:action ATTACK_exploit_%s_%s\n" % (cve, f)
-                res += " " * 4 + ":parameters (?src - host ?t - host ?po - port ?pr - protocol)\n"
+                res += " " * 4 + ":parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)\n"
                 res += " " * 4 + ":precondition (and (compromised ?src integrity)"
-                res += " (hacl ?src ?t ?po ?pr)"
+                res += " (subnet ?src ?z1)"
+                res += " (subnet ?t ?z2)"
+                res += " (haclz ?z1 ?z2 ?po ?pr)"
                 res += " (vul_exists %s ?t ?po ?pr %s)" % (cve, prob)
 
                 if self.apply_once:
@@ -108,16 +110,16 @@ class PDDLDomain(object):
                     res += " (applied %s ?t)" % cve
                 res += ")\n"
                 res += ")\n"
-        res += "(:action ATTACK_conntect_inter_subnets_1/1\n"
-        res += " " * 4 + ":parameters (?h1 ?h2 - host ?z1 ?z2 - zone ?po - port ?pr - protocol)\n"
-        res += " " * 4 + ":precondition (and (subnet ?z1 ?h1)"
-        res += " (subnet ?z2 ?h2)"
-        res += " (haclz ?z1 ?z2 ?po ?pr)"
-        res += ")\n"
-        res += " " * 4 + ":effect (and (increase (total-cost) 0)"
-        res += " (hacl ?h1 ?h2 ?po ?pr)"
-        res += ")\n"
-        res += ")\n"
+        #res += "(:action ATTACK_conntect_inter_subnets_1/1\n"
+        #res += " " * 4 + ":parameters (?h1 ?h2 - host ?z1 ?z2 - zone ?po - port ?pr - protocol)\n"
+        #res += " " * 4 + ":precondition (and (subnet ?z1 ?h1)"
+        #res += " (subnet ?z2 ?h2)"
+        #res += " (haclz ?z1 ?z2 ?po ?pr)"
+        #res += ")\n"
+        #res += " " * 4 + ":effect (and (increase (total-cost) 0)"
+        #res += " (hacl ?h1 ?h2 ?po ?pr)"
+        #res += ")\n"
+        #res += ")\n"
 
         if self.fixes is not "":
             res += self.fixes
@@ -309,36 +311,57 @@ if args.fix is not None:
         fix_actions_json = json.load(fix_actions_file)
         fix_action_scheme_id = 0
         for fix_action_scheme in fix_actions_json:
-            cve = fix_action_scheme['CVE']
-            host = fix_action_scheme['host']
-            port = fix_action_scheme['port']
-            protocol = fix_action_scheme['protocol']
-            new_prob = float(fix_action_scheme['new_prob'])
-            initial_cost = fix_action_scheme['initial_cost']
-            cost = fix_action_scheme['cost']
-            if new_prob > 0.0 and new_prob not in probabilities:
-                probabilities.append(new_prob)
-            if new_prob > 0.0 and new_prob not in probabilities_for_CVE[cve]:
-                probabilities_for_CVE[cve].append(new_prob)
-            fixes += "(:action FIX_exploit_%s%s%s%s%s%d#%d\n" % (
-            "" if cve == '*' else cve + "_", "" if host == '*' else host + "_", "" if port == '*' else port + "_",
-            "" if protocol == '*' else protocol + "_", str(new_prob) + "_", initial_cost,
-            fix_action_scheme_id)
-            fixes += " " * 4 + ":parameters (%s%s%s%s?old_prob - probability)\n" % ("?v - vul " if cve == '*' else "", "?h - host " if host == '*' else "", "?po - port " if port == '*' else "",
-            "?pr - protocol " if protocol == '*' else "")
-            fixes += " " * 4 + ":precondition (and (vul_exists %s %s %s %s ?old_prob)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
-            "?pr" if protocol == '*' else protocol)
-            fixes += ")\n"
-            fixes += " " * 4 + ":effect (and (increase (total-cost) %d)" % cost
-            fixes += " (not (vul_exists %s %s %s %s ?old_prob))" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
-            "?pr" if protocol == '*' else protocol)
-            if new_prob > 0.0:
-                fixes += " (vul_exists %s %s %s %s %s)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
-            "?pr" if protocol == '*' else protocol, new_prob)
-            fixes += ")\n"
-            fixes += ")\n"
+            type = fix_action_scheme['type']
+            if type == "non-FW":
+                cve = fix_action_scheme['CVE']
+                host = fix_action_scheme['host']
+                port = fix_action_scheme['port']
+                protocol = fix_action_scheme['protocol']
+                new_prob = float(fix_action_scheme['new_prob'])
+                initial_cost = fix_action_scheme['initial_cost']
+                cost = fix_action_scheme['cost']
+                if new_prob > 0.0 and new_prob not in probabilities:
+                  probabilities.append(new_prob)
+                if new_prob > 0.0 and new_prob not in probabilities_for_CVE[cve]:
+                    probabilities_for_CVE[cve].append(new_prob)
+                fixes += "(:action FIX_exploit_%s%s%s%s%s%d#%d\n" % (
+                "" if cve == '*' else cve + "_", "" if host == '*' else host + "_", "" if port == '*' else port + "_",
+                "" if protocol == '*' else protocol + "_", str(new_prob) + "_", initial_cost,
+                fix_action_scheme_id)
+                fixes += " " * 4 + ":parameters (%s%s%s%s?old_prob - probability)\n" % ("?v - vul " if cve == '*' else "", "?h - host " if host == '*' else "", "?po - port " if port == '*' else "",
+                "?pr - protocol " if protocol == '*' else "")
+                fixes += " " * 4 + ":precondition (and (vul_exists %s %s %s %s ?old_prob)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
+                "?pr" if protocol == '*' else protocol)
+                fixes += ")\n"
+                fixes += " " * 4 + ":effect (and (increase (total-cost) %d)" % cost
+                fixes += " (not (vul_exists %s %s %s %s ?old_prob))" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
+                "?pr" if protocol == '*' else protocol)
+                if new_prob > 0.0:
+                    fixes += " (vul_exists %s %s %s %s %s)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
+                "?pr" if protocol == '*' else protocol, new_prob)
+                fixes += ")\n"
+                fixes += ")\n"
+            elif type == "FW":
+                src = fix_action_scheme['src']
+                dest = fix_action_scheme['dest']
+                port = fix_action_scheme['port']
+                protocol = fix_action_scheme['protocol']
+                initial_cost = fix_action_scheme['initial_cost']
+                cost = fix_action_scheme['cost']
+                fixes += "(:action FIX_install_firewall_%s%s%s%s%d#%d\n" % ("" if src == '*' else src + "_", "" if dest == '*' else dest + "_", "" if port == '*' else port + "_",
+                "" if protocol == '*' else protocol + "_", initial_cost, fix_action_scheme_id)
+                fixes += " " * 4 + ":parameters (%s%s%s%s)\n" % ("?src - zone " if host == '*' else "", "?dest - zone " if dest == '*' else "",
+                "?po - port " if port == '*' else "",
+                "?pr - protocol" if protocol == '*' else "")
+                fixes += " " * 4 + ":precondition (and (haclz %s %s %s %s)" % ("?src" if src == '*' else src, "?dest" if dest == '*' else dest, "?po" if port == '*' else port,
+                "?pr" if protocol == '*' else protocol)
+                fixes += ")\n"
+                fixes += " " * 4 + ":effect (and (increase (total-cost) %d)" % cost
+                fixes += " (not (haclz %s %s %s %s))" % ("?src" if src == '*' else src, "?dest" if dest == '*' else dest, "?po" if port == '*' else port,
+                "?pr" if protocol == '*' else protocol)
+                fixes += ")\n"
+                fixes += ")\n"
             fix_action_scheme_id += 1
-
 
 goal = [[hosts[len(hosts) - 1]]]
 
