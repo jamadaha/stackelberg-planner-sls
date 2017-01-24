@@ -14,6 +14,8 @@ DENOMINATOR = int(math.pow(10, DIGITS))
 def round_float(f):
     return float(("%%.%df" % DIGITS) % f)
 
+PNONE_PROB_DISCOUNT_FACTOR = 0.5
+
 exploit_actions = []
 CVEs = []
 hosts = []
@@ -67,8 +69,8 @@ class PDDLDomain(object):
         res += "- host\n"
         res += " " * 4
         for p in self.uniq_ports:
-            res += "p%d " % p
-        res += "pnone - port\n"
+            res += "%s " % p
+        res += "- port\n"
         res += " " * 4
         for cve in CVEs:
             res += "%s " % cve
@@ -180,7 +182,7 @@ class PDDLProblem(object):
         #                for port in open_ports_for_host[host_target]:
         #                    res += " " * 4 + "(hacl %s %s p%d)\n" % (host_source, host_target, port)
         for vul in self.exploit_actions:
-            res += " " * 4 + "(vul_exists %s %s p%d %s prob%s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol, vul.prob)
+            res += " " * 4 + "(vul_exists %s %s %s %s prob%s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol, vul.prob)
         res += ")\n"
         res += "(:goal (and\n"
         for i in range(len(self.goal)):
@@ -193,7 +195,7 @@ class PDDLProblem(object):
 class ExploitAction(object):
     host = ""
     severity = 1
-    port = 0
+    port = "pnone"
     protocol = ""
     risk_factor = "None"
     CVE = ""
@@ -227,7 +229,7 @@ def cvss_metrics_to_prob(cvss_metrics):
 
 def get_prob_of_CVE (cve):
     cvss_metrics = json.loads(nvd_dict[cve])
-    return  cvss_metrics_to_prob(cvss_metrics)
+    return cvss_metrics_to_prob(cvss_metrics)
 
 
 def get_cost_of_CVE (cve):
@@ -286,9 +288,13 @@ for reportHost in report:
     for reportItem in reportHost:
         print(reportItem.tag, reportItem.attrib)
         if (reportItem.tag == 'ReportItem'):
-            port = int(reportItem.attrib['port'])
+            port = reportItem.attrib['port']
             protocol = reportItem.attrib['protocol']
             severity = int(reportItem.attrib['severity'])
+            if port == "0":
+                port = "pnone"
+            else:
+                port = "p" + port
             port_protocol_pair = (port, protocol)
 
             if not port in uniq_ports:
@@ -310,11 +316,13 @@ for reportHost in report:
                         if not protocol in protocols:
                             protocols.append(protocol)
                         prob = cvss_metrics_to_prob(cvss_metrics)
+                        if port == "pnone":
+                            prob = prob * PNONE_PROB_DISCOUNT_FACTOR
                         if not prob in probabilities:
                             probabilities.append(prob)
                         if prob not in probabilities_for_CVE[cve]:
                             probabilities_for_CVE[cve].append(prob)
-                        vuln = ExploitAction(name, severity, port, protocol, risk_factor, cve, cvss_metrics_to_prob(cvss_metrics), 1)
+                        vuln = ExploitAction(name, severity, port, protocol, risk_factor, cve, prob, 1)
                         exploit_actions.append(vuln)
                         if not cve in CVEs:
                             CVEs.append(cve)
@@ -414,12 +422,16 @@ if args.net is not None:
                 if integrity_initially_compromised == 1:
                     intial_compromised_predicates += " " * 4 + "(compromised %s integrity)\n" % host
             for port_protocol_pair in open_port_protocol_pairs_in_this_zone:
-                initial_haclz_predicates += " " * 4 + "(haclz %s %s p%s %s)\n" % (zone_name, zone_name, port_protocol_pair[0], port_protocol_pair[1])
+                initial_haclz_predicates += " " * 4 + "(haclz %s %s %s %s)\n" % (zone_name, zone_name, port_protocol_pair[0], port_protocol_pair[1])
             for rule in allowed_incoming_rules:
                 src_zone_name = rule['zone']
-                port = rule['port']
+                port = str(rule['port'])
                 protocol = rule['protocol']
-                initial_haclz_predicates += " " * 4 + "(haclz %s %s p%s %s)\n" % (src_zone_name, zone_name, port, protocol)
+                if port == "0":
+                    port = "pnone"
+                else:
+                    port = "p" + port
+                initial_haclz_predicates += " " * 4 + "(haclz %s %s %s %s)\n" % (src_zone_name, zone_name, port, protocol)
 
 print goal
 

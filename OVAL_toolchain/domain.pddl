@@ -13,11 +13,11 @@
 (:functions (total-cost))
 (:constants
     10.9.59.118 internet - host
-    p64704 p63496 p60988 p60165 p59667 p57697 p55296 p54544 p53966 p53686 p50503 p8834 p5353 p138 p137 p123 p0 pnone - port
+    p64704 p63496 p60988 p60165 p59667 p57697 p55296 p54544 p53966 p53686 p50503 p8834 p5353 p138 p137 p123 pnone - port
     CVE-2017-2925 CVE-2017-2926 CVE-2017-2927 CVE-2017-2928 CVE-2017-2930 CVE-2017-2931 CVE-2017-2932 CVE-2017-2933 CVE-2017-2934 CVE-2017-2935 CVE-2017-2936 CVE-2017-2937 CVE-2017-2938 - vul
     confidentiality integrity availability - compromised_type
     tcp - protocol
-    prob0.8 prob0.3 - probability
+    prob0.4 prob0.3 - probability
     subnet1 subnet2 - zone
 )
 (:action ATTACK_set_target0_under_control_10.9.59.118_1/1
@@ -25,69 +25,69 @@
     :precondition (and (not (target0_under_control)) (compromised 10.9.59.118 integrity))
     :effect (and (target0_under_control) (increase (total-cost) 0))
 )
-(:action ATTACK_exploit_CVE-2017-2925_4/5
+(:action ATTACK_exploit_CVE-2017-2925_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2925 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2925 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2925 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2925 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2925 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2926_4/5
+(:action ATTACK_exploit_CVE-2017-2926_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2926 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2926 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2926 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2926 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2926 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2927_4/5
+(:action ATTACK_exploit_CVE-2017-2927_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2927 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2927 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2927 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2927 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2927 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2928_4/5
+(:action ATTACK_exploit_CVE-2017-2928_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2928 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2928 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2928 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2928 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2928 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2930_4/5
+(:action ATTACK_exploit_CVE-2017-2930_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2930 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2930 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2930 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2930 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2930 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2931_4/5
+(:action ATTACK_exploit_CVE-2017-2931_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2931 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2931 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2931 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2931 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2931 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2932_4/5
+(:action ATTACK_exploit_CVE-2017-2932_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2932 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2932 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2932 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2932 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2932 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2933_4/5
+(:action ATTACK_exploit_CVE-2017-2933_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2933 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2933 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2933 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2933 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2933 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2934_4/5
+(:action ATTACK_exploit_CVE-2017-2934_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2934 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2934 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2934 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2934 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2934 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2935_4/5
+(:action ATTACK_exploit_CVE-2017-2935_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2935 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2935 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2935 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2935 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2935 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2936_4/5
+(:action ATTACK_exploit_CVE-2017-2936_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2936 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2936 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2936 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2936 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2936 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2937_4/5
+(:action ATTACK_exploit_CVE-2017-2937_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2937 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2937 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2937 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2937 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2937 ?t))
 )
-(:action ATTACK_exploit_CVE-2017-2938_4/5
+(:action ATTACK_exploit_CVE-2017-2938_2/5
     :parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)
-    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2938 ?t ?po ?pr prob0.8) (not (applied CVE-2017-2938 ?t)))
+    :precondition (and (compromised ?src integrity) (subnet ?z1 ?src) (subnet ?z2 ?t) (haclz ?z1 ?z2 ?po ?pr) (vul_exists CVE-2017-2938 ?t ?po ?pr prob0.4) (not (applied CVE-2017-2938 ?t)))
     :effect (and (increase (total-cost) 1) (compromised ?t confidentiality) (compromised ?t integrity) (compromised ?t availability) (applied CVE-2017-2938 ?t))
 )
 (:action ATTACK_exploit_CVE-2017-2938_3/10
