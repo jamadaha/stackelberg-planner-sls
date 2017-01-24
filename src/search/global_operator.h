@@ -57,12 +57,12 @@ class GlobalOperator {
     std::vector<GlobalCondition> preconditions;
     std::vector<GlobalEffect> effects;
     std::string name;
-    int cost;
-    int cost2;
-    int op_id;
+    int cost = -1;
+    int cost2 = -1;
+    int op_id = -1;
     const std::vector<std::string> *conds_variable_name;
     const std::vector<std::string> *effs_variable_name;
-    int scheme_id;
+    int scheme_id = -1;
 
     mutable bool marked; // Used for short-term marking of preferred operators
     void read_pre_post(std::istream &in);
@@ -104,6 +104,7 @@ public:
     int get_cost2() const {return cost2; }
     void set_cost2(int _cost2) {cost2 = _cost2; }
     int get_op_id() const {return op_id; }
+    void set_op_id(int _op_id) {op_id = _op_id; }
     void set_conds_variable_name (const std::vector<std::string> &_conds_variable_name) {conds_variable_name = &_conds_variable_name; }
     void set_effs_variable_name(const std::vector<std::string> &_effs_variable_name) {effs_variable_name = &_effs_variable_name; }
     int get_scheme_id() const {return scheme_id; }

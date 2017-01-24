@@ -61,6 +61,7 @@ void FixActionsSearch::initialize() {
 }
 
 void FixActionsSearch::sort_operators() {
+	int fix_action_op_id = 0;
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 		string op_name = g_operators[op_no].get_name();
 
@@ -99,6 +100,8 @@ void FixActionsSearch::sort_operators() {
 			g_operators[op_no].set_conds_variable_name(fix_variable_name);
 			g_operators[op_no].set_effs_variable_name(fix_variable_name);
 			g_operators[op_no].set_scheme_id(id);
+			g_operators[op_no].set_op_id(fix_action_op_id);
+			fix_action_op_id++;
 
 			fix_operators.push_back(g_operators[op_no]);
 
@@ -546,16 +549,19 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	fix_operators_successor_generator->generate_applicable_ops(state, all_operators);
 
 	for (size_t op_no = 0; op_no < all_operators.size(); op_no++) {
+		const GlobalOperator *op = all_operators[op_no];
+
 		if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(), all_operators[op_no]) != fix_ops_sequence.end()) {
 			// Continue, if op is already in sequence
 			continue;
 		}
-		if (sleep[op_no] != 0) {
+
+		if (sleep[op->get_op_id()] != 0) {
 			// Continue, if op is in sleep set
 			continue;
 		}
 
-		fix_ops_sequence.push_back(all_operators[op_no]);
+		fix_ops_sequence.push_back(op);
 		int new_fix_actions_cost = calculate_fix_actions_plan_cost(fix_ops_sequence);
 		if(new_fix_actions_cost > initial_fix_actions_budget) {
 			// Continue, if adding this op exceeds the budget
@@ -565,23 +571,24 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		// Add all ops before op_no in all_operators to sleep set if they are commutative
 		if (use_partial_order_reduction) {
-			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
-				if (commutative_fix_ops[op_no][op_no2]) {
+			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
+				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
 					sleep[op_no2]++;
 				}
 			}
 		}
 
-		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *all_operators[op_no]);
+		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *op);
 		if (attack_heuristic != NULL) {
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
+
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : plan, attack_plan_cost, sleep, use_partial_order_reduction);
 
 		// Remove all ops before op_no in all_operators from sleep set if they are commutative
 		if (use_partial_order_reduction) {
-			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
-				if (commutative_fix_ops[op_no][op_no2]) {
+			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
+				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
 					sleep[op_no2]--;
 				}
 			}
