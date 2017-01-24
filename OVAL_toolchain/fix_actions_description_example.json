@@ -1,0 +1,1 @@
+[{"type": "non-FW", "CVE": "*", "host": "*", "port": "*", "protocol": "*", "new_prob": "0", "initial_cost": 1, "cost": 1}, {"type": "non-FW", "CVE": "CVE-2017-2938", "host": "*", "port": "*", "protocol": "*", "new_prob": "0.3", "initial_cost": 1, "cost": 1}, {"type": "FW", "src": "*", "dest": "*", "port": "*", "protocol": "*", "initial_cost": 1, "cost": 1}]
