@@ -16,13 +16,17 @@ def round_float(f):
 
 exploit_actions = []
 CVEs = []
-hosts = ["internet"]
+hosts = []
+zones = []
 uniq_ports = []
-open_ports_for_host = {'internet': []}
+open_port_protocol_pairs_for_host = defaultdict(lambda: [])
 compromised_types = ['confidentiality', 'integrity', 'availability']
 protocols = []
 probabilities = []
 probabilities_for_CVE = defaultdict(lambda: [])
+intial_compromised_predicates = ""
+initial_haclz_predicates = ""
+initial_subnet_predicates = ""
 
 
 class PDDLDomain(object):
@@ -40,7 +44,7 @@ class PDDLDomain(object):
             res += ';;; %s\n' % self.comment
         res += "(define (domain %s)\n" % self.name
         res += "; (:requirements strips)\n"
-        res += "(:types host port vul compromised_type"
+        res += "(:types host zone port protocol vul compromised_type probability"
         res += ")\n"
         res += "(:predicates\n"
         res += " " * 3
@@ -81,6 +85,10 @@ class PDDLDomain(object):
         for prob in probabilities:
             res += "%s " % prob
         res += "- probability\n"
+        res += " " * 4
+        for zone in zones:
+            res += "%s " % zone
+        res += "- zone\n"
         res += ")\n"
         for i in range(len(self.goal)):
             for host in self.goal[i]:
@@ -93,11 +101,18 @@ class PDDLDomain(object):
             for prob in (probabilities_for_CVE[cve] + probabilities_for_CVE['*']):
                 f = Fraction(round_float(float(prob))).limit_denominator(DENOMINATOR)
                 res += "(:action ATTACK_exploit_%s_%s\n" % (cve, f)
-                res += " " * 4 + ":parameters (?src ?t - host ?z1 ?z2 - zone ?po - port ?pr - protocol)\n"
+                res += " " * 4 + ":parameters (?src ?t - host ?z1 %s- zone ?po - port ?pr - protocol)\n" % ("?z2 " if get_access_vector_of_CVE(cve) == "NETWORK" else "")
                 res += " " * 4 + ":precondition (and (compromised ?src integrity)"
-                res += " (subnet ?src ?z1)"
-                res += " (subnet ?t ?z2)"
-                res += " (haclz ?z1 ?z2 ?po ?pr)"
+                if get_access_vector_of_CVE(cve) == "NETWORK":
+                    res += " (subnet ?src ?z1)"
+                    res += " (subnet ?t ?z2)"
+                    res += " (haclz ?z1 ?z2 ?po ?pr)"
+                elif get_access_vector_of_CVE(cve) == "ADJACENT_NETWORK":
+                    res += " (subnet ?src ?z1)"
+                    res += " (subnet ?t ?z1)"
+                else:
+                    print "Should not end up here!"
+                    exit()
                 res += " (vul_exists %s ?t ?po ?pr %s)" % (cve, prob)
 
                 if self.apply_once:
@@ -140,11 +155,10 @@ class PDDLDomain(object):
         return res
 
 class PDDLProblem(object):
-    def __init__(self, name, domain_name, exploit_actions, controlled, goal, comment = None):
+    def __init__(self, name, domain_name, exploit_actions, goal, comment = None):
         self.name = name
         self.domain_name = domain_name
         self.exploit_actions = exploit_actions
-        self.controlled = controlled
         self.goal = goal
         self.comment = comment
     def __str__(self):
@@ -155,16 +169,16 @@ class PDDLProblem(object):
         res += "(:domain %s)\n" % self.domain_name
         res += "(:init\n"
         res += " " * 4 + "(= (total-cost) 0)\n"
-        res += " " * 4 + "(controlling %s)\n" % self.controlled
         if args.net is not None:
-            with open(args.net) as network_topology_file:
-                res += network_topology_file.read()
-        else:
-            for host_source in hosts:
-                for host_target in hosts:
-                    if host_source != host_target:
-                        for port in open_ports_for_host[host_target]:
-                            res += " " * 4 + "(hacl %s %s p%d)\n" % (host_source, host_target, port)
+            res += intial_compromised_predicates
+            res += initial_subnet_predicates
+            res += initial_haclz_predicates
+        #else:
+        #    for host_source in hosts:
+        #        for host_target in hosts:
+        #            if host_source != host_target:
+        #                for port in open_ports_for_host[host_target]:
+        #                    res += " " * 4 + "(hacl %s %s p%d)\n" % (host_source, host_target, port)
         for vul in self.exploit_actions:
             res += " " * 4 + "(vul_exists %s %s p%d %s %s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol, vul.prob)
         res += ")\n"
@@ -239,6 +253,9 @@ def get_compromised_types_of_CVE(cve):
     return res
 
 
+def get_access_vector_of_CVE(cve):
+    cvss_metrics = json.loads(nvd_dict[cve])
+    return cvss_metrics['access_vector']
 
 
 p = argparse.ArgumentParser(description="Nessus CoreSec Problem Generator")
@@ -265,17 +282,19 @@ for reportHost in report:
     print(reportHost.tag, reportHost.attrib)
     name = reportHost.attrib['name']
     hosts.append(name)
-    open_ports_for_host[name] = []
+    open_port_protocol_pairs_for_host[name] = []
     for reportItem in reportHost:
         print(reportItem.tag, reportItem.attrib)
         if (reportItem.tag == 'ReportItem'):
+            port = int(reportItem.attrib['port'])
             protocol = reportItem.attrib['protocol']
             severity = int(reportItem.attrib['severity'])
-            port = int(reportItem.attrib['port'])
+            port_protocol_pair = (port, protocol)
+
             if not port in uniq_ports:
                 uniq_ports.append(port)
-            if not port in open_ports_for_host[name]:
-                open_ports_for_host[name].append(port)
+            if not port_protocol_pair in open_port_protocol_pairs_for_host[name]:
+                open_port_protocol_pairs_for_host[name].append(port_protocol_pair)
             ecploit_CVEs = []
             for reportItemChild in reportItem:
                 print(reportItemChild.tag, reportItemChild.attrib)
@@ -363,7 +382,46 @@ if args.fix is not None:
                 fixes += ")\n"
             fix_action_scheme_id += 1
 
-goal = [[hosts[len(hosts) - 1]]]
+goal = []
+
+if args.net is not None:
+    with open(args.net) as network_file:
+        network_json = json.load(network_file)
+        print network_json
+        for zone in network_json:
+            print zone
+            zone_name = zone['zone_name']
+            host_list = zone ['hosts']
+            if 'integrity_initially_compromised' in zone:
+                integrity_initially_compromised = zone['integrity_initially_compromised']
+            else:
+                integrity_initially_compromised = 0
+            if 'is_goal' in zone:
+                is_goal = zone['is_goal']
+            else:
+                is_goal = 0
+            allowed_incoming_rules = zone['allowed_incoming_rules']
+            if is_goal == 1:
+                goal.append(host_list)
+            open_port_protocol_pairs_in_this_zone = []
+            if zone_name not in zones:
+                zones.append(zone_name)
+            for host in host_list:
+                if host not in hosts:
+                    hosts.append(host)
+                initial_subnet_predicates += " " * 4 + "(subnet %s %s)\n" % (zone_name, host)
+                open_port_protocol_pairs_in_this_zone += open_port_protocol_pairs_for_host[host]
+                if integrity_initially_compromised == 1:
+                    intial_compromised_predicates += " " * 4 + "(compromised %s integrity)\n" % host
+            for port_protocol_pair in open_port_protocol_pairs_in_this_zone:
+                initial_haclz_predicates += " " * 4 + "(haclz %s %s %s %s)\n" % (zone_name, zone_name, port_protocol_pair[0], port_protocol_pair[1])
+            for rule in allowed_incoming_rules:
+                src_zone_name = rule['zone']
+                port = rule['port']
+                protocol = rule['protocol']
+                initial_haclz_predicates += " " * 4 + "(haclz %s %s %s %s)\n" % (src_zone_name, zone_name, port, protocol)
+
+print goal
 
 
 with open(args.domain, "w") as f:
@@ -372,7 +430,7 @@ with open(args.domain, "w") as f:
                                apply_once=not args.disable_apply_once)))
 
 with open(args.problem, "w") as f:
-    f.write(str(PDDLProblem("coresec", "coresec", exploit_actions, hosts[0], goal,
+    f.write(str(PDDLProblem("coresec", "coresec", exploit_actions, goal,
                                 "Bla")))
 
 
