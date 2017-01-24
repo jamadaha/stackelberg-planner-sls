@@ -83,7 +83,7 @@ class PDDLDomain(object):
         res += "- protocol\n"
         res += " " * 4
         for prob in probabilities:
-            res += "%s " % prob
+            res += "prob%s " % prob
         res += "- probability\n"
         res += " " * 4
         for zone in zones:
@@ -104,16 +104,16 @@ class PDDLDomain(object):
                 res += " " * 4 + ":parameters (?src ?t - host ?z1 %s- zone ?po - port ?pr - protocol)\n" % ("?z2 " if get_access_vector_of_CVE(cve) == "NETWORK" else "")
                 res += " " * 4 + ":precondition (and (compromised ?src integrity)"
                 if get_access_vector_of_CVE(cve) == "NETWORK":
-                    res += " (subnet ?src ?z1)"
-                    res += " (subnet ?t ?z2)"
+                    res += " (subnet ?z1 ?src)"
+                    res += " (subnet ?z2 ?t)"
                     res += " (haclz ?z1 ?z2 ?po ?pr)"
                 elif get_access_vector_of_CVE(cve) == "ADJACENT_NETWORK":
-                    res += " (subnet ?src ?z1)"
-                    res += " (subnet ?t ?z1)"
+                    res += " (subnet ?z1 ?src)"
+                    res += " (subnet ?z1 ?t)"
                 else:
                     print "Should not end up here!"
                     exit()
-                res += " (vul_exists %s ?t ?po ?pr %s)" % (cve, prob)
+                res += " (vul_exists %s ?t ?po ?pr prob%s)" % (cve, prob)
 
                 if self.apply_once:
                    res += " (not (applied %s ?t))" % cve
@@ -180,7 +180,7 @@ class PDDLProblem(object):
         #                for port in open_ports_for_host[host_target]:
         #                    res += " " * 4 + "(hacl %s %s p%d)\n" % (host_source, host_target, port)
         for vul in self.exploit_actions:
-            res += " " * 4 + "(vul_exists %s %s p%d %s %s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol, vul.prob)
+            res += " " * 4 + "(vul_exists %s %s p%d %s prob%s)\n" % (vul.CVE, vul.host, vul.port, vul.protocol, vul.prob)
         res += ")\n"
         res += "(:goal (and\n"
         for i in range(len(self.goal)):
@@ -345,7 +345,7 @@ if args.fix is not None:
                     probabilities_for_CVE[cve].append(new_prob)
                 fixes += "(:action FIX_exploit_%s%s%s%s%s%d#%d\n" % (
                 "" if cve == '*' else cve + "_", "" if host == '*' else host + "_", "" if port == '*' else port + "_",
-                "" if protocol == '*' else protocol + "_", str(new_prob) + "_", initial_cost,
+                "" if protocol == '*' else protocol + "_", "prob" + str(new_prob) + "_", initial_cost,
                 fix_action_scheme_id)
                 fixes += " " * 4 + ":parameters (%s%s%s%s?old_prob - probability)\n" % ("?v - vul " if cve == '*' else "", "?h - host " if host == '*' else "", "?po - port " if port == '*' else "",
                 "?pr - protocol " if protocol == '*' else "")
@@ -357,7 +357,7 @@ if args.fix is not None:
                 "?pr" if protocol == '*' else protocol)
                 if new_prob > 0.0:
                     fixes += " (vul_exists %s %s %s %s %s)" % ("?v" if cve == '*' else cve, "?h" if host == '*' else host, "?po" if port == '*' else port,
-                "?pr" if protocol == '*' else protocol, new_prob)
+                "?pr" if protocol == '*' else protocol, "prob" + str(new_prob))
                 fixes += ")\n"
                 fixes += ")\n"
             elif type == "FW":
@@ -414,12 +414,12 @@ if args.net is not None:
                 if integrity_initially_compromised == 1:
                     intial_compromised_predicates += " " * 4 + "(compromised %s integrity)\n" % host
             for port_protocol_pair in open_port_protocol_pairs_in_this_zone:
-                initial_haclz_predicates += " " * 4 + "(haclz %s %s %s %s)\n" % (zone_name, zone_name, port_protocol_pair[0], port_protocol_pair[1])
+                initial_haclz_predicates += " " * 4 + "(haclz %s %s p%s %s)\n" % (zone_name, zone_name, port_protocol_pair[0], port_protocol_pair[1])
             for rule in allowed_incoming_rules:
                 src_zone_name = rule['zone']
                 port = rule['port']
                 protocol = rule['protocol']
-                initial_haclz_predicates += " " * 4 + "(haclz %s %s %s %s)\n" % (src_zone_name, zone_name, port, protocol)
+                initial_haclz_predicates += " " * 4 + "(haclz %s %s p%s %s)\n" % (src_zone_name, zone_name, port, protocol)
 
 print goal
 
