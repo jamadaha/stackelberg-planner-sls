@@ -1,0 +1,47 @@
+What does this tool?
+Basically, the tool needs four input files given via the following cmd arguments
+--nessus: A Nessus network scan result file in .xml format
+--nvd: A .json file in our own format which basically contains important information (cvss-metrics) extracted from XML Vulnerability Feeds (Download: https://nvd.nist.gov/download.cfm). A respective file called "nvd_2002-2017.json" is provived. So, no additional work for you, just give this file as argument.
+--fix A .json filne in our own format which describes the possible fix actions (more below)
+--net A .json filne in our own format which describes the topology of the network belonging to the nessus scan
+
+Given all this, the tool builds a formal attacker model, where the attacker initially controlls a specific set of host in the network and has the goal to controll another set of hosts. The attacker gains control over a new host t by already controlling another host s and using an applicable exploit action which uses a vulnerability of t. Applicability also includes the requirement that the connection from s to t is not blocked by a firewall or sth. similar. Vulnerabilites are identified via CVE ids.
+Additionally, there exists a set of fix actions, specified via the respective input file. These actions change the network such that some attacker actions are not possible anymore. For example, patching a vulnerability on specific host or adding a firewall rule.
+The output is then the pareto-optimal frontier of fix action sequences which minimize the attacker success probability. The attacker success probability depends on the exploit actions used.
+
+
+fix actions description file format:
+The .json file must contain a single array filled with objects, all specifying a specific fix action schema. Such an Object can have three possible types:
+"FIX" is for a patch or workaround for all of specific vulnerabilites.
+{
+	"type": "FIX"
+	"CVE": "x", // x can either be "*" or a specific CVE id meaning that a fix action scheme is created which in principle could fix all CVEs ("*") or only this specific one
+	"host": "x", // x can either be "*" or a specific host name meaning that a fix action scheme is created which in principle could fix the vulnerability on all host or only on this specific one
+	"port": "x", // x can either be "*" or a specific port meaning that a fix action scheme is created which in principle could fix the vulnerability running on all ports or only on this specific one
+	"protocol": "x", // x can either be "*" or a specific protocol (e.g. "tcp", "udp") meaning that a fix action scheme is created which in principle could fix the vulnerability running on all protocols or only on this specific one
+	"new_prob": "x", // x is the new probability of the respective exploit action. If the exploit is not applicable anymore, it is "0". Note that new_prob must be smaller than the original probability. The original probability is extracted from the ndv file.
+	"initial_cost": x, // As this object results in an action schema which be instantiated to several conrecte fix actions, e.g. if host: "*", there is concrete action for every host, we want to reflect the cost of initially finding the patch for an CVE id. The initial_cost is only accounted once, even if several fix actions from this scheme is in a sequence.
+	"cost": x // The normal costs are always accounted for each individual fix action in a sequence
+} 
+
+ "ZONE-FW" is for adding a firewall rule between ZONEs:
+{
+	"type": "ZONE-FW",
+	"src_zone": "x", // x can either be "*" or a zone name meaning that a fix action scheme is created which in principle blocks access from all zones ("*") or only from a specific one
+	"dest_zone": "x", // x can either be "*" or a zone name meaning that a fix action scheme is created which in principle blocks access to all zones ("*") or only to a specific one
+	"port": "x", // x can either be "*" or a port meaning that a fix action scheme is created which in principle blocks access to all ports ("*") or only to a specific one
+	"protocol": "*", // x can either be "*" or a protocol meaning that a fix action scheme is created which in principle blocks access for all protocols ("*") or for a specific one
+	"initial_cost": x, // as already said, the initial costs are only accountend once for this scheme
+	"cost": x // these costs are always accounted
+}
+
+"DESKTOP-FW" is for adding a firewall rule on a specific host:
+{
+	"type": "DESKTOP-FW",
+	"src_zone": "*", // x can either be "*" or a zone name meaning that a fix action scheme is created which in principle blocks access from all zones ("*") or only from a specific one
+	"host": "*", // x can either be "*" or a host name meaning that a fix action scheme is created which in principle blocks access to all host ("*") or only to a specific one
+	"port": "*", // x can either be "*" or a port meaning that a fix action scheme is created which in principle blocks access to all ports ("*") or only to a specific one
+	"protocol": "*", // x can either be "*" or a protocol meaning that a fix action scheme is created which in principle blocks access for all protocols ("*") or for a specific one
+	"initial_cost": 1, // initial costs are only accountend once for this scheme
+	"cost": 1 // these costs are always accounted
+}
