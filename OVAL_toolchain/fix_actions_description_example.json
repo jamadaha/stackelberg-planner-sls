@@ -1,1 +1,11 @@
-[{"type": "non-FW", "CVE": "*", "host": "*", "port": "*", "protocol": "*", "new_prob": "0", "initial_cost": 1, "cost": 1}, {"type": "non-FW", "CVE": "CVE-2017-2938", "host": "*", "port": "*", "protocol": "*", "new_prob": "0.3", "initial_cost": 1, "cost": 1}, {"type": "FW", "src": "*", "dest": "*", "port": "*", "protocol": "*", "initial_cost": 1, "cost": 1}]
+[{"type": "FIX", 
+"CVE": "*", 
+"host": "*", 
+"port": "*", 
+"protocol": "*", 
+"new_prob": "0", 
+"initial_cost": 1, 
+"cost": 1},
+{"type": "FIX", "CVE": "CVE-2017-2938", "host": "*", "port": "*", "protocol": "*", "new_prob": "0.3", "initial_cost": 1, "cost": 1}, 
+{"type": "ZONE-FW", "src_zone": "*", "dest_zone": "*", "port": "*", "protocol": "*", "initial_cost": 1, "cost": 1},
+{"type": "DESKTOP-FW", "src_zone": "*", "host": "*", "port": "*", "protocol": "*", "initial_cost": 1, "cost": 1} ]

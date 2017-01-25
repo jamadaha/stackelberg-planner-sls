@@ -58,6 +58,7 @@ class PDDLDomain(object):
         res += " " * 4 + "(haclz ?src ?dest - zone ?po - port ?pr - protocol)\n"
         res += " " * 4 + "(subnet ?z - zone ?h - host)\n"
         res += " " * 4 + "(vul_exists ?v - vul ?h - host ?po - port ?pr - protocol ?prob - probability)\n"
+        res += " " * 4 + "(dpf ?src - zone ?h - host ?po - port ?pr - protocol)\n"
         if self.apply_once:
             res += " " * 4 + "(applied ?v - vul ?h - host)\n"
         res += ")\n"
@@ -109,9 +110,11 @@ class PDDLDomain(object):
                     res += " (subnet ?z1 ?src)"
                     res += " (subnet ?z2 ?t)"
                     res += " (haclz ?z1 ?z2 ?po ?pr)"
+                    res += " (not (dpf ?z1 ?t ?po ?pr))"
                 elif get_access_vector_of_CVE(cve) == "ADJACENT_NETWORK":
                     res += " (subnet ?z1 ?src)"
                     res += " (subnet ?z1 ?t)"
+                    res += " (not (dpf ?z1 ?t ?po ?pr))"
                 else:
                     print "Should not end up here!"
                     exit()
@@ -339,7 +342,7 @@ if args.fix is not None:
         fix_action_scheme_id = 0
         for fix_action_scheme in fix_actions_json:
             type = fix_action_scheme['type']
-            if type == "non-FW":
+            if type == "FIX":
                 cve = fix_action_scheme['CVE']
                 host = fix_action_scheme['host']
                 port = fix_action_scheme['port']
@@ -368,16 +371,16 @@ if args.fix is not None:
                 "?pr" if protocol == '*' else protocol, "prob" + str(new_prob))
                 fixes += ")\n"
                 fixes += ")\n"
-            elif type == "FW":
-                src = fix_action_scheme['src']
-                dest = fix_action_scheme['dest']
+            elif type == "ZONE-FW":
+                src = fix_action_scheme['src_zone']
+                dest = fix_action_scheme['dest_zone']
                 port = fix_action_scheme['port']
                 protocol = fix_action_scheme['protocol']
                 initial_cost = fix_action_scheme['initial_cost']
                 cost = fix_action_scheme['cost']
-                fixes += "(:action FIX_install_firewall_%s%s%s%s%d#%d\n" % ("" if src == '*' else src + "_", "" if dest == '*' else dest + "_", "" if port == '*' else port + "_",
+                fixes += "(:action FIX_install_zone_firewall_%s%s%s%s%d#%d\n" % ("" if src == '*' else src + "_", "" if dest == '*' else dest + "_", "" if port == '*' else port + "_",
                 "" if protocol == '*' else protocol + "_", initial_cost, fix_action_scheme_id)
-                fixes += " " * 4 + ":parameters (%s%s%s%s)\n" % ("?src - zone " if host == '*' else "", "?dest - zone " if dest == '*' else "",
+                fixes += " " * 4 + ":parameters (%s%s%s%s)\n" % ("?src - zone " if src == '*' else "", "?dest - zone " if dest == '*' else "",
                 "?po - port " if port == '*' else "",
                 "?pr - protocol" if protocol == '*' else "")
                 fixes += " " * 4 + ":precondition (and (haclz %s %s %s %s)" % ("?src" if src == '*' else src, "?dest" if dest == '*' else dest, "?po" if port == '*' else port,
@@ -385,6 +388,25 @@ if args.fix is not None:
                 fixes += ")\n"
                 fixes += " " * 4 + ":effect (and (increase (total-cost) %d)" % cost
                 fixes += " (not (haclz %s %s %s %s))" % ("?src" if src == '*' else src, "?dest" if dest == '*' else dest, "?po" if port == '*' else port,
+                "?pr" if protocol == '*' else protocol)
+                fixes += ")\n"
+                fixes += ")\n"
+            elif type == "DESKTOP-FW":
+                src = fix_action_scheme['src_zone']
+                host = fix_action_scheme['host']
+                port = fix_action_scheme['port']
+                protocol = fix_action_scheme['protocol']
+                initial_cost = fix_action_scheme['initial_cost']
+                cost = fix_action_scheme['cost']
+                fixes += "(:action FIX_install_desktop_firewall_%s%s%s%s%d#%d\n" % ("" if src == '*' else src + "_", "" if host == '*' else host + "_", "" if port == '*' else port + "_",
+                "" if protocol == '*' else protocol + "_", initial_cost, fix_action_scheme_id)
+                fixes += " " * 4 + ":parameters (%s%s%s%s)\n" % ("?src - zone " if src == '*' else "", "?h - host " if host == '*' else "",
+                "?po - port " if port == '*' else "",
+                "?pr - protocol" if protocol == '*' else "")
+                #fixes += " " * 4 + ":precondition ( "
+                #fixes += ")\n"
+                fixes += " " * 4 + ":effect (and (increase (total-cost) %d)" % cost
+                fixes += " (dpf %s %s %s %s)" % ("?src" if src == '*' else src, "?h" if host == '*' else host, "?po" if port == '*' else port,
                 "?pr" if protocol == '*' else protocol)
                 fixes += ")\n"
                 fixes += ")\n"
