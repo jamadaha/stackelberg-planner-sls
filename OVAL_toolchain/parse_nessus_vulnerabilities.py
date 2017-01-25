@@ -34,6 +34,7 @@ initial_subnet_predicates = ""
 
 def main():
     global nvd_dict
+    global args
 
     p = argparse.ArgumentParser(description="Nessus CoreSec Problem Generator")
     p.add_argument("--nessus", type=str, help="the Nessus output file in xml format", default=None)
@@ -49,14 +50,14 @@ def main():
     with open(args.nvd) as nvd_file:
         nvd_dict = json.load(nvd_file)
 
-    parse_nessus_report(args)
-    parse_network_topology_file(args)
+    parse_nessus_report()
+    parse_network_topology_file()
 
     if args.fix is not None:
         with open(args.fix) as fix_actions_file:
             fix_actions = parse_fix_actions_file(fix_actions_file)
     with open(args.domain, "w") as f:
-        f.write(generate_PDDL_domain("coresec", args, fix_actions, "Bla", apply_once=not args.disable_apply_once))
+        f.write(generate_PDDL_domain("coresec", fix_actions, "Bla", apply_once=not args.disable_apply_once))
 
     with open(args.problem, "w") as f:
         f.write(generate_PDDL_problem("coresec", "coresec", "Bla"))
@@ -85,7 +86,7 @@ class ExploitAction(object):
         return json.dumps(self.__dict__)
 
 
-def generate_PDDL_domain(name, args, fix_actions = None, comment="", apply_once=True):
+def generate_PDDL_domain(name, fix_actions = None, comment="", apply_once=True):
     res = ''
     if comment != None:
         res += ';;; %s\n' % comment
@@ -222,7 +223,7 @@ def generate_PDDL_problem(name, domain_name, comment=""):
     return res
 
 
-def parse_nessus_report(args):
+def parse_nessus_report():
     tree = ET.parse(args.nessus)
     root = tree.getroot()
     for child in root:
@@ -365,7 +366,7 @@ def parse_fix_actions_file(fix_actions_file):
     return fixes
 
 
-def parse_network_topology_file(args):
+def parse_network_topology_file():
     global intial_compromised_predicates
     global initial_haclz_predicates
     global initial_subnet_predicates
