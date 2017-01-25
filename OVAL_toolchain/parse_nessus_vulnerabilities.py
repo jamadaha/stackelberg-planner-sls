@@ -200,18 +200,16 @@ class ExploitAction(object):
     severity = 1
     port = "pnone"
     protocol = ""
-    risk_factor = "None"
     CVE = ""
     prob = 0
     cost = 0
 
     # The class "constructor" - It's actually an initializer
-    def __init__(self, host, severity, port, protocol, risk_factor, CVE, prob, cost):
+    def __init__(self, host, severity, port, protocol, CVE, prob, cost):
         self.host = host
         self.severity = severity
         self.port = port
         self.protocol = protocol
-        self.risk_factor = risk_factor
         self.CVE = CVE
         self.prob = prob
         self.cost = cost
@@ -307,8 +305,6 @@ for reportHost in report:
             ecploit_CVEs = []
             for reportItemChild in reportItem:
                 print(reportItemChild.tag, reportItemChild.attrib)
-                if (reportItemChild.tag == 'risk_factor'):
-                    risk_factor = reportItemChild.text
                 if (reportItemChild.tag == 'cve'):
                     ecploit_CVEs.append(reportItemChild.text)
             if severity > 0:
@@ -325,7 +321,7 @@ for reportHost in report:
                             probabilities.append(prob)
                         if prob not in probabilities_for_CVE[cve]:
                             probabilities_for_CVE[cve].append(prob)
-                        vuln = ExploitAction(name, severity, port, protocol, risk_factor, cve, prob, 1)
+                        vuln = ExploitAction(name, severity, port, protocol, cve, prob, 1)
                         exploit_actions.append(vuln)
                         if not cve in CVEs:
                             CVEs.append(cve)
