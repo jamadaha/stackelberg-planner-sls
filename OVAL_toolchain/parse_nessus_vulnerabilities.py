@@ -226,16 +226,16 @@ def generate_PDDL_problem(name, domain_name, comment=""):
 def parse_nessus_report():
     tree = ET.parse(args.nessus)
     root = tree.getroot()
-    for child in root:
-        print(child.tag, child.attrib)
+    #for child in root:
+        #print(child.tag, child.attrib)
     report = root[1]
     for reportHost in report:
-        print(reportHost.tag, reportHost.attrib)
+        #print(reportHost.tag, reportHost.attrib)
         name = reportHost.attrib['name']
         hosts.append(name)
         open_port_protocol_pairs_for_host[name] = []
         for reportItem in reportHost:
-            print(reportItem.tag, reportItem.attrib)
+            #print(reportItem.tag, reportItem.attrib)
             if (reportItem.tag == 'ReportItem'):
                 port = reportItem.attrib['port']
                 protocol = reportItem.attrib['protocol']
@@ -252,13 +252,13 @@ def parse_nessus_report():
                     open_port_protocol_pairs_for_host[name].append(port_protocol_pair)
                 ecploit_CVEs = []
                 for reportItemChild in reportItem:
-                    print(reportItemChild.tag, reportItemChild.attrib)
+                    #print(reportItemChild.tag, reportItemChild.attrib)
                     if (reportItemChild.tag == 'cve'):
                         ecploit_CVEs.append(reportItemChild.text)
                 if severity > 0:
                     for cve in ecploit_CVEs:
                         cvss_metrics = json.loads(nvd_dict[cve])
-                        print cvss_metrics
+                        #print cvss_metrics
                         if(cvss_metrics['access_vector'] != 'LOCAL' and cvss_metrics['integrity_impact'] != 'NONE'):
                             if not protocol in protocols:
                                 protocols.append(protocol)
@@ -372,9 +372,9 @@ def parse_network_topology_file():
     global initial_subnet_predicates
     with open(args.net) as network_file:
         network_json = json.load(network_file)
-        print network_json
+        #print network_json
         for zone in network_json:
-            print zone
+            #print zone
             zone_name = zone['zone_name']
             host_list = zone['hosts']
             if 'integrity_initially_compromised' in zone:
