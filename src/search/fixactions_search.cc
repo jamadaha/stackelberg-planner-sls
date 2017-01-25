@@ -16,6 +16,7 @@
 #include "eager_search.h"
 #include "budget_dead_end_heuristic.h"
 #include <chrono>
+#include <iomanip>
 
 //#define FIX_SEARCH_DEBUG
 
@@ -658,27 +659,34 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 }
 
 void FixActionsSearch::dump_op_sequence(const vector<const GlobalOperator*> &op_sequence) {
+	if (op_sequence.size() < 1) {
+		cout << "\t\t\t <empty sequence>" << endl;
+		return;
+	}
+
     for (size_t i = 0; i < op_sequence.size(); ++i) {
-        cout << op_sequence[i]->get_name() << " (" << op_sequence[i]->get_cost() << ")" << endl;
+        cout << "\t\t\t " << op_sequence[i]->get_name() << endl;
     }
 }
 
 void FixActionsSearch::dump_op_sequence_sequence(const vector<vector<const GlobalOperator*>> &op_sequence_sequence) {
 	for (size_t i = 0; i < op_sequence_sequence.size(); ++i) {
-		cout << "sequence " << i << ":" << endl;
+		cout << "\t\t sequence " << i << ":" << endl;
 		dump_op_sequence(op_sequence_sequence[i]);
 	}
 }
 
 void FixActionsSearch::dump_pareto_frontier_node(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
-	cout << "fix ops costs: " << get<0>(node) << ", attack prob: " << prob_cost_to_prob(get<1>(node)) << ", sequences: " << endl;
+	cout << "\t fix ops costs: " << get<0>(node) << ", attack prob: " << setprecision(3) << prob_cost_to_prob(get<1>(node)) << ", sequences: " << endl;
 	dump_op_sequence_sequence(get<2>(node));
 }
 
 void FixActionsSearch::dump_pareto_frontier () {
+	cout << "Resulting Pareto-frontier: " << endl;
 	for (size_t i = 0; i < pareto_frontier.size(); ++i) {
 		dump_pareto_frontier_node(pareto_frontier[i]);
 	}
+	cout << "END Pareto-frontier" << endl;
 }
 
 SearchStatus FixActionsSearch::step() {
