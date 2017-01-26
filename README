@@ -64,5 +64,8 @@ Such an Object looks as follows:
 	]
 }
 
-With the example files, the tool can be executed with following command:
+Before one can start the tool, navigate to the /src folder and execute:
+./build_all
+
+Finnally, the tool can be started with the example files by executing the following command:
 python what-if-analysis.py --nessus Nessus_toolchain/Network_Scan_example.nessus --nvd Nessus_toolchain/nvd_2002-2017.json --fix Nessus_toolchain/fix_actions_description_example.json --net Nessus_toolchain/network_topology_example.json
