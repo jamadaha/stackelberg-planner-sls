@@ -101,6 +101,7 @@ public:
     mutable bool marker1, marker2; // HACK! HACK!
 
     int get_cost() const {return cost; }
+    void set_cost(int _cost) {cost = _cost; }
     int get_cost2() const {return cost2; }
     void set_cost2(int _cost2) {cost2 = _cost2; }
     int get_op_id() const {return op_id; }

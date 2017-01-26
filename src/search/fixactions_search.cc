@@ -45,6 +45,11 @@ void FixActionsSearch::initialize() {
 
 	sort_operators();
 
+	if(fix_operators.size() < 1) {
+		// If there are no fix actions, just do one attacker search
+		search_engine->search();
+	}
+
 	divideVariables();
 
 	clean_attack_actions();
@@ -80,7 +85,9 @@ void FixActionsSearch::sort_operators() {
 		if (op_name.find("attack") == 0) {
 			string prob = everything_before_whitespace.substr(underscore + 1);
 			int success_prob_cost = parse_success_prob_cost(prob);
-			g_operators[op_no].set_cost2(success_prob_cost);
+			// Note that cost and cost2 are swapped here on purpose!
+			g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
+			g_operators[op_no].set_cost(success_prob_cost);
 
 			attack_operators.push_back(g_operators[op_no]);
 
@@ -164,13 +171,12 @@ void FixActionsSearch::clean_attack_actions() {
 			}
 		}
 
-		// Note that cost and cost2 are swapped here on purpose!
 		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost2(), op.get_cost(), op_no, g_variable_name, g_variable_name);
+				op.get_cost(), op.get_cost2(), op_no, g_variable_name, g_variable_name);
 		attack_operators[op_no] = op_with_attack_preconds;
 
 		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost2(), op.get_cost(), op_no, fix_variable_name, g_variable_name);
+				op.get_cost(), op.get_cost2(), op_no, fix_variable_name, g_variable_name);
 		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }
