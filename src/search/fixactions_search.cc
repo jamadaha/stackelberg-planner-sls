@@ -618,6 +618,9 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 	}
 
 	if(pareto_frontier.size() == 0) {
+#ifdef FIX_SEARCH_DEBUG
+		cout << "added node with fix cost: " << get<0>(node) << " and attack cost: " << get<1>(node) << " to frontier" << endl;
+#endif
 		pareto_frontier.push_back(node);
 		return;
 	}
@@ -628,15 +631,29 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 		// Check whether node is dominated by last element
 		it--;
 		if(get<1>(*it) < get<1>(node)) {
+#ifdef FIX_SEARCH_DEBUG
+			cout << "added node with fix cost: " << get<0>(node) << " and attack cost: " << get<1>(node) << " to frontier" << endl;
+#endif
 			pareto_frontier.push_back(node);
 		}
 		return;
 	}
 
+	if(it != pareto_frontier.begin()) {
+		if(get<1>(*(it-1)) >= get<1>(node)) {
+			// The new node is dominated by existing node with fewer fix action costs
+			return;
+		}
+	}
+
+
 	if(get<0>(*it) == get<0>(node)) {
 		if(get<1>(*it) < get<1>(node)) {
 			it = pareto_frontier.erase(it);
 			it = pareto_frontier.insert(it, node);
+#ifdef FIX_SEARCH_DEBUG
+			cout << "added node with fix cost: " << get<0>(node) << " and attack cost: " << get<1>(node) << " to frontier" << endl;
+#endif
 			it++;
 		} else if (get<1>(*it) == get<1>(node)) {
 			get<2>(*it).push_back(get<2>(node)[0]);
@@ -645,11 +662,11 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 			return;
 		}
 	} else {
-		if(get<1>(*it) <= get<1>(node)) {
-			it = pareto_frontier.erase(it);
-			it = pareto_frontier.insert(it, node);
-			it++;
-		}
+		it = pareto_frontier.insert(it, node);
+		it++;
+#ifdef FIX_SEARCH_DEBUG
+		cout << "added node with fix cost: " << get<0>(node) << " and attack cost: " << get<1>(node) << " to frontier" << endl;
+#endif
 	}
 
 	while(it != pareto_frontier.end() && get<1>(*it) <= get<1>(node)) {
