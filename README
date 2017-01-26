@@ -65,4 +65,4 @@ Such an Object looks as follows:
 }
 
 With the example files, the tool can be executed with following command:
-python what-if-analysis.py --nessus ../OVAL_toolchain/Network_Scan_example.nessus --nvd ../OVAL_toolchain/nvd_2002-2017.json --fix ../OVAL_toolchain/fix_actions_description_example.json --net ../OVAL_toolchain/network_topology_example.json
+python what-if-analysis.py --nessus Nessus_toolchain/Network_Scan_example.nessus --nvd Nessus_toolchain/nvd_2002-2017.json --fix Nessus_toolchain/fix_actions_description_example.json --net Nessus_toolchain/network_topology_example.json
