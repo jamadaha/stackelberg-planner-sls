@@ -50,7 +50,10 @@ Example
 The tool can be started with the example files by executing the following
 command (outside src, i.e., in the top-level directory).
 
-python what-if-analysis.py --nessus Nessus_toolchain/Network_Scan_example.nessus --nvd Nessus_toolchain/nvd_2002-2017.json --fix Nessus_toolchain/fix_actions_description_example.json --net Nessus_toolchain/network_topology_example.json
+python what-if-analysis.py --nessus Nessus_toolchain/Network_Scan_example.nessus\
+                           --nvd Nessus_toolchain/nvd_2002-2017.json\
+                           --fix Nessus_toolchain/fix_actions_description_example.json\
+                           --net Nessus_toolchain/network_topology_example.json
 
 Fix actions description file format
 ===================================
