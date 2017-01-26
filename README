@@ -1,15 +1,59 @@
-The tool basically needs four input files given via the following cmd arguments
---nessus: A Nessus network scan result file in .xml format
---nvd: A .json file in our own format which basically contains important information (cvss-metrics) extracted from XML Vulnerability Feeds (Download: https://nvd.nist.gov/download.cfm). A respective file called "nvd_2002-2017.json" is provived. So, no additional work for you, just give this file as argument.
---fix A .json filne in our own format which describes the possible fix actions (more below)
---net A .json filne in our own format which describes the topology of the network belonging to the nessus scan
+The python script what-if-analysis.py is a tool for automated what-if analysis
+via simulated network pentesting.
 
-Given all this, the tool builds a formal attacker model, where the attacker initially controlls a specific set of host in the network and has the goal to controll another set of hosts. The attacker gains control over a new host t by already controlling another host s and using an applicable exploit action which uses a vulnerability of t. Applicability also includes the requirement that the connection from s to t is not blocked by a firewall or sth. similar. Vulnerabilites are identified via CVE ids.
-Additionally, there exists a set of fix actions, specified via the respective input file. These actions change the network such that some attacker actions are not possible anymore. For example, patching a vulnerability on a specific host or adding a firewall rule.
-The output is then the pareto-optimal frontier of fix action sequences which minimize the attacker success probability. The attacker success probability depends on the exploit actions used.
+The tool builds a formal attacker model, and determines the Pareto-optimal
+frontier of fix action sequences which minimize the attacker success
+probability, where the attacker success probability depends on the exploit
+actions at his disposal.
 
+Attacker model
+==============
 
-fix actions description file format:
+The attacker initially controls a specific set of host in the network and has
+the goal to control another set of hosts. The attacker gains control over a new
+host t by already controlling another host s and using an applicable exploit
+action which uses a vulnerability of t.  Applicability also includes the
+requirement that the connection from s to t is not blocked by a firewall/packet
+filter.
+
+Fix Actions
+===========
+
+Additionally, there exists a set of fix actions, specified via a separate input
+file. In general, these actions change the network so that some attacker
+actions are disabled. A fix action might model, e.g., patching a vulnerability
+on a specific host (vulnerabilities are identified via CVE ids) or adding
+a firewall rule, see below for more details.
+
+Installation
+============
+
+To build the tool, navigate to the /src folder and execute:
+./build_all
+
+Command line arguments
+======================
+
+The script what-if-analysis.py basically needs four input files given via the following cmd arguments
+    --nessus: A Nessus network scan result file in .xml format
+    --nvd: A .json file in our own format which basically contains important
+           information (cvss-metrics) extracted from XML Vulnerability Feeds
+           (Download: https://nvd.nist.gov/download.cfm). This repository provides 
+           "nvd_2002-2017.json" as an example. So, no additional work for you,
+           just give this file as argument.
+    --fix A .json filne in our own format which describes the possible fix actions (more below)
+    --net A .json filne in our own format which describes the topology of the network belonging to the nessus scan
+
+Example
+=======
+
+The tool can be started with the example files by executing the following command:
+
+python what-if-analysis.py --nessus Nessus_toolchain/Network_Scan_example.nessus --nvd Nessus_toolchain/nvd_2002-2017.json --fix Nessus_toolchain/fix_actions_description_example.json --net Nessus_toolchain/network_topology_example.json
+
+Fix actions description file format
+===================================
+
 The .json file must contain a single array filled with objects, all specifying a specific fix action schema. Such an Object can have three possible types:
 "FIX" is for a patch or workaround for all of specific vulnerabilites.
 {
@@ -46,7 +90,9 @@ The .json file must contain a single array filled with objects, all specifying a
 }
 
 
-network topology description file format:
+Network topology description file format
+========================================
+
 The .json file must contain a single array filled with objects, all specifying a zone aka subnet.
 Such an Object looks as follows:
 {
@@ -64,8 +110,3 @@ Such an Object looks as follows:
 	]
 }
 
-Before one can start the tool, navigate to the /src folder and execute:
-./build_all
-
-Finnally, the tool can be started with the example files by executing the following command:
-python what-if-analysis.py --nessus Nessus_toolchain/Network_Scan_example.nessus --nvd Nessus_toolchain/nvd_2002-2017.json --fix Nessus_toolchain/fix_actions_description_example.json --net Nessus_toolchain/network_topology_example.json
