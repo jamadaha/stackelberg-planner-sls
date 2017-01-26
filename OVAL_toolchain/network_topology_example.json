@@ -1,5 +1,0 @@
-[{"zone_name": "subnet1", "hosts": ["internet"], "integrity_initially_compromised": 1, "allowed_incoming_rules": [{"zone": "subnet2", "port": "none", "protocol": "tcp"}]},
-{"zone_name": "subnet2", 
-"hosts": ["10.9.59.118"],
-"is_goal": 1,
-"allowed_incoming_rules": [{"zone": "subnet1", "port": "none", "protocol": "tcp"}]}]
