@@ -46,6 +46,8 @@ private:
 	StateRegistry *fix_vars_state_registry = NULL;
 
 	std::vector<std::vector<bool>> commutative_fix_ops;
+	std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_fix_facts_ops;
+	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_fix_facts_ops;
 
 	SearchEngine* search_engine;
 	AttackSuccessProbReuseHeuristic* attack_heuristic;
@@ -71,7 +73,7 @@ protected:
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_fix_ops_matrix();
-    void compute_deleting_fix_facts_sets();
+    void compute_fix_facts_ops_sets();
     void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep,
     		bool use_partial_order_reduction);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);

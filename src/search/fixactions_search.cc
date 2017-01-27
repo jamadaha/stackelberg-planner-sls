@@ -65,7 +65,7 @@ void FixActionsSearch::initialize() {
 
 	compute_commutative_fix_ops_matrix();
 
-	compute_deleting_fix_facts_sets();
+	compute_fix_facts_ops_sets();
 }
 
 void FixActionsSearch::sort_operators() {
@@ -415,8 +415,35 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 	}
 }
 
-void FixActionsSearch::compute_deleting_fix_facts_sets() {
+void FixActionsSearch::compute_fix_facts_ops_sets() {
+	cout << "Begin compute_fix_facts_ops_sets()..." << endl;
 
+	deleting_fix_facts_ops.resize(num_fix_vars);
+	achieving_fix_facts_ops.resize(num_fix_vars);
+
+	for (int var = 0; var < num_fix_vars; var++) {
+		int domain_size = fix_variable_domain[var];
+		deleting_fix_facts_ops[var].resize(domain_size);
+		achieving_fix_facts_ops[var].resize(domain_size);
+	}
+
+	for (size_t op_no = 0; op_no < fix_operators.size(); op_no++) {
+		const GlobalOperator *op = &fix_operators[op_no];
+
+		const vector<GlobalEffect> &effects = op->get_effects();
+		for (size_t eff_no = 0; eff_no < effects.size(); eff_no++) {
+			int var = effects[eff_no].var;
+			int effect_val = effects[eff_no].val;
+
+			achieving_fix_facts_ops[var][effect_val].push_back(op);
+
+			for (int other_val = 0; other_val < fix_variable_domain[var]; other_val++) {
+				if(other_val != effect_val) {
+					deleting_fix_facts_ops[var][other_val].push_back(op);
+				}
+			}
+		}
+	}
 }
 
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
