@@ -64,6 +64,8 @@ void FixActionsSearch::initialize() {
 			attack_operators_with_fix_vars_preconds, attack_operators);
 
 	compute_commutative_fix_ops_matrix();
+
+	compute_deleting_fix_facts_sets();
 }
 
 void FixActionsSearch::sort_operators() {
@@ -411,6 +413,10 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 			commutative_fix_ops[op_no2][op_no1] = commutative;
 		}
 	}
+}
+
+void FixActionsSearch::compute_deleting_fix_facts_sets() {
+
 }
 
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
