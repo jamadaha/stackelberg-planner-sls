@@ -429,15 +429,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	cout << "fix_action_costs_for_no_attacker_solution: " << fix_action_costs_for_no_attacker_solution << endl;
 #endif
 
-	if(fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
-		// Return if the fix_action_cost is already greater than the cost of an already known sequence
-		// leading to a state where no attacker solution can be found
-#ifdef FIX_SEARCH_DEBUG
-		cout << "Return, because the fix_action_cost is already greater than fix_action_costs_for_no_attacker_solution" << endl;
-#endif
-		return;
-	}
-
 	bool parent_attack_plan_applicable = false;
 	if(parent_attack_plan.size() > 0) {
 		parent_attack_plan_applicable = true;
@@ -572,6 +563,16 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		int new_fix_actions_cost = calculate_fix_actions_plan_cost(fix_ops_sequence);
 		if(new_fix_actions_cost > initial_fix_actions_budget) {
 			// Continue, if adding this op exceeds the budget
+			fix_ops_sequence.pop_back();
+			continue;
+		}
+
+		if(new_fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
+			// Continue if the fix_action_cost is already greater than the cost of an already known sequence
+			// leading to a state where no attacker solution can be found
+#ifdef FIX_SEARCH_DEBUG
+			cout << "Do not continue with this op, because the new fix_action_cost is already greater than fix_action_costs_for_no_attacker_solution" << endl;
+#endif
 			fix_ops_sequence.pop_back();
 			continue;
 		}
