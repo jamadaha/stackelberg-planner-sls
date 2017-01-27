@@ -46,6 +46,7 @@ private:
 	StateRegistry *fix_vars_state_registry = NULL;
 
 	std::vector<std::vector<bool>> commutative_fix_ops;
+	std::vector<std::vector<bool>> dependent_fix_ops;
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_fix_facts_ops;
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_fix_facts_ops;
 
@@ -72,7 +73,7 @@ protected:
     void create_new_variable_indices();
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
-    void compute_commutative_fix_ops_matrix();
+    void compute_commutative_and_dependent_fix_ops_matrices();
     void compute_fix_facts_ops_sets();
     void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
     void prune_applicable_fix_ops_sss (const GlobalState &state, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);

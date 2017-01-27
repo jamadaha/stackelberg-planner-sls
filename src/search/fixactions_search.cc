@@ -63,7 +63,7 @@ void FixActionsSearch::initialize() {
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
 
-	compute_commutative_fix_ops_matrix();
+	compute_commutative_and_dependent_fix_ops_matrices();
 
 	compute_fix_facts_ops_sets();
 }
@@ -355,13 +355,15 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 
 /**
  * For every pair of ops op1 and op2, this method checks whether op1 has a precond on var v on which op2 has an effect and vice versa.
- * If this is the case, op1 and op2 are not commutative. If op1 and op2 both effect a var v with different effect values,
- * there are also not commutative. Otherwise, they are commutative.
+ * If this is the case, op1 and op2 are not commutative. Only if the precond value is different from effect value, op1 and op2 are dependent.
+ * If op1 and op2 both effect a var v with different effect values,
+ * there are also not commutative and are dependent. Otherwise, they are commutative and not dependet.
  */
-void FixActionsSearch::compute_commutative_fix_ops_matrix() {
+void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 	cout << "Begin compute_commutative_fix_ops_matrix()..." << endl;
 	vector<bool> val(fix_operators.size());
 	commutative_fix_ops.assign(fix_operators.size(), val);
+	dependent_fix_ops.assign(fix_operators.size(), val);
 	for (size_t op_no1 = 0; op_no1 < fix_operators.size(); op_no1++) {
 		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
 #ifdef FIX_SEARCH_DEBUG
@@ -377,6 +379,7 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 			const vector<GlobalEffect> &effects2 = fix_operators[op_no2].get_effects();
 
 			bool commutative = true;
+			bool dependent = false;
 			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
 			for (int var = 0; var < num_fix_vars; var++) {
 				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
@@ -391,26 +394,38 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
 					i_eff2++;
 				}
-				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var && conditions1[i_cond1].val != effects2[i_eff2].val) {
+				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var) {
 					commutative = false;
-				}else if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var && conditions2[i_cond2].val != effects1[i_eff1].val) {
-					commutative = false;
-				} else {
-					if (i_eff1 < (int) effects1.size() && i_eff2 < (int) effects2.size() && effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
-						if (effects1[i_eff1].val != effects2[i_eff2].val) {
-							commutative = false;
-						}
+					if(conditions1[i_cond1].val != effects2[i_eff2].val) {
+						dependent = true;
 					}
 				}
-				if (!commutative) {
+				if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var) {
+					commutative = false;
+					if(conditions2[i_cond2].val != effects1[i_eff1].val) {
+						dependent = true;
+					}
+				}
+				if (i_eff1 < (int) effects1.size() && i_eff2 < (int) effects2.size() && effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
+					if (effects1[i_eff1].val != effects2[i_eff2].val) {
+						commutative = false;
+						dependent = true;
+					}
+				}
+
+				if (!commutative && dependent) {
 					break;
 				}
 			}
 #ifdef FIX_SEARCH_DEBUG
 			cout << "ops are commutative?: " << commutative << endl;
+			cout << "ops are dependent?: " << dependent << endl;
 #endif
 			commutative_fix_ops[op_no1][op_no2] = commutative;
 			commutative_fix_ops[op_no2][op_no1] = commutative;
+
+			dependent_fix_ops[op_no1][op_no2] = dependent;
+			dependent_fix_ops[op_no2][op_no1] = dependent;
 		}
 	}
 }
@@ -447,9 +462,8 @@ void FixActionsSearch::compute_fix_facts_ops_sets() {
 }
 
 void FixActionsSearch::get_all_dependent_ops(const GlobalOperator *op, vector<const GlobalOperator *> &result) {
-	for (size_t other_op_no = 0; other_op_no < commutative_fix_ops.size(); other_op_no++) {
-		if(!commutative_fix_ops[op->get_op_id()][other_op_no]) {
-			// Dependet!
+	for (size_t other_op_no = 0; other_op_no < dependent_fix_ops.size(); other_op_no++) {
+		if(dependent_fix_ops[op->get_op_id()][other_op_no]) {
 			result.push_back(&fix_operators[other_op_no]);
 		}
 	}
@@ -488,7 +502,6 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 		if (applicable_ops_set.find(op) != applicable_ops_set.end()) {
 			// op is in applicable_ops_set
 			if(!is_in_result[op->get_op_id()]) {
-				result.push_back(op);
 				is_in_result[op->get_op_id()] = true;
 			}
 
@@ -523,6 +536,12 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 			}
 		}
 	}
+
+	for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
+		if(is_in_result[applicable_ops[op_no]->get_op_id()]) {
+			result.push_back(applicable_ops[op_no]);
+		}
+	}
 }
 
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
@@ -532,6 +551,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 #ifdef FIX_SEARCH_DEBUG
 	cout << "in call of expand_all_successors for state: " << endl;
 	state.dump_fdr(fix_variable_domain, fix_variable_name);
+	cout << "with id: " << state.get_id().hash() << endl;
 	cout << "and current fix actions op_sequence: " << endl;
 	for (size_t i = 0; i < fix_ops_sequence.size(); i++) {
 		fix_ops_sequence[i]->dump();
@@ -669,11 +689,10 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			continue;
 		}
 
-/*		if (sleep[op->get_op_id()] != 0) {
+		if (sleep[op->get_op_id()] != 0) {
 			// Continue, if op is in sleep set
 			continue;
 		}
-		*/
 
 		fix_ops_sequence.push_back(op);
 		int new_fix_actions_cost = calculate_fix_actions_plan_cost(fix_ops_sequence);
@@ -693,7 +712,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			continue;
 		}
 
-/*		// Add all ops before op_no in applicable_ops to sleep set if they are commutative
+		// Add all ops before op_no in applicable_ops to sleep set if they are commutative
 		if (use_partial_order_reduction) {
 			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
 				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
@@ -701,7 +720,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 				}
 			}
 		}
-		*/
 
 		const GlobalState &next_state = fix_vars_state_registry->get_successor_state(state, *op);
 		if (attack_heuristic != NULL) {
@@ -710,7 +728,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : plan, attack_plan_cost, sleep, use_partial_order_reduction);
 
-/*		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
+		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
 		if (use_partial_order_reduction) {
 			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
 				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
@@ -718,7 +736,6 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 				}
 			}
 		}
-		*/
 
 		fix_ops_sequence.pop_back();
 	}
