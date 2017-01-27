@@ -48,6 +48,7 @@ void FixActionsSearch::initialize() {
 	if(fix_operators.size() < 1) {
 		// If there are no fix actions, just do one attacker search
 		search_engine->search();
+		exit(0);
 	}
 
 	divideVariables();
