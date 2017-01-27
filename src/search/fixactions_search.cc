@@ -714,9 +714,11 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		// Add all ops before op_no in applicable_ops to sleep set if they are commutative
 		if (use_partial_order_reduction) {
-			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
-				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
-					sleep[op_no2]++;
+			int op_id = op->get_op_id();
+			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
+				int op2_id = applicable_ops_after_pruning[op_no2]->get_op_id();
+				if (commutative_fix_ops[op_id][op2_id]) {
+					sleep[op2_id]++;
 				}
 			}
 		}
@@ -730,9 +732,11 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
 		if (use_partial_order_reduction) {
-			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
-				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
-					sleep[op_no2]--;
+			int op_id = op->get_op_id();
+			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
+				int op2_id = applicable_ops_after_pruning[op_no2]->get_op_id();
+				if (commutative_fix_ops[op_id][op2_id]) {
+					sleep[op2_id]--;
 				}
 			}
 		}
