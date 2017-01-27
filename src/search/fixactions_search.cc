@@ -446,6 +446,17 @@ void FixActionsSearch::compute_fix_facts_ops_sets() {
 	}
 }
 
+vector<const GlobalOperator *> prune_applicable_fix_ops_sss (vector<const GlobalOperator *> applicable_ops) {
+	vector<const GlobalOperator *> disjunctive_action_landmark;
+
+	// We rely on that g_plan contains the currently computed attacker plan
+	for (size_t op_no = 0; g_plan.size(); op_no++) {
+		int id = g_plan[op_no]->get_op_id();
+		const GlobalOperator * op =
+	}
+	return NULL;
+}
+
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
