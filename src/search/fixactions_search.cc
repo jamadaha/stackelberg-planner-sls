@@ -459,6 +459,7 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 	unordered_set<const GlobalOperator *> applicable_ops_set(applicable_ops.begin(), applicable_ops.end());
 
 	vector<const GlobalOperator *> current_T_s;
+	vector<bool> is_in_current_T_s(fix_operators.size(), false);
 	// Initialize T_s to the disjunctive action landmark
 	// We rely on g_plan containing the currently computed attacker plan
 	for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
@@ -470,19 +471,36 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 			int precond_var = preconditions[precond_no].var;
 			int precond_val = preconditions[precond_no].val;
 			const vector< const GlobalOperator*> &deleting_ops = deleting_fix_facts_ops[precond_var][precond_val];
-			current_T_s.insert(current_T_s.end(), deleting_ops.begin(), deleting_ops.end());
+
+			for (size_t del_op_no = 0; del_op_no < deleting_ops.size(); del_op_no++) {
+				if (!is_in_current_T_s[deleting_ops[del_op_no]->get_op_id()]) {
+					current_T_s.push_back(deleting_ops[del_op_no]);
+					is_in_current_T_s[deleting_ops[del_op_no]->get_op_id()] = true;
+				}
+			}
 		}
 	}
+
+	vector<bool> is_in_result(fix_operators.size(), false);
 
 	for (size_t op_no = 0; op_no < current_T_s.size(); op_no++) {
 		const GlobalOperator *op = current_T_s[op_no];
 		if (applicable_ops_set.find(op) != applicable_ops_set.end()) {
 			// op is in applicable_ops_set
-			result.push_back(op);
+			if(!is_in_result[op->get_op_id()]) {
+				result.push_back(op);
+				is_in_result[op->get_op_id()] = true;
+			}
 
 			vector<const GlobalOperator *> dependent_ops;
 			get_all_dependent_ops(op, dependent_ops);
-			current_T_s.insert(current_T_s.end(), dependent_ops.begin(), dependent_ops.end());
+
+			for (size_t dep_op_no = 0; dep_op_no < dependent_ops.size(); dep_op_no++) {
+				if (!is_in_current_T_s[dependent_ops[dep_op_no]->get_op_id()]) {
+					current_T_s.push_back(dependent_ops[dep_op_no]);
+					is_in_current_T_s[dependent_ops[dep_op_no]->get_op_id()] = true;
+				}
+			}
 		} else {
 			// op not in applicable_ops_set
 			// Compute some necessary enabling set for s and op and directly add it to current_T_s
@@ -493,7 +511,13 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 				if(state[precond_var] != precond_val) {
 					// We found a precond. fact which is not true in the current state
 					const vector< const GlobalOperator*> &achieving_ops = achieving_fix_facts_ops[precond_var][precond_val];
-					current_T_s.insert(current_T_s.end(), achieving_ops.begin(), achieving_ops.end());
+
+					for (size_t achieving_op_no = 0; achieving_op_no < achieving_ops.size(); achieving_op_no++) {
+						if (!is_in_current_T_s[achieving_ops[achieving_op_no]->get_op_id()]) {
+							current_T_s.push_back(achieving_ops[achieving_op_no]);
+							is_in_current_T_s[achieving_ops[achieving_op_no]->get_op_id()] = true;
+						}
+					}
 					break;
 				}
 			}
