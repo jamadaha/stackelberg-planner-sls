@@ -391,9 +391,9 @@ void FixActionsSearch::compute_commutative_fix_ops_matrix() {
 				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
 					i_eff2++;
 				}
-				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var) {
+				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var && conditions1[i_cond1].val != effects2[i_eff2].val) {
 					commutative = false;
-				}else if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var) {
+				}else if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var && conditions2[i_cond2].val != effects1[i_eff1].val) {
 					commutative = false;
 				} else {
 					if (i_eff1 < (int) effects1.size() && i_eff2 < (int) effects2.size() && effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
@@ -446,15 +446,59 @@ void FixActionsSearch::compute_fix_facts_ops_sets() {
 	}
 }
 
-vector<const GlobalOperator *> prune_applicable_fix_ops_sss (vector<const GlobalOperator *> applicable_ops) {
-	vector<const GlobalOperator *> disjunctive_action_landmark;
-
-	// We rely on that g_plan contains the currently computed attacker plan
-	for (size_t op_no = 0; g_plan.size(); op_no++) {
-		int id = g_plan[op_no]->get_op_id();
-		const GlobalOperator * op =
+void FixActionsSearch::get_all_dependent_ops(const GlobalOperator *op, vector<const GlobalOperator *> result) {
+	for (size_t other_op_no = 0; other_op_no < commutative_fix_ops.size(); other_op_no++) {
+		if(!commutative_fix_ops[op->get_op_id()][other_op_no]) {
+			// Dependet!
+			result.push_back(&fix_operators[other_op_no]);
+		}
 	}
-	return NULL;
+}
+
+void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, vector<const GlobalOperator *> applicable_ops, vector<const GlobalOperator *> result) {
+	unordered_set<const GlobalOperator *> applicable_ops_set(applicable_ops.begin(), applicable_ops.end());
+
+	vector<const GlobalOperator *> current_T_s;
+	// Initialize T_s to the disjunctive action landmark
+	// We rely on g_plan containing the currently computed attacker plan
+	for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
+		int op_id = g_plan[op_no]->get_op_id();
+		const GlobalOperator *op = &attack_operators_with_fix_vars_preconds[op_id];
+
+		const vector<GlobalCondition> &preconditions = op->get_preconditions();
+		for (size_t precond_no = 0; precond_no < preconditions.size(); precond_no++) {
+			int precond_var = preconditions[precond_no].var;
+			int precond_val = preconditions[precond_no].val;
+			const vector< const GlobalOperator*> &deleting_ops = deleting_fix_facts_ops[precond_var][precond_val];
+			current_T_s.insert(current_T_s.end(), deleting_ops.begin(), deleting_ops.end());
+		}
+	}
+
+	for (size_t op_no = 0; op_no < current_T_s.size(); op_no++) {
+		const GlobalOperator *op = current_T_s[op_no];
+		if (applicable_ops_set.find(op) != applicable_ops_set.end()) {
+			// op is in applicable_ops_set
+			result.push_back(op);
+
+			vector<const GlobalOperator *> dependent_ops;
+			get_all_dependent_ops(op, dependent_ops);
+			current_T_s.insert(current_T_s.end(), dependent_ops.begin(), dependent_ops.end());
+		} else {
+			// op not in applicable_ops_set
+			// Compute some necessary enabling set for s and op and directly add it to current_T_s
+			const vector<GlobalCondition> &preconditions = op->get_preconditions();
+			for (size_t precond_no = 0; precond_no < preconditions.size(); precond_no++) {
+				int precond_var = preconditions[precond_no].var;
+				int precond_val = preconditions[precond_no].val;
+				if(state[precond_var] != precond_val) {
+					// We found a precond. fact which is not true in the current state
+					const vector< const GlobalOperator*> &achieving_ops = achieving_fix_facts_ops[precond_var][precond_val];
+					current_T_s.insert(current_T_s.end(), achieving_ops.begin(), achieving_ops.end());
+					break;
+				}
+			}
+		}
+	}
 }
 
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
@@ -587,13 +631,16 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 	}
 
-	vector<const GlobalOperator *> all_operators;
-	fix_operators_successor_generator->generate_applicable_ops(state, all_operators);
+	vector<const GlobalOperator *> applicable_ops;
+	fix_operators_successor_generator->generate_applicable_ops(state, applicable_ops);
 
-	for (size_t op_no = 0; op_no < all_operators.size(); op_no++) {
-		const GlobalOperator *op = all_operators[op_no];
+	vector<const GlobalOperator *> applicable_ops_after_pruning;
+	prune_applicable_fix_ops_sss(state, applicable_ops, applicable_ops_after_pruning);
 
-		if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(), all_operators[op_no]) != fix_ops_sequence.end()) {
+	for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
+		const GlobalOperator *op = applicable_ops[op_no];
+
+		if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(), applicable_ops[op_no]) != fix_ops_sequence.end()) {
 			// Continue, if op is already in sequence
 			continue;
 		}
@@ -621,7 +668,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			continue;
 		}
 
-		// Add all ops before op_no in all_operators to sleep set if they are commutative
+		// Add all ops before op_no in applicable_ops to sleep set if they are commutative
 		if (use_partial_order_reduction) {
 			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
 				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
@@ -637,7 +684,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : plan, attack_plan_cost, sleep, use_partial_order_reduction);
 
-		// Remove all ops before op_no in all_operators from sleep set if they are commutative
+		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
 		if (use_partial_order_reduction) {
 			for (int op_no2 = 0; op_no2 < op->get_op_id(); op_no2++) {
 				if (commutative_fix_ops[op->get_op_id()][op_no2]) {
