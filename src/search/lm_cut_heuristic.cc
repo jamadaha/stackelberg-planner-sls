@@ -390,6 +390,16 @@ void LandmarkCutHeuristic::reset() {
 	num_propositions = 2;
     propositions.clear();
     relaxed_operators.clear();
+    artificial_goal.effect_of.clear();
+    artificial_goal.precondition_of.clear();
+    artificial_goal.status = UNREACHED;
+    artificial_goal.h_max_cost = numeric_limits<int>::max();
+
+    artificial_precondition.effect_of.clear();
+    artificial_precondition.precondition_of.clear();
+    artificial_precondition.status = UNREACHED;
+    artificial_precondition.h_max_cost = numeric_limits<int>::max();
+
 
     if (reused) {
         initialize();
