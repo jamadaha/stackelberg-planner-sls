@@ -72,6 +72,7 @@ public:
     virtual void reinitialize(AttackSearchSpace* , SearchSpace* , OpenList<std::pair<StateID, int>>* , GlobalState , int ) { }
     virtual void set_curr_attack_search_space (AttackSearchSpace* ) { }
     virtual AttackSearchSpace* get_curr_attack_search_space () {return NULL; }
+    virtual void reset () {std::cout << "This heuristic has not implemented reset()-method" << std::endl; exit(EXIT_UNSUPPORTED); }
 };
 
 #endif

@@ -21,6 +21,10 @@ protected:
 	virtual int compute_heuristic(const GlobalState &state, int budget);
 public:
 	Heuristic* get_prob_cost_heuristic() {return prob_cost_heuristic; }
+    virtual void reinitialize(AttackSearchSpace* attack_search_space, SearchSpace* search_space, OpenList<std::pair<StateID, int>>* open_list, GlobalState goal_state, int goal_state_budget) ;
+    virtual void set_curr_attack_search_space (AttackSearchSpace* attack_search_space);
+    virtual AttackSearchSpace* get_curr_attack_search_space ();
+    virtual void reset ();
 	BudgetDeadEndHeuristic(const Options &opts);
 	virtual ~BudgetDeadEndHeuristic();
 };

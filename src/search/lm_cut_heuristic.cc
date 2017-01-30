@@ -25,8 +25,12 @@ LandmarkCutHeuristic::~LandmarkCutHeuristic() {
 }
 
 // initialization
+bool reused = false;
 void LandmarkCutHeuristic::initialize() {
-    cout << "Initializing landmark cut heuristic..." << endl;
+#ifdef NDEBUG
+	if(!reused)
+#endif
+		cout << "Initializing landmark cut heuristic..." << endl;
 
     ::verify_no_axioms_no_conditional_effects();
 
@@ -380,6 +384,19 @@ int LandmarkCutHeuristic::compute_heuristic(const GlobalState &state) {
     //cout << "[" << total_cost << "]" << flush;
     //cout << "**************************" << endl;
     return (total_cost + COST_MULTIPLIER - 1) / COST_MULTIPLIER;
+}
+
+void LandmarkCutHeuristic::reset() {
+	//cout << "Reset landmark cut heuristic..." << endl;
+	num_propositions = 2;
+    propositions.clear();
+    relaxed_operators.clear();
+
+    if (reused) {
+        initialize();
+    }
+    reused = true;
+
 }
 
 /* TODO:

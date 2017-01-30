@@ -28,7 +28,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	search_engine = opts.get<SearchEngine*>("search_engine");
 
 	if(opts.contains("attack_heuristic")) {
-		attack_heuristic = (AttackSuccessProbReuseHeuristic*) (((BudgetDeadEndHeuristic*)opts.get<Heuristic*>("attack_heuristic"))->get_prob_cost_heuristic());
+		attack_heuristic = opts.get<Heuristic*>("attack_heuristic"); // (AttackSuccessProbReuseHeuristic*) (((BudgetDeadEndHeuristic*)opts.get<Heuristic*>("attack_heuristic"))->get_prob_cost_heuristic());
 	} else {
 		attack_heuristic = NULL;
 	}
@@ -612,6 +612,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		//cout << "Attacker dump everything: " << endl;
 		//dump_everything();
 		search_engine->reset();
+		attack_heuristic->reset();
 
 		// Call search, but make sure that no stuff is written to cout when we are not debugging
 #ifndef FIX_SEARCH_DEBUG

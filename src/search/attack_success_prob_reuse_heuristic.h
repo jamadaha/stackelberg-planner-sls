@@ -34,6 +34,7 @@ public:
     virtual void reinitialize(AttackSearchSpace* attack_search_space, SearchSpace* search_space, OpenList<std::pair<StateID, int>>* open_list, GlobalState goal_state, int goal_state_budget);
 	virtual void set_curr_attack_search_space (AttackSearchSpace* attack_search_space) {curr_attack_search_space = attack_search_space; }
 	virtual AttackSearchSpace* get_curr_attack_search_space () {return curr_attack_search_space; }
+	virtual void reset();
     AttackSuccessProbReuseHeuristic(const Options &options);
 	virtual ~AttackSuccessProbReuseHeuristic();
 };

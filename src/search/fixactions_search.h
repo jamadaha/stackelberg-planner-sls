@@ -51,7 +51,7 @@ private:
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_fix_facts_ops;
 
 	SearchEngine* search_engine;
-	AttackSuccessProbReuseHeuristic* attack_heuristic;
+	Heuristic* attack_heuristic;
 
 	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
 	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();

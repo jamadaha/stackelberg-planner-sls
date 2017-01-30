@@ -23,7 +23,7 @@ BudgetDeadEndHeuristic::~BudgetDeadEndHeuristic() {
 }
 
 void BudgetDeadEndHeuristic::initialize() {
-    cout << "Initializing AttackSuccessProbReuse heuristic..." << endl;
+    cout << "Initializing BudgetDeadEndHeuristic..." << endl;
 }
 
 int BudgetDeadEndHeuristic::compute_heuristic(const GlobalState &state, int budget) {
@@ -41,6 +41,20 @@ int BudgetDeadEndHeuristic::compute_heuristic(const GlobalState &state, int budg
 	int prob_cost_heuristic_value = prob_cost_heuristic->get_value();
 
 	return prob_cost_heuristic_value;
+}
+
+void BudgetDeadEndHeuristic::reinitialize(AttackSearchSpace* attack_search_space, SearchSpace* search_space, OpenList<pair<StateID, int>>* open_list, GlobalState goal_state, int goal_state_budget)  {
+	prob_cost_heuristic-> reinitialize(attack_search_space, search_space, open_list, goal_state, goal_state_budget);
+}
+void BudgetDeadEndHeuristic::set_curr_attack_search_space (AttackSearchSpace* attack_search_space) {
+	prob_cost_heuristic->set_curr_attack_search_space(attack_search_space);
+}
+AttackSearchSpace* BudgetDeadEndHeuristic::get_curr_attack_search_space () {
+	return prob_cost_heuristic->get_curr_attack_search_space();
+}
+void BudgetDeadEndHeuristic::reset () {
+	prob_cost_heuristic->reset();
+	budget_heuristic->reset();
 }
 
 static Heuristic *_parse(OptionParser &parser) {

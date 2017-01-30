@@ -118,6 +118,10 @@ int AttackSuccessProbReuseHeuristic::compute_heuristic(const GlobalState &state,
 	return attack_plan_prob_cost_heuristic_value;
 }
 
+void AttackSuccessProbReuseHeuristic::reset() {
+	default_heuristic->reset();
+}
+
 static Heuristic *_parse(OptionParser &parser) {
   /*  parser.document_synopsis("Blind heuristic",
                              "Returns cost of cheapest action for "
