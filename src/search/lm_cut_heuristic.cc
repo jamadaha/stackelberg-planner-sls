@@ -25,7 +25,6 @@ LandmarkCutHeuristic::~LandmarkCutHeuristic() {
 }
 
 // initialization
-bool reused = false;
 void LandmarkCutHeuristic::initialize() {
 #ifdef NDEBUG
 	if(!reused)

@@ -111,6 +111,8 @@ class LandmarkCutHeuristic : public Heuristic {
     int num_propositions;
     AdaptiveQueue<RelaxedProposition *> priority_queue;
 
+    bool reused = false;
+
     virtual void initialize();
     virtual int compute_heuristic(const GlobalState &state);
     void build_relaxed_operator(const GlobalOperator &op);
