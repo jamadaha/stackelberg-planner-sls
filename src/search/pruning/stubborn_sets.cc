@@ -56,6 +56,8 @@ bool StubbornSets::can_conflict(int op1_no, int op2_no) const {
 
 void StubbornSets::compute_sorted_operators() {
 	sorted_op_preconditions.resize(g_operators.size());
+	sorted_op_effects.resize(g_operators.size());
+
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 		const vector<GlobalCondition> &preconditions = g_operators[op_no].get_preconditions();
 		const vector<GlobalEffect> &effects = g_operators[op_no].get_effects();

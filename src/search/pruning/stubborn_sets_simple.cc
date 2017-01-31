@@ -14,7 +14,7 @@ void StubbornSetsSimple::initialize() {
 
 
 void StubbornSetsSimple::compute_interference_relation() {
-    interference_relation.resize(num_operators);
+    interference_relation.resize(num_operators, vector<int>());
 
     /*
        TODO: as interference is symmetric, we only need to compute the
