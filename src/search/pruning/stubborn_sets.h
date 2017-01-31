@@ -2,6 +2,7 @@
 #define PRUNING_STUBBORN_SETS_H
 
 #include "../pruning_method.h"
+#include "../global_operator.h"
 
 namespace stubborn_sets {
 inline std::pair <int,int> find_unsatisfied_condition(

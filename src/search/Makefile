@@ -107,6 +107,11 @@ HEADERS += hm_heuristic.h
 HEADERS += lm_cut_heuristic.h
 HEADERS += max_heuristic.h
 
+HEADERS += 	pruning_method.h \
+			pruning/null_pruning_method.h \
+			pruning/stubborn_sets_simple.h \
+			pruning/stubborn_sets.h \
+
 #HEADERS += merge_and_shrink/label.h \
 #           merge_and_shrink/labels.h \
 #           merge_and_shrink/label_reducer.h \

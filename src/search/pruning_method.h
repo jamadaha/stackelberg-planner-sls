@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <vector>
+#include "global_state.h"
 
 class AbstractTask;
 class GlobalOperator;

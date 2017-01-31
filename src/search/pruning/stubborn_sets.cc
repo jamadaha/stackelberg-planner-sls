@@ -96,7 +96,7 @@ void StubbornSets::compute_achievers() {
 			int var = effects[eff_no].var;
 			int val = effects[eff_no].val;
 
-			achievers[var][val] = op_no;
+			achievers[var][val].push_back(op_no);
 		}
 	}
 }
