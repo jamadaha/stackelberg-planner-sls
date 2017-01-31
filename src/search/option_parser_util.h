@@ -25,6 +25,7 @@ class SearchEngine;
 class OptionParser;
 template<class Entry>
 class OpenList;
+class PruningMethod;
 
 
 struct ParseNode {
@@ -253,6 +254,13 @@ template <>
 struct TypeNamer<MergeStrategy *> {
     static std::string name() {
         return "MergeStrategy";
+    }
+};
+
+template <>
+struct TypeNamer<PruningMethod *> {
+    static std::string name() {
+        return "PruningMethod";
     }
 };
 

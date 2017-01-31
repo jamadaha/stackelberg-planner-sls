@@ -9,6 +9,7 @@
 #include "search_progress.h"
 #include "search_space.h"
 #include "timer.h"
+#include "pruning_method.h"
 
 #include "open_lists/open_list.h"
 
@@ -26,6 +27,7 @@ class EagerSearch : public SearchEngine {
     OpenList<std::pair<StateID, int>> *open_list;
     ScalarEvaluator *f_evaluator;
 
+    PruningMethod* pruning_method;
 protected:
     SearchStatus step();
     std::pair<SearchNode, bool> fetch_next_node();

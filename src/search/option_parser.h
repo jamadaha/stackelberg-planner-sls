@@ -47,6 +47,7 @@ class OpenList;
 class SearchEngine;
 class MergeStrategy;
 class ShrinkStrategy;
+class PruningMethod;
 
 /*
 The TokenParser<T> wraps functions to parse supported types T.
@@ -86,6 +87,12 @@ template <>
 class TokenParser<Heuristic *> {
 public:
     static inline Heuristic *parse(OptionParser &p);
+};
+
+template <>
+class TokenParser<PruningMethod *> {
+public:
+    static inline PruningMethod *parse(OptionParser &p);
 };
 
 template <>
@@ -400,6 +407,10 @@ SearchEngine *TokenParser<SearchEngine *>::parse(OptionParser &p) {
 
 MergeStrategy *TokenParser<MergeStrategy *>::parse(OptionParser &p) {
     return lookup_in_registry<MergeStrategy>(p);
+}
+
+PruningMethod *TokenParser<PruningMethod *>::parse(OptionParser &p) {
+    return lookup_in_registry<PruningMethod>(p);
 }
 
 ShrinkStrategy *TokenParser<ShrinkStrategy *>::parse(OptionParser &p) {

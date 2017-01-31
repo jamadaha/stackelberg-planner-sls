@@ -19,7 +19,8 @@ EagerSearch::EagerSearch(
       reopen_closed_nodes(opts.get<bool>("reopen_closed")),
       do_pathmax(opts.get<bool>("pathmax")),
       use_multi_path_dependence(opts.get<bool>("mpd")),
-      open_list(opts.get<OpenList<pair<StateID, int>> *>("open")) {
+      open_list(opts.get<OpenList<pair<StateID, int>> *>("open")),
+	  pruning_method(opts.get<PruningMethod*>("pruning")){
     if (opts.contains("f_eval")) {
         f_evaluator = opts.get<ScalarEvaluator *>("f_eval");
     } else {
@@ -91,12 +92,15 @@ void EagerSearch::initialize() {
 
         open_list->insert(pair<StateID, int>(initial_state.get_id(), g_initial_budget));
     }
+
+    pruning_method->initialize();
 }
 
 
 void EagerSearch::statistics() const {
     search_progress.print_statistics();
     search_space.statistics();
+    pruning_method->print_statistics();
 }
 
 SearchStatus EagerSearch::step() {
@@ -115,6 +119,13 @@ SearchStatus EagerSearch::step() {
     set<const GlobalOperator *> preferred_ops;
 
     g_successor_generator->generate_applicable_ops(s, applicable_ops);
+
+    /*
+      TODO: When preferred operators are in use, a preferred operator will be
+      considered by the preferred operator queues even when it is pruned.
+    */
+    pruning_method->prune_operators(s, applicable_ops);
+
     // This evaluates the expanded state (again) to get preferred ops
     for (size_t i = 0; i < preferred_operator_heuristics.size(); ++i) {
         Heuristic *h = preferred_operator_heuristics[i];
@@ -349,6 +360,15 @@ void EagerSearch::reset() {
 	search_progress.reset();
 }
 
+void add_pruning_option(OptionParser &parser) {
+    parser.add_option<PruningMethod *>(
+        "pruning",
+        "Pruning methods can prune or reorder the set of applicable operators in "
+        "each state and thereby influence the number and order of successor states "
+        "that are considered.",
+        "null()");
+}
+
 static SearchEngine *_parse(OptionParser &parser) {
     //open lists are currently registered with the parser on demand,
     //because for templated classes the usual method of registering
@@ -371,6 +391,9 @@ static SearchEngine *_parse(OptionParser &parser) {
     parser.add_list_option<Heuristic *>
         ("preferred",
         "use preferred operators of these heuristics", "[]");
+
+    add_pruning_option(parser);
+
     SearchEngine::add_options_to_parser(parser);
     Options opts = parser.parse();
 
@@ -408,6 +431,9 @@ static SearchEngine *_parse_astar(OptionParser &parser) {
                             "use pathmax correction", "false");
     parser.add_option<bool>("mpd",
                             "use multi-path dependence (LM-A*)", "false");
+
+    add_pruning_option(parser);
+
     SearchEngine::add_options_to_parser(parser);
     Options opts = parser.parse();
 
@@ -483,6 +509,9 @@ static SearchEngine *_parse_greedy(OptionParser &parser) {
     parser.add_option<int>(
         "boost",
         "boost value for preferred operator open lists", "0");
+
+    add_pruning_option(parser);
+
     SearchEngine::add_options_to_parser(parser);
 
 
