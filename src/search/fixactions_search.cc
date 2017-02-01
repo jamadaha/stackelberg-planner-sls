@@ -687,7 +687,11 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	fix_operators_successor_generator->generate_applicable_ops(state, applicable_ops);
 
 	vector<const GlobalOperator *> applicable_ops_after_pruning;
-	prune_applicable_fix_ops_sss(state, applicable_ops, applicable_ops_after_pruning);
+	if(use_partial_order_reduction) {
+		prune_applicable_fix_ops_sss(state, applicable_ops, applicable_ops_after_pruning);
+	} else {
+		applicable_ops_after_pruning.swap(applicable_ops);
+	}
 
 	for (size_t op_no = 0; op_no < applicable_ops_after_pruning.size(); op_no++) {
 		const GlobalOperator *op = applicable_ops_after_pruning[op_no];
