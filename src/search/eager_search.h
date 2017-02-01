@@ -28,6 +28,8 @@ class EagerSearch : public SearchEngine {
     ScalarEvaluator *f_evaluator;
 
     PruningMethod* pruning_method;
+
+    bool pruning_already_initialized = false;
 protected:
     SearchStatus step();
     std::pair<SearchNode, bool> fetch_next_node();

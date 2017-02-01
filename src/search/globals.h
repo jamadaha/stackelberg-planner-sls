@@ -63,6 +63,8 @@ extern const GlobalState &g_initial_state();
 extern std::vector<std::pair<int, int> > g_goal;
 
 extern std::vector<GlobalOperator> g_operators;
+extern std::vector<GlobalOperator> g_all_attack_operators;
+extern std::vector<bool> g_attack_op_included;
 extern std::vector<GlobalOperator> g_axioms;
 extern AxiomEvaluator *g_axiom_evaluator;
 extern SuccessorGenerator *g_successor_generator;

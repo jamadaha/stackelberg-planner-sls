@@ -399,6 +399,8 @@ IntPacker *g_state_packer;
 vector<int> g_initial_state_data;
 vector<pair<int, int> > g_goal;
 vector<GlobalOperator> g_operators;
+vector<GlobalOperator> g_all_attack_operators;
+vector<bool> g_attack_op_included;
 vector<GlobalOperator> g_axioms;
 AxiomEvaluator *g_axiom_evaluator;
 SuccessorGenerator *g_successor_generator;

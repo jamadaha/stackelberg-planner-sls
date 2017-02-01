@@ -67,6 +67,10 @@ void FixActionsSearch::initialize() {
 	compute_commutative_and_dependent_fix_ops_matrices();
 
 	compute_fix_facts_ops_sets();
+
+	g_all_attack_operators.insert(g_all_attack_operators.begin(), attack_operators.begin(), attack_operators.end());
+
+	g_attack_op_included.resize(attack_operators.size(), false);
 }
 
 void FixActionsSearch::sort_operators() {
@@ -599,12 +603,14 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 	} else {
 		num_attacker_searches++;
-		vector<const GlobalOperator *> all_attack_operators;
-		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, all_attack_operators);
+		vector<const GlobalOperator *> applicable_attack_operators;
+		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, applicable_attack_operators);
 		g_operators.clear();
+		g_attack_op_included.assign(attack_operators.size(), false);
 		//cout << "g_operators: " << endl;
-		for (size_t op_no = 0; op_no < all_attack_operators.size(); op_no++) {
-			g_operators.push_back(*all_attack_operators[op_no]);
+		for (size_t op_no = 0; op_no < applicable_attack_operators.size(); op_no++) {
+			g_operators.push_back(*applicable_attack_operators[op_no]);
+			g_attack_op_included[applicable_attack_operators[op_no]->get_op_id()] = true;
 			//all_attack_operators[op_no]->dump();
 		}
 		g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);

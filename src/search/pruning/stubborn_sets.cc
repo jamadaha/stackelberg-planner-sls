@@ -33,7 +33,7 @@ void StubbornSets::initialize() {
     verify_no_axioms();
     verify_no_conditional_effects();
 
-    num_operators = g_operators.size();
+    num_operators = g_all_attack_operators.size();
     num_unpruned_successors_generated = 0;
     num_pruned_successors_generated = 0;
     sorted_goals = utils::sorted<pair <int,int>>(g_goal);
@@ -55,12 +55,12 @@ bool StubbornSets::can_conflict(int op1_no, int op2_no) const {
 }
 
 void StubbornSets::compute_sorted_operators() {
-	sorted_op_preconditions.resize(g_operators.size());
-	sorted_op_effects.resize(g_operators.size());
+	sorted_op_preconditions.resize(g_all_attack_operators.size());
+	sorted_op_effects.resize(g_all_attack_operators.size());
 
-	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
-		const vector<GlobalCondition> &preconditions = g_operators[op_no].get_preconditions();
-		const vector<GlobalEffect> &effects = g_operators[op_no].get_effects();
+	for (size_t op_no = 0; op_no < g_all_attack_operators.size(); op_no++) {
+		const vector<GlobalCondition> &preconditions = g_all_attack_operators[op_no].get_preconditions();
+		const vector<GlobalEffect> &effects = g_all_attack_operators[op_no].get_effects();
 
 		// Assuming here, that preconditions and effects are already sorted and that there are no conditional effects!
 
@@ -91,8 +91,8 @@ void StubbornSets::compute_achievers() {
 		achievers[var_no] = temp;
 	}
 
-	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
-		const vector<GlobalEffect> &effects = g_operators[op_no].get_effects();
+	for (size_t op_no = 0; op_no < g_all_attack_operators.size(); op_no++) {
+		const vector<GlobalEffect> &effects = g_all_attack_operators[op_no].get_effects();
 
 		for (size_t eff_no = 0; eff_no < effects.size(); eff_no++) {
 			int var = effects[eff_no].var;

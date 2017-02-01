@@ -33,16 +33,20 @@ void StubbornSetsSimple::compute_interference_relation() {
 
 // Add all operators that achieve the fact (var, value) to stubborn set.
 void StubbornSetsSimple::add_necessary_enabling_set(const pair <int,int> &fact) {
-    for (int op_no : achievers[fact.first][fact.second]) {
-        mark_as_stubborn(op_no);
-    }
+	for (int op_no : achievers[fact.first][fact.second]) {
+		if (g_attack_op_included[op_no]) {
+			mark_as_stubborn(op_no);
+		}
+	}
 }
 
 // Add all operators that interfere with op.
 void StubbornSetsSimple::add_interfering(int op_no) {
-    for (int interferer_no : interference_relation[op_no]) {
-        mark_as_stubborn(interferer_no);
-    }
+	for (int interferer_no : interference_relation[op_no]) {
+		if (g_attack_op_included[interferer_no]) {
+			mark_as_stubborn(interferer_no);
+		}
+	}
 }
 
 void StubbornSetsSimple::initialize_stubborn_set(const GlobalState &state) {

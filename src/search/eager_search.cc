@@ -93,7 +93,11 @@ void EagerSearch::initialize() {
         open_list->insert(pair<StateID, int>(initial_state.get_id(), g_initial_budget));
     }
 
-    pruning_method->initialize();
+	if (!pruning_already_initialized) {
+		pruning_method->initialize();
+		pruning_already_initialized = true;
+	}
+
 }
 
 
