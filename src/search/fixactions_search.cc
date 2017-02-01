@@ -71,6 +71,7 @@ void FixActionsSearch::initialize() {
 
 void FixActionsSearch::sort_operators() {
 	int fix_action_op_id = 0;
+	int attack_action_op_id = 0;
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 		string op_name = g_operators[op_no].get_name();
 
@@ -91,6 +92,8 @@ void FixActionsSearch::sort_operators() {
 			// Note that cost and cost2 are swapped here on purpose!
 			g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
 			g_operators[op_no].set_cost(success_prob_cost);
+			g_operators[op_no].set_op_id(attack_action_op_id);
+			attack_action_op_id++;
 
 			attack_operators.push_back(g_operators[op_no]);
 
