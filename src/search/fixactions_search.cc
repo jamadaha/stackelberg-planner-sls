@@ -76,6 +76,7 @@ void FixActionsSearch::initialize() {
 void FixActionsSearch::sort_operators() {
 	cout << "Begin sort_operators()..." << endl;
 	int fix_action_op_id = 0;
+	int attack_action_op_id = 0;
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Consider op " << op_no << ":" << endl;
@@ -101,6 +102,8 @@ void FixActionsSearch::sort_operators() {
 			// Note that cost and cost2 are swapped here on purpose!
 			g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
 			g_operators[op_no].set_cost(success_prob_cost);
+			g_operators[op_no].set_op_id(attack_action_op_id);
+			attack_action_op_id++;
 
 			attack_operators.push_back(g_operators[op_no]);
 
@@ -185,11 +188,11 @@ void FixActionsSearch::clean_attack_actions() {
 		}
 
 		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost(), op.get_cost2(), op_no, g_variable_name, g_variable_name);
+				op.get_cost(), op.get_cost2(), op.get_op_id(), g_variable_name, g_variable_name);
 		attack_operators[op_no] = op_with_attack_preconds;
 
 		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost(), op.get_cost2(), op_no, fix_variable_name, g_variable_name);
+				op.get_cost(), op.get_cost2(), op.get_op_id(), fix_variable_name, g_variable_name);
 		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }
