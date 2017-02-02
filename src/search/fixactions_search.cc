@@ -572,8 +572,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	bool parent_attack_plan_applicable = false;
 	if(parent_attack_plan.size() > 0) {
-		cout << "parent attack plan: " << endl;
-		/*for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
+		/*cout << "parent attack plan: " << endl;
+		for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
 			attack_operators_with_fix_vars_preconds[parent_attack_plan[op_no]].dump();
 		}*/
 
