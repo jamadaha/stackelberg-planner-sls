@@ -77,7 +77,9 @@ void FixActionsSearch::sort_operators() {
 	cout << "Begin sort_operators()..." << endl;
 	int fix_action_op_id = 0;
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
+#ifdef FIX_SEARCH_DEBUG
 		cout << "Consider op " << op_no << ":" << endl;
+#endif
 		g_operators[op_no].dump();
 
 		string op_name = g_operators[op_no].get_name();
