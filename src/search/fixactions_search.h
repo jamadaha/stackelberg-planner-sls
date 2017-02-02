@@ -63,6 +63,7 @@ private:
 	int num_recursive_calls = 0;
 	int num_attacker_searches = 0;
 	long attack_search_duration_sum = 0;
+	long reset_and_initialize_duration_sum = 0;
 	int all_attacker_states = 0;
 protected:
     virtual void initialize();

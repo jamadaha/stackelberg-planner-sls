@@ -18,7 +18,7 @@
 #include <chrono>
 #include <iomanip>
 
-//#define FIX_SEARCH_DEBUG
+#define FIX_SEARCH_DEBUG
 
 using namespace std;
 
@@ -74,8 +74,12 @@ void FixActionsSearch::initialize() {
 }
 
 void FixActionsSearch::sort_operators() {
+	cout << "Begin sort_operators()..." << endl;
 	int fix_action_op_id = 0;
 	for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
+		cout << "Consider op " << op_no << ":" << endl;
+		g_operators[op_no].dump();
+
 		string op_name = g_operators[op_no].get_name();
 
 		size_t whitespace = op_name.find(" ");
@@ -568,6 +572,11 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	bool parent_attack_plan_applicable = false;
 	if(parent_attack_plan.size() > 0) {
+		cout << "parent attack plan: " << endl;
+		/*for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
+			attack_operators_with_fix_vars_preconds[parent_attack_plan[op_no]].dump();
+		}*/
+
 		parent_attack_plan_applicable = true;
 		// Check whether parent_attack_plan is still applicable in current fix-state
 		for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
@@ -617,12 +626,17 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			g_attack_op_included[applicable_attack_operators[op_no]->get_op_id()] = true;
 			//all_attack_operators[op_no]->dump();
 		}
+
+		chrono::high_resolution_clock::time_point tt1 = chrono::high_resolution_clock::now();
 		g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
 		//g_successor_generator->dump();
 		//cout << "Attacker dump everything: " << endl;
 		//dump_everything();
 		search_engine->reset();
 		attack_heuristic->reset();
+		chrono::high_resolution_clock::time_point tt2 = chrono::high_resolution_clock::now();
+	    auto duration2 = chrono::duration_cast<chrono::milliseconds>( tt2 - tt1 ).count();
+	    reset_and_initialize_duration_sum += duration2;
 
 		// Call search, but make sure that no stuff is written to cout when we are not debugging
 #ifndef FIX_SEARCH_DEBUG
@@ -690,12 +704,22 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	vector<const GlobalOperator *> applicable_ops;
 	fix_operators_successor_generator->generate_applicable_ops(state, applicable_ops);
 
+	/*cout << "applicable ops: " << endl;
+	for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
+		applicable_ops[op_no]->dump();
+	}*/
+
 	vector<const GlobalOperator *> applicable_ops_after_pruning;
 	if(use_partial_order_reduction) {
 		prune_applicable_fix_ops_sss(state, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, applicable_ops, applicable_ops_after_pruning);
 	} else {
 		applicable_ops_after_pruning.swap(applicable_ops);
 	}
+
+	/*cout << "applicable ops after pruning: " << endl;
+	for (size_t op_no = 0; op_no < applicable_ops_after_pruning.size(); op_no++) {
+		applicable_ops_after_pruning[op_no]->dump();
+	}*/
 
 	for (size_t op_no = 0; op_no < applicable_ops_after_pruning.size(); op_no++) {
 		const GlobalOperator *op = applicable_ops_after_pruning[op_no];
@@ -877,12 +901,13 @@ SearchStatus FixActionsSearch::step() {
 	vector<int> parent_attack_plan;
 	vector<int> sleep(fix_operators.size(), 0);
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, true);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, false);
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
     cout << "Everything took: " << duration << "ms" << endl;
     cout << "Search in Attacker Statespace took " << attack_search_duration_sum << "ms" << endl;
     cout << "Search in Fixactions Statespace took " << (duration - attack_search_duration_sum) << "ms" << endl;
+    cout << "reset_and_initialize_duration_sum: " << reset_and_initialize_duration_sum << "ms" << endl;
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "They were " << num_attacker_searches << " searches in Attacker Statespace" << endl;
 	cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
