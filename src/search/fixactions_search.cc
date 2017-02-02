@@ -297,10 +297,10 @@ SuccessorGeneratorSwitch* FixActionsSearch::create_successor_generator(const vec
 			variable_domain[root_var_index]);
 
 	for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
-#ifdef FIX_SEARCH_DEBUG
+/*#ifdef FIX_SEARCH_DEBUG
 		cout << "Consider op " << op_no << endl;
 		pre_cond_ops[op_no].dump();
-#endif
+#endif*/
 		vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
 		if(conditions.size() == 0) {
