@@ -578,6 +578,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 	}
 
+	vector<int> attack_plan;
+
 	AttackSearchSpace* attack_heuristic_search_space = NULL;
 	bool free_attack_heuristic_per_state_info = false;
 
@@ -587,12 +589,14 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	if (info.attack_plan_prob_cost != -1 || parent_attack_plan_applicable) {
 		if(info.attack_plan_prob_cost != -1) {
 			attack_plan_cost = info.attack_plan_prob_cost;
+			attack_plan = info.attack_plan;
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known in PerStateInformation: " << attack_plan_cost << endl;
 #endif
 		} else {
 			attack_plan_cost = parent_attack_plan_cost;
 			info.attack_plan_prob_cost = attack_plan_cost;
+			info.attack_plan = parent_attack_plan;
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known from parent_attack_plan: " << attack_plan_cost << endl;
 #endif
@@ -643,7 +647,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			search_engine->save_plan_if_necessary();
 			attack_plan_cost = calculate_plan_cost(g_plan);
 #ifdef FIX_SEARCH_DEBUG
-			cout << "Attack plan cost is " << attack_plan_cost << endl;
+			cout << "Attack attack_plan cost is " << attack_plan_cost << endl;
 #endif
 
 			if (attack_heuristic != NULL) {
@@ -675,12 +679,12 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		return;
 	}
 
-	// Copy found plan to local vector
-	vector<int> plan;
-	if (!parent_attack_plan_applicable) {
+	// Copy found g_plan to local vector iff we even performed a search
+	if (!parent_attack_plan_applicable && attack_plan.empty()) {
 		for(size_t op_no = 0; op_no < g_plan.size(); op_no++) {
-			plan.push_back(g_plan[op_no]->get_op_id());
+			attack_plan.push_back(g_plan[op_no]->get_op_id());
 		}
+		info.attack_plan = attack_plan;
 	}
 
 	vector<const GlobalOperator *> applicable_ops;
@@ -688,7 +692,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	vector<const GlobalOperator *> applicable_ops_after_pruning;
 	if(use_partial_order_reduction) {
-		prune_applicable_fix_ops_sss(state, parent_attack_plan_applicable ? parent_attack_plan : plan, applicable_ops, applicable_ops_after_pruning);
+		prune_applicable_fix_ops_sss(state, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, applicable_ops, applicable_ops_after_pruning);
 	} else {
 		applicable_ops_after_pruning.swap(applicable_ops);
 	}
@@ -740,7 +744,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
 
-		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : plan, attack_plan_cost, sleep, use_partial_order_reduction);
+		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, attack_plan_cost, sleep, use_partial_order_reduction);
 
 		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
 		if (use_partial_order_reduction) {
@@ -814,6 +818,9 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 #endif
 			it++;
 		} else if (get<1>(*it) == get<1>(node)) {
+#ifdef FIX_SEARCH_DEBUG
+			cout << "added additional fix action sequence to node with with fix cost: " << get<0>(node) << " and attack cost: " << get<1>(node) << endl;
+#endif
 			get<2>(*it).push_back(get<2>(node)[0]);
 			return;
 		} else {
