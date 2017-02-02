@@ -474,15 +474,15 @@ void FixActionsSearch::get_all_dependent_ops(const GlobalOperator *op, vector<co
 	}
 }
 
-void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, const vector<const GlobalOperator *> &applicable_ops, vector<const GlobalOperator *> &result) {
+void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, const vector<int> &attack_plan, const vector<const GlobalOperator *> &applicable_ops, vector<const GlobalOperator *> &result) {
 	unordered_set<const GlobalOperator *> applicable_ops_set(applicable_ops.begin(), applicable_ops.end());
 
 	vector<const GlobalOperator *> current_T_s;
 	vector<bool> is_in_current_T_s(fix_operators.size(), false);
 	// Initialize T_s to the disjunctive action landmark
 	// We rely on g_plan containing the currently computed attacker plan
-	for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
-		int op_id = g_plan[op_no]->get_op_id();
+	for (size_t op_no = 0; op_no < attack_plan.size(); op_no++) {
+		int op_id = attack_plan[op_no];
 		const GlobalOperator *op = &attack_operators_with_fix_vars_preconds[op_id];
 
 		const vector<GlobalCondition> &preconditions = op->get_preconditions();
@@ -688,7 +688,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	vector<const GlobalOperator *> applicable_ops_after_pruning;
 	if(use_partial_order_reduction) {
-		prune_applicable_fix_ops_sss(state, applicable_ops, applicable_ops_after_pruning);
+		prune_applicable_fix_ops_sss(state, parent_attack_plan_applicable ? parent_attack_plan : plan, applicable_ops, applicable_ops_after_pruning);
 	} else {
 		applicable_ops_after_pruning.swap(applicable_ops);
 	}
