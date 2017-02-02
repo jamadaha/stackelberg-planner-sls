@@ -178,11 +178,11 @@ void FixActionsSearch::clean_attack_actions() {
 		}
 
 		GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost(), op.get_cost2(), op_no, g_variable_name, g_variable_name);
+				op.get_cost(), op.get_cost2(), op.get_op_id(), g_variable_name, g_variable_name);
 		attack_operators[op_no] = op_with_attack_preconds;
 
 		GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions, op.get_effects(), op.get_name(),
-				op.get_cost(), op.get_cost2(), op_no, fix_variable_name, g_variable_name);
+				op.get_cost(), op.get_cost2(), op.get_op_id(), fix_variable_name, g_variable_name);
 		attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 	}
 }
