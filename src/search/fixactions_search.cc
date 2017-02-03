@@ -68,6 +68,8 @@ void FixActionsSearch::initialize() {
 
 	compute_fix_facts_ops_sets();
 
+	compute_attack_op_dominance_relation();
+
 	g_all_attack_operators.insert(g_all_attack_operators.begin(), attack_operators.begin(), attack_operators.end());
 
 	g_attack_op_included.resize(attack_operators.size(), false);
@@ -444,6 +446,82 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 	}
 }
 
+void FixActionsSearch::compute_attack_op_dominance_relation() {
+	cout << "Begin compute_attack_op_dominance_relation()..." << endl;
+
+	dominated_attack_op_ids.assign(attack_operators.size(), vector<int>());
+
+	cout << "num attack ops: " << attack_operators.size() << endl;
+
+	for (size_t op_no1 = 0; op_no1 < attack_operators.size(); op_no1++) {
+		for (size_t op_no2 = 0; op_no2 < attack_operators.size(); op_no2++) {
+			if(op_no1 == op_no2) {
+				continue;
+			}
+
+			bool dominated_or_equivalent = true;
+
+			const GlobalOperator &op1 = attack_operators[op_no1];
+			const GlobalOperator &op2 = attack_operators[op_no2];
+
+			cout << "Checking dominacce of op1 with id " << op_no1 << ":" << endl;
+			op1.dump();
+			cout << "to op2 with id " << op_no2 << ":" << endl;
+			op2.dump();
+
+			if (op1.get_cost() > op2.get_cost() || op1.get_cost2() > op2.get_cost2()) {
+				continue;
+			}
+
+			const vector<GlobalCondition> &conditions1 = op1.get_preconditions();
+			const vector<GlobalCondition> &conditions2 = op2.get_preconditions();
+			const vector<GlobalEffect> &effects1 = op1.get_effects();
+			const vector<GlobalEffect> &effects2 = op2.get_effects();
+
+			// Check whether op1 dominates op2 or whether they are equivalent
+			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
+			// Regarding preconditions, every precond of op1 needs to be a precond of op2
+			for (int var = 0; var < num_attack_vars; var++) {
+				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
+					i_cond1++;
+				}
+				while (i_cond2 < ((int) conditions2.size() - 1) && conditions2[i_cond2].var < var) {
+					i_cond2++;
+				}
+				while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
+					i_eff1++;
+				}
+				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
+					i_eff2++;
+				}
+
+				if (i_cond1 < (int) conditions1.size() && conditions1[i_cond1].var == var && (i_cond2 >= (int) conditions2.size() || conditions2[i_cond2].var != var || conditions1[i_cond1].val != conditions2[i_cond2].val)) {
+					dominated_or_equivalent = false;
+				}
+
+				if (i_eff1 >= (int) effects1.size() && i_eff2 >= (int) effects2.size()) {
+					continue;
+				}
+
+				if ((i_eff1 >= (int) effects1.size() && i_eff2 < (int) effects2.size()) || (i_eff1 < (int) effects1.size() && i_eff2 >= (int) effects2.size()) || effects1[i_eff1].var != effects2[i_eff2].var || effects1[i_eff1].val != effects2[i_eff2].val) {
+					dominated_or_equivalent = false;
+				}
+
+				if (!dominated_or_equivalent) {
+					break;
+				}
+			}
+
+//#ifdef FIX_SEARCH_DEBUG
+			cout << "op1 dominates op2?: " << dominated_or_equivalent << endl;
+//#endif
+			if (dominated_or_equivalent) {
+				dominated_attack_op_ids[op_no1].push_back(op_no2);
+			}
+		}
+	}
+}
+
 void FixActionsSearch::compute_fix_facts_ops_sets() {
 	cout << "Begin compute_fix_facts_ops_sets()..." << endl;
 
@@ -558,6 +636,35 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 	}
 }
 
+void FixActionsSearch::prune_dominated_attack_ops(vector<const GlobalOperator*> &attack_ops) {
+	vector<bool> marked_for_erase(attack_operators.size(), false);
+	vector<int> dominated_by(attack_operators.size(), -1);
+
+	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
+		if (!marked_for_erase[op_no]) {
+			const vector<int> dominated_ops = dominated_attack_op_ids[attack_operators[op_no].get_op_id()];
+			for (size_t dom_op_no = 0; dom_op_no < dominated_attack_op_ids.size(); dom_op_no++) {
+				marked_for_erase[dominated_ops[dom_op_no]] = true;
+				dominated_by[dominated_ops[dom_op_no]] = attack_operators[op_no].get_op_id();
+			}
+		}
+	}
+
+	vector<const GlobalOperator*>::iterator it = attack_ops.begin();
+	for (; it != attack_ops.end();) {
+		if (marked_for_erase[(*it)->get_op_id()]) {
+			cout << "op: " << endl;
+			(*it)->dump();
+			cout << "pruned because it was dominated by:" << endl;
+			attack_operators[dominated_by[(*it)->get_op_id()]].dump();
+
+			it = attack_ops.erase(it);
+		} else {
+			++it;
+		}
+	}
+}
+
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
@@ -622,6 +729,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	} else {
 		num_attacker_searches++;
 		vector<const GlobalOperator *> applicable_attack_operators;
+
+		prune_dominated_attack_ops(applicable_attack_operators);
+
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, applicable_attack_operators);
 		g_operators.clear();
 		g_attack_op_included.assign(attack_operators.size(), false);

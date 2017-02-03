@@ -52,6 +52,8 @@ private:
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_fix_facts_ops;
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_fix_facts_ops;
 
+	std::vector<std::vector<int>> dominated_attack_op_ids;
+
 	SearchEngine* search_engine;
 	Heuristic* attack_heuristic;
 
@@ -77,9 +79,11 @@ protected:
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_and_dependent_fix_ops_matrices();
+    void compute_attack_op_dominance_relation();
     void compute_fix_facts_ops_sets();
     void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
     void prune_applicable_fix_ops_sss (const GlobalState &state, const std::vector<int> &attack_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
+    void prune_dominated_attack_ops(std::vector<const GlobalOperator*> &attack_ops);
     void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep,
     		bool use_partial_order_reduction);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
