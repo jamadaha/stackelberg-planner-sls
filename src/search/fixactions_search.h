@@ -66,6 +66,7 @@ private:
 	int num_attacker_searches = 0;
 	long attack_search_duration_sum = 0;
 	long reset_and_initialize_duration_sum = 0;
+	long fix_search_initialize_duration = 0;
 	int all_attacker_states = 0;
 protected:
     virtual void initialize();

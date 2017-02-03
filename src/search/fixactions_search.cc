@@ -78,7 +78,7 @@ void FixActionsSearch::initialize() {
 
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
-    cout << "FixSearch initialize took: " << duration << "ms" << endl;
+	fix_search_initialize_duration = duration;
 }
 
 void FixActionsSearch::sort_operators() {
@@ -1034,6 +1034,7 @@ SearchStatus FixActionsSearch::step() {
 	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, true);
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
+    cout << "FixSearch initialize took: " << fix_search_initialize_duration << "ms" << endl;
     cout << "Complete Fixsearch took: " << duration << "ms" << endl;
     cout << "Search in Attacker Statespace took " << attack_search_duration_sum << "ms" << endl;
     cout << "Search in Fixactions Statespace took " << (duration - attack_search_duration_sum) << "ms" << endl;
