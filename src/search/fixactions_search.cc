@@ -43,6 +43,8 @@ FixActionsSearch::~FixActionsSearch() {
 void FixActionsSearch::initialize() {
 	cout << "Initializing FixActionsSearch..." << endl;
 
+	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+
 	sort_operators();
 
 	if(fix_operators.size() < 1) {
@@ -73,6 +75,10 @@ void FixActionsSearch::initialize() {
 	g_all_attack_operators.insert(g_all_attack_operators.begin(), attack_operators.begin(), attack_operators.end());
 
 	g_attack_op_included.resize(attack_operators.size(), false);
+
+    chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
+    cout << "FixSearch initialize took: " << duration << "ms" << endl;
 }
 
 void FixActionsSearch::sort_operators() {
@@ -464,10 +470,10 @@ void FixActionsSearch::compute_attack_op_dominance_relation() {
 			const GlobalOperator &op1 = attack_operators[op_no1];
 			const GlobalOperator &op2 = attack_operators[op_no2];
 
-			cout << "Checking dominacce of op1 with id " << op_no1 << ":" << endl;
-			op1.dump();
-			cout << "to op2 with id " << op_no2 << ":" << endl;
-			op2.dump();
+			//cout << "Checking dominacce of op1 with id " << op_no1 << ":" << endl;
+			//op1.dump();
+			//cout << "to op2 with id " << op_no2 << ":" << endl;
+			//op2.dump();
 
 			if (op1.get_cost() > op2.get_cost() || op1.get_cost2() > op2.get_cost2()) {
 				continue;
@@ -478,8 +484,25 @@ void FixActionsSearch::compute_attack_op_dominance_relation() {
 			const vector<GlobalEffect> &effects1 = op1.get_effects();
 			const vector<GlobalEffect> &effects2 = op2.get_effects();
 
+			if(conditions1.size() > conditions2.size() || effects1.size() != effects2.size()) {
+				continue;
+			}
+
+			// The effects need to be the same. We already know that effects1.size() == effects2.size()
+			for (size_t i_eff = 0; i_eff < effects1.size(); i_eff++) {
+				if(effects1[i_eff].var != effects2[i_eff].var || effects1[i_eff].val != effects2[i_eff].val) {
+					dominated_or_equivalent = false;
+					break;
+				}
+			}
+
+			if(!dominated_or_equivalent) {
+				continue;
+			}
+
+
 			// Check whether op1 dominates op2 or whether they are equivalent
-			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
+			int i_cond1 = 0, i_cond2 = 0;
 			// Regarding preconditions, every precond of op1 needs to be a precond of op2
 			for (int var = 0; var < num_attack_vars; var++) {
 				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
@@ -488,33 +511,16 @@ void FixActionsSearch::compute_attack_op_dominance_relation() {
 				while (i_cond2 < ((int) conditions2.size() - 1) && conditions2[i_cond2].var < var) {
 					i_cond2++;
 				}
-				while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
-					i_eff1++;
-				}
-				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
-					i_eff2++;
-				}
 
 				if (i_cond1 < (int) conditions1.size() && conditions1[i_cond1].var == var && (i_cond2 >= (int) conditions2.size() || conditions2[i_cond2].var != var || conditions1[i_cond1].val != conditions2[i_cond2].val)) {
 					dominated_or_equivalent = false;
-				}
-
-				if (i_eff1 >= (int) effects1.size() && i_eff2 >= (int) effects2.size()) {
-					continue;
-				}
-
-				if ((i_eff1 >= (int) effects1.size() && i_eff2 < (int) effects2.size()) || (i_eff1 < (int) effects1.size() && i_eff2 >= (int) effects2.size()) || effects1[i_eff1].var != effects2[i_eff2].var || effects1[i_eff1].val != effects2[i_eff2].val) {
-					dominated_or_equivalent = false;
-				}
-
-				if (!dominated_or_equivalent) {
 					break;
 				}
 			}
 
-//#ifdef FIX_SEARCH_DEBUG
+/*#ifdef FIX_SEARCH_DEBUG
 			cout << "op1 dominates op2?: " << dominated_or_equivalent << endl;
-//#endif
+//#endif*/
 			if (dominated_or_equivalent) {
 				dominated_attack_op_ids[op_no1].push_back(op_no2);
 			}
@@ -656,10 +662,10 @@ void FixActionsSearch::prune_dominated_attack_ops(vector<const GlobalOperator*> 
 	vector<const GlobalOperator*>::iterator it = attack_ops.begin();
 	for (; it != attack_ops.end();) {
 		if (marked_for_erase[(*it)->get_op_id()]) {
-			cout << "op: " << endl;
+			/*cout << "op: " << endl;
 			(*it)->dump();
 			cout << "pruned because it was dominated by:" << endl;
-			attack_operators[dominated_by[(*it)->get_op_id()]].dump();
+			attack_operators[dominated_by[(*it)->get_op_id()]].dump();*/
 
 			it = attack_ops.erase(it);
 		} else {
@@ -734,7 +740,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		vector<const GlobalOperator *> applicable_attack_operators;
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, applicable_attack_operators);
 
-		//prune_dominated_attack_ops(applicable_attack_operators);
+		prune_dominated_attack_ops(applicable_attack_operators);
 
 		g_operators.clear();
 		g_attack_op_included.assign(attack_operators.size(), false);
@@ -1022,7 +1028,7 @@ SearchStatus FixActionsSearch::step() {
 	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, true);
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
-    cout << "Everything took: " << duration << "ms" << endl;
+    cout << "Complete Fixsearch took: " << duration << "ms" << endl;
     cout << "Search in Attacker Statespace took " << attack_search_duration_sum << "ms" << endl;
     cout << "Search in Fixactions Statespace took " << (duration - attack_search_duration_sum) << "ms" << endl;
     cout << "reset_and_initialize_duration_sum: " << reset_and_initialize_duration_sum << "ms" << endl;
