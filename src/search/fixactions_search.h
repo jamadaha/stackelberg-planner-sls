@@ -28,6 +28,7 @@ struct FixSearchInfo {
 class FixActionsSearch: public SearchEngine
 {
 private:
+	bool use_partial_order_reduction = true;
 	bool do_attack_op_dom_pruning = true;
 
 	std::vector<GlobalOperator> fix_operators;
@@ -87,8 +88,7 @@ protected:
     void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
     void prune_applicable_fix_ops_sss (const GlobalState &state, const std::vector<int> &attack_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
     void prune_dominated_attack_ops(std::vector<const GlobalOperator*> &attack_ops);
-    void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep,
-    		bool use_partial_order_reduction);
+    void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
     void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence);

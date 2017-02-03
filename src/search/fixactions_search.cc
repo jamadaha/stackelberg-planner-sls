@@ -36,6 +36,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	g_initial_budget = opts.get<int>("initial_attack_budget");
 	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
 
+	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
 }
 
@@ -678,8 +679,7 @@ void FixActionsSearch::prune_dominated_attack_ops(vector<const GlobalOperator*> 
 	}
 }
 
-void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
-		bool use_partial_order_reduction) {
+void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep) {
 	num_recursive_calls++;
 #ifdef FIX_SEARCH_DEBUG
 	if((num_recursive_calls % 50) == 0) {
@@ -904,7 +904,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
 
-		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, attack_plan_cost, sleep, use_partial_order_reduction);
+		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, attack_plan_cost, sleep);
 
 		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
 		if (use_partial_order_reduction) {
@@ -1037,7 +1037,7 @@ SearchStatus FixActionsSearch::step() {
 	vector<int> parent_attack_plan;
 	vector<int> sleep(fix_operators.size(), 0);
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, true);
+	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep);
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
     cout << "FixSearch initialize took: " << fix_search_initialize_duration << "ms" << endl;
@@ -1064,6 +1064,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<Heuristic*>("attack_heuristic", "The heuristic used for search in AttackerStateSpace", "", OptionFlags(false));
 	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
 	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
+	parser.add_option<bool>("partial_order_reduction", "use partial order reduction for fix ops", "true");
     parser.add_option<bool>("attack_op_dom_pruning", "use the attack operator dominance pruning", "true");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
