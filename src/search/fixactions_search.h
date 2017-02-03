@@ -28,6 +28,8 @@ struct FixSearchInfo {
 class FixActionsSearch: public SearchEngine
 {
 private:
+	bool do_attack_op_dom_pruning = true;
+
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
 	std::vector<GlobalOperator> attack_operators_with_fix_vars_preconds;

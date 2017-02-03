@@ -35,6 +35,8 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 
 	g_initial_budget = opts.get<int>("initial_attack_budget");
 	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
+
+	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
 }
 
 FixActionsSearch::~FixActionsSearch() {
@@ -70,7 +72,9 @@ void FixActionsSearch::initialize() {
 
 	compute_fix_facts_ops_sets();
 
-	compute_attack_op_dominance_relation();
+	if (do_attack_op_dom_pruning) {
+		compute_attack_op_dominance_relation();
+	}
 
 	g_all_attack_operators.insert(g_all_attack_operators.begin(), attack_operators.begin(), attack_operators.end());
 
@@ -457,7 +461,9 @@ void FixActionsSearch::compute_attack_op_dominance_relation() {
 
 	dominated_attack_op_ids.assign(attack_operators.size(), vector<int>());
 
+#ifdef FIX_SEARCH_DEBUG
 	cout << "num attack ops: " << attack_operators.size() << endl;
+#endif
 
 	for (size_t op_no1 = 0; op_no1 < attack_operators.size(); op_no1++) {
 		for (size_t op_no2 = 0; op_no2 < attack_operators.size(); op_no2++) {
@@ -500,19 +506,17 @@ void FixActionsSearch::compute_attack_op_dominance_relation() {
 				continue;
 			}
 
-
-			// Check whether op1 dominates op2 or whether they are equivalent
-			int i_cond1 = 0, i_cond2 = 0;
 			// Regarding preconditions, every precond of op1 needs to be a precond of op2
-			for (int var = 0; var < num_attack_vars; var++) {
-				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
-					i_cond1++;
-				}
+			int i_cond2 = 0;
+			for (int i_cond1 = 0; i_cond1 < (int) conditions1.size(); i_cond1++) {
+				int var = conditions1[i_cond1].var;
+				int val = conditions1[i_cond1].val;
+
 				while (i_cond2 < ((int) conditions2.size() - 1) && conditions2[i_cond2].var < var) {
 					i_cond2++;
 				}
 
-				if (i_cond1 < (int) conditions1.size() && conditions1[i_cond1].var == var && (i_cond2 >= (int) conditions2.size() || conditions2[i_cond2].var != var || conditions1[i_cond1].val != conditions2[i_cond2].val)) {
+				if (i_cond2 >= (int) conditions2.size() || conditions2[i_cond2].var != var || conditions2[i_cond2].val != val) {
 					dominated_or_equivalent = false;
 					break;
 				}
@@ -746,7 +750,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		vector<const GlobalOperator *> applicable_attack_operators;
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, applicable_attack_operators);
 
-		prune_dominated_attack_ops(applicable_attack_operators);
+		if(do_attack_op_dom_pruning) {
+			prune_dominated_attack_ops(applicable_attack_operators);
+		}
 
 		g_operators.clear();
 		g_attack_op_included.assign(attack_operators.size(), false);
@@ -1058,6 +1064,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<Heuristic*>("attack_heuristic", "The heuristic used for search in AttackerStateSpace", "", OptionFlags(false));
 	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
 	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
+    parser.add_option<bool>("attack_op_dom_pruning", "use the attack operator dominance pruning", "true");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
 		return new FixActionsSearch(opts);
