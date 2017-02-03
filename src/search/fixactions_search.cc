@@ -640,12 +640,15 @@ void FixActionsSearch::prune_dominated_attack_ops(vector<const GlobalOperator*> 
 	vector<bool> marked_for_erase(attack_operators.size(), false);
 	vector<int> dominated_by(attack_operators.size(), -1);
 
-	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
-		if (!marked_for_erase[op_no]) {
-			const vector<int> dominated_ops = dominated_attack_op_ids[attack_operators[op_no].get_op_id()];
-			for (size_t dom_op_no = 0; dom_op_no < dominated_attack_op_ids.size(); dom_op_no++) {
+	//cout << "attack_ops:" << endl;
+
+	for (size_t op_no = 0; op_no < attack_ops.size(); op_no++) {
+		//attack_ops[op_no]->dump();
+		if (!marked_for_erase[attack_ops[op_no]->get_op_id()]) {
+			const vector<int> dominated_ops = dominated_attack_op_ids[attack_ops[op_no]->get_op_id()];
+			for (size_t dom_op_no = 0; dom_op_no < dominated_ops.size(); dom_op_no++) {
 				marked_for_erase[dominated_ops[dom_op_no]] = true;
-				dominated_by[dominated_ops[dom_op_no]] = attack_operators[op_no].get_op_id();
+				dominated_by[dominated_ops[dom_op_no]] = attack_ops[op_no]->get_op_id();
 			}
 		}
 	}
@@ -729,10 +732,10 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	} else {
 		num_attacker_searches++;
 		vector<const GlobalOperator *> applicable_attack_operators;
-
-		prune_dominated_attack_ops(applicable_attack_operators);
-
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, applicable_attack_operators);
+
+		//prune_dominated_attack_ops(applicable_attack_operators);
+
 		g_operators.clear();
 		g_attack_op_included.assign(attack_operators.size(), false);
 		//cout << "g_operators: " << endl;
