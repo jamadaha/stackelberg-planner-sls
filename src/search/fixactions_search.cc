@@ -677,6 +677,12 @@ void FixActionsSearch::prune_dominated_attack_ops(vector<const GlobalOperator*> 
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep,
 		bool use_partial_order_reduction) {
 	num_recursive_calls++;
+#ifdef FIX_SEARCH_DEBUG
+	if((num_recursive_calls % 50) == 0) {
+		cout << num_recursive_calls << " num recursive calls until now." << endl;
+		dump_pareto_frontier();
+	}
+#endif
 
 #ifdef FIX_SEARCH_DEBUG
 	cout << "in call of expand_all_successors for state: " << endl;
