@@ -29,6 +29,7 @@ class FixActionsSearch: public SearchEngine
 {
 private:
 	bool use_partial_order_reduction = true;
+	bool check_parent_attack_plan_applicable = true;
 	bool do_attack_op_dom_pruning = true;
 
 	std::vector<GlobalOperator> fix_operators;

@@ -37,6 +37,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
 
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
+	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
 	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
 }
 
@@ -702,7 +703,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 #endif
 
 	bool parent_attack_plan_applicable = false;
-	if(parent_attack_plan.size() > 0) {
+	if(check_parent_attack_plan_applicable && parent_attack_plan.size() > 0) {
 		/*cout << "parent attack plan: " << endl;
 		for (size_t op_no = 0; op_no < parent_attack_plan.size(); op_no++) {
 			attack_operators_with_fix_vars_preconds[parent_attack_plan[op_no]].dump();
@@ -1065,6 +1066,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
 	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
 	parser.add_option<bool>("partial_order_reduction", "use partial order reduction for fix ops", "true");
+	parser.add_option<bool>("check_parent_attack_plan_applicable", "always check whether the attacker plan of the parent fix state is still applicable", "true");
     parser.add_option<bool>("attack_op_dom_pruning", "use the attack operator dominance pruning", "true");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
