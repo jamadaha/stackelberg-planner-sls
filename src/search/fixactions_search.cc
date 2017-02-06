@@ -39,7 +39,6 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
 	check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
-
 	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
 }
 
