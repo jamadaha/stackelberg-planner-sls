@@ -71,9 +71,9 @@ void FixActionsSearch::initialize() {
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
 
-	if (use_partial_order_reduction) {
-		compute_commutative_and_dependent_fix_ops_matrices();
+	compute_commutative_and_dependent_fix_ops_matrices();
 
+	if (use_partial_order_reduction) {
 		compute_fix_facts_ops_sets();
 	}
 
@@ -897,13 +897,11 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 
 		// Add all ops before op_no in applicable_ops to sleep set if they are commutative
-		if (use_partial_order_reduction) {
-			int op_id = op->get_op_id();
-			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
-				int op2_id = applicable_ops_after_pruning[op_no2]->get_op_id();
-				if (commutative_fix_ops[op_id][op2_id]) {
-					sleep[op2_id]++;
-				}
+		int op_id = op->get_op_id();
+		for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
+			int op2_id = applicable_ops_after_pruning[op_no2]->get_op_id();
+			if (commutative_fix_ops[op_id][op2_id]) {
+				sleep[op2_id]++;
 			}
 		}
 
@@ -915,13 +913,10 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, attack_plan_cost, sleep);
 
 		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
-		if (use_partial_order_reduction) {
-			int op_id = op->get_op_id();
-			for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
-				int op2_id = applicable_ops_after_pruning[op_no2]->get_op_id();
-				if (commutative_fix_ops[op_id][op2_id]) {
-					sleep[op2_id]--;
-				}
+		for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
+			int op2_id = applicable_ops_after_pruning[op_no2]->get_op_id();
+			if (commutative_fix_ops[op_id][op2_id]) {
+				sleep[op2_id]--;
 			}
 		}
 
