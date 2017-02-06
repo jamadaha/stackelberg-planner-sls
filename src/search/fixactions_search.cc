@@ -38,6 +38,8 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
+	check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
+
 	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
 }
 
@@ -70,9 +72,11 @@ void FixActionsSearch::initialize() {
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
 
-	compute_commutative_and_dependent_fix_ops_matrices();
+	if (use_partial_order_reduction) {
+		compute_commutative_and_dependent_fix_ops_matrices();
 
-	compute_fix_facts_ops_sets();
+		compute_fix_facts_ops_sets();
+	}
 
 	if (do_attack_op_dom_pruning) {
 		compute_attack_op_dominance_relation();
@@ -727,8 +731,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	int attack_plan_cost = numeric_limits<int>::max();
 	FixSearchInfo &info = fix_search_node_infos[state];
 
-	if (info.attack_plan_prob_cost != -1 || parent_attack_plan_applicable) {
-		if(info.attack_plan_prob_cost != -1) {
+	if ((check_fix_state_already_known && info.attack_plan_prob_cost != -1) || parent_attack_plan_applicable) {
+		if(check_fix_state_already_known && info.attack_plan_prob_cost != -1) {
 			attack_plan_cost = info.attack_plan_prob_cost;
 			attack_plan = info.attack_plan;
 #ifdef FIX_SEARCH_DEBUG
@@ -817,7 +821,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 #endif
 			attack_plan_cost = numeric_limits<int>::max();
 		}
-		info.attack_plan_prob_cost = attack_plan_cost;
+		if (check_fix_state_already_known) {
+			info.attack_plan_prob_cost = attack_plan_cost;
+		}
 	}
 
 	vector<vector<const GlobalOperator*>> temp_list_op_sequences;
@@ -835,7 +841,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		for(size_t op_no = 0; op_no < g_plan.size(); op_no++) {
 			attack_plan.push_back(g_plan[op_no]->get_op_id());
 		}
-		info.attack_plan = attack_plan;
+		if(check_fix_state_already_known) {
+			info.attack_plan = attack_plan;
+		}
 	}
 
 	vector<const GlobalOperator *> applicable_ops;
@@ -1067,6 +1075,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
 	parser.add_option<bool>("partial_order_reduction", "use partial order reduction for fix ops", "true");
 	parser.add_option<bool>("check_parent_attack_plan_applicable", "always check whether the attacker plan of the parent fix state is still applicable", "true");
+	parser.add_option<bool>("check_fix_state_already_known", "always check whether the current fix state is already known and spare search in attacker statespace", "true");
     parser.add_option<bool>("attack_op_dom_pruning", "use the attack operator dominance pruning", "true");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
