@@ -15,3 +15,5 @@ src/VAL/validate
 Makefile.temp0-e
 preprocess-debug
 downward-debug
+output
+output.sas
