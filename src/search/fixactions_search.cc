@@ -414,43 +414,70 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 
 			bool commutative = true;
 			bool dependent = false;
-			int i_cond1 = 0, i_cond2 = 0, i_eff1 = 0, i_eff2 = 0;
-			for (int var = 0; var < num_fix_vars; var++) {
-				while (i_cond1 < ((int) conditions1.size() - 1) && conditions1[i_cond1].var < var) {
-					i_cond1++;
+
+			int i_eff2 = 0;
+			for (int i_cond1 = 0; i_cond1 < (int) conditions1.size(); i_cond1++) {
+				if (!commutative && dependent) {
+					break;
 				}
-				while (i_cond2 < ((int) conditions2.size() - 1) && conditions2[i_cond2].var < var) {
-					i_cond2++;
-				}
-				while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
-					i_eff1++;
-				}
+
+				int var = conditions1[i_cond1].var;
+				int val = conditions1[i_cond1].val;
+
 				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
 					i_eff2++;
 				}
-				if (i_cond1 < (int) conditions1.size() && i_eff2 < (int) effects2.size() && conditions1[i_cond1].var == var && effects2[i_eff2].var == var) {
+
+				if (i_eff2 < (int) effects2.size() && effects2[i_eff2].var == var) {
 					commutative = false;
-					if(conditions1[i_cond1].val != effects2[i_eff2].val) {
+					if(val != effects2[i_eff2].val) {
 						dependent = true;
 					}
 				}
-				if (i_cond2 < (int) conditions2.size() && i_eff1 < (int) effects1.size() && conditions2[i_cond2].var == var && effects1[i_eff1].var == var) {
+			}
+
+			int i_eff1 = 0;
+			for (int i_cond2 = 0; i_cond2 < (int) conditions2.size(); i_cond2++) {
+				if (!commutative && dependent) {
+					break;
+				}
+
+				int var = conditions2[i_cond2].var;
+				int val = conditions2[i_cond2].val;
+
+				while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
+					i_eff1++;
+				}
+
+				if (i_eff1 < (int) effects1.size() && effects1[i_eff1].var == var) {
 					commutative = false;
-					if(conditions2[i_cond2].val != effects1[i_eff1].val) {
+					if(val != effects1[i_eff1].val) {
 						dependent = true;
 					}
 				}
-				if (i_eff1 < (int) effects1.size() && i_eff2 < (int) effects2.size() && effects1[i_eff1].var == var && effects2[i_eff2].var == var) {
-					if (effects1[i_eff1].val != effects2[i_eff2].val) {
+			}
+
+			i_eff2 = 0;
+			for (i_eff1 = 0; i_eff1 < (int) effects1.size(); i_eff1++) {
+				if (!commutative && dependent) {
+					break;
+				}
+
+				int var = effects1[i_eff1].var;
+				int val = effects1[i_eff1].val;
+
+				while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
+					i_eff2++;
+				}
+
+				if (i_eff2 < (int) effects2.size() && effects2[i_eff2].var == var) {
+					if (val != effects2[i_eff2].val) {
 						commutative = false;
 						dependent = true;
 					}
 				}
-
-				if (!commutative && dependent) {
-					break;
-				}
 			}
+
 /*#ifdef FIX_SEARCH_DEBUG
 		cout << "ops are commutative?: " << commutative << endl;
 		cout << "ops are dependent?: " << dependent << endl;
