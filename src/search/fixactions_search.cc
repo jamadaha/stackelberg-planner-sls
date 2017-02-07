@@ -18,7 +18,7 @@
 #include <chrono>
 #include <iomanip>
 
-//#define FIX_SEARCH_DEBUG
+#define FIX_SEARCH_DEBUG
 
 using namespace std;
 
@@ -70,6 +70,9 @@ void FixActionsSearch::initialize() {
 
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
 			attack_operators_with_fix_vars_preconds, attack_operators);
+
+	cout << "attack_operators.size() = " << attack_operators.size() << endl;
+	cout << "fix_operators.size() = " << fix_operators.size() << endl;
 
 	compute_commutative_and_dependent_fix_ops_matrices();
 
@@ -397,12 +400,12 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 	dependent_fix_ops.assign(fix_operators.size(), val);
 	for (size_t op_no1 = 0; op_no1 < fix_operators.size(); op_no1++) {
 		for (size_t op_no2 = op_no1 + 1; op_no2 < fix_operators.size(); op_no2++) {
-#ifdef FIX_SEARCH_DEBUG
+/*#ifdef FIX_SEARCH_DEBUG
 			cout << "Comparing op1 with id " << op_no1 << ":" << endl;
 			fix_operators[op_no1].dump();
 			cout << "to op2 with id " << op_no2 << ":" << endl;
 			fix_operators[op_no2].dump();
-#endif
+#endif*/
 
 			const vector<GlobalCondition> &conditions1 = fix_operators[op_no1].get_preconditions();
 			const vector<GlobalCondition> &conditions2 = fix_operators[op_no2].get_preconditions();
@@ -448,10 +451,10 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 					break;
 				}
 			}
-#ifdef FIX_SEARCH_DEBUG
-			cout << "ops are commutative?: " << commutative << endl;
-			cout << "ops are dependent?: " << dependent << endl;
-#endif
+/*#ifdef FIX_SEARCH_DEBUG
+		cout << "ops are commutative?: " << commutative << endl;
+		cout << "ops are dependent?: " << dependent << endl;
+#endif*/
 			commutative_fix_ops[op_no1][op_no2] = commutative;
 			commutative_fix_ops[op_no2][op_no1] = commutative;
 
@@ -463,12 +466,7 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 
 void FixActionsSearch::compute_attack_op_dominance_relation() {
 	cout << "Begin compute_attack_op_dominance_relation()..." << endl;
-
 	dominated_attack_op_ids.assign(attack_operators.size(), vector<int>());
-
-#ifdef FIX_SEARCH_DEBUG
-	cout << "num attack ops: " << attack_operators.size() << endl;
-#endif
 
 	for (size_t op_no1 = 0; op_no1 < attack_operators.size(); op_no1++) {
 		for (size_t op_no2 = 0; op_no2 < attack_operators.size(); op_no2++) {
