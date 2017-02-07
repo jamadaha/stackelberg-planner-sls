@@ -15,9 +15,9 @@ from .plan_manager import PlanManager
 #TODO: We might want to turn translate into a module and call it with "python -m translate".
 REL_TRANSLATE_PATH = os.path.join("translate", "translate.py")
 if os.name == "posix":
-    REL_PREPROCESS_PATH = "src/preprocess/preprocess"
-    REL_SEARCH_PATH = "src/search/downward"
-    REL_VALIDATE_PATH = "src/validate"
+    REL_PREPROCESS_PATH = "preprocess/preprocess"
+    REL_SEARCH_PATH = "search/downward"
+    REL_VALIDATE_PATH = "validate"
 #elif os.name == "nt":
 #    REL_PREPROCESS_PATH = "src/preprocess/preprocess.exe"
 #    REL_SEARCH_PATH = "src/search/downward.exe"
