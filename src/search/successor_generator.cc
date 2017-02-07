@@ -28,6 +28,20 @@ SuccessorGeneratorSwitch::SuccessorGeneratorSwitch(int _switch_var, int _var_ran
 	default_generator = NULL;
 }
 
+SuccessorGeneratorSwitch::~SuccessorGeneratorSwitch() {
+	if (immediate_ops != NULL) {
+	    delete immediate_ops;
+	}
+
+	for (size_t generator_no = 0; generator_no < generator_for_value.size(); generator_no++) {
+		delete generator_for_value[generator_no];
+	}
+
+    if (default_generator != NULL) {
+        delete default_generator;
+    }
+}
+
 void SuccessorGeneratorSwitch::generate_applicable_ops(
     const GlobalState &curr, vector<const GlobalOperator *> &ops) {
 	if (immediate_ops != NULL) {

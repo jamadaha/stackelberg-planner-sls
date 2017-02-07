@@ -766,6 +766,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 
 		chrono::high_resolution_clock::time_point tt1 = chrono::high_resolution_clock::now();
+		delete g_successor_generator;
 		g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
 		//g_successor_generator->dump();
 		//cout << "Attacker dump everything: " << endl;

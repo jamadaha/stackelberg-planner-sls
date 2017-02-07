@@ -25,6 +25,7 @@ public:
     SuccessorGenerator *default_generator;
     SuccessorGeneratorSwitch(std::istream &in);
     SuccessorGeneratorSwitch(int _switch_var, int _var_range);
+    virtual ~SuccessorGeneratorSwitch();
     virtual void generate_applicable_ops(const GlobalState &curr,
     		std::vector<const GlobalOperator *> &ops);
     virtual void _dump(std::string indent);
