@@ -760,6 +760,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		if(check_fix_state_already_known && info.attack_plan_prob_cost != -1) {
 			attack_plan_cost = info.attack_plan_prob_cost;
 			attack_plan = info.attack_plan;
+			spared_attacker_searches_because_fix_state_already_seen++;
+
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known in PerStateInformation: " << attack_plan_cost << endl;
 #endif
@@ -767,6 +769,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_plan_cost = parent_attack_plan_cost;
 			info.attack_plan_prob_cost = attack_plan_cost;
 			info.attack_plan = parent_attack_plan;
+			spared_attacker_searches_because_parent_plan_applicable++;
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known from parent_attack_plan: " << attack_plan_cost << endl;
 #endif
@@ -1078,6 +1081,8 @@ SearchStatus FixActionsSearch::step() {
     cout << "reset_and_initialize_duration_sum: " << reset_and_initialize_duration_sum << "ms" << endl;
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "They were " << num_attacker_searches << " searches in Attacker Statespace" << endl;
+	cout << "We spared " << spared_attacker_searches_because_fix_state_already_seen << " attacker searches, beucause the fix state was already known" << endl;
+	cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable << " attacker searches, because the fix parent state attack plan was still applicable" << endl;
 	cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
 	cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
 	dump_pareto_frontier();

@@ -73,6 +73,8 @@ private:
 	long reset_and_initialize_duration_sum = 0;
 	long fix_search_initialize_duration = 0;
 	int all_attacker_states = 0;
+	int spared_attacker_searches_because_fix_state_already_seen = 0;
+	int spared_attacker_searches_because_parent_plan_applicable = 0;
 protected:
     virtual void initialize();
     virtual SearchStatus step();
