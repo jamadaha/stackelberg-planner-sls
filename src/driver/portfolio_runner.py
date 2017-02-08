@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function
 
 """ Module for running planner portfolios.
@@ -18,103 +19,27 @@ the process is started.
 
 __all__ = ["run"]
 
-import itertools
-import math
 import os
 import re
-import resource
-import signal
 import subprocess
 import sys
+import traceback
+
+from . import call
+from . import limits
+from . import returncodes
+from . import util
 
 
 DEFAULT_TIMEOUT = 1800
 
-# Exit codes.
-EXIT_PLAN_FOUND = 0
-EXIT_CRITICAL_ERROR = 1
-EXIT_INPUT_ERROR = 2
-EXIT_UNSUPPORTED = 3
-EXIT_UNSOLVABLE = 4
-EXIT_UNSOLVED_INCOMPLETE = 5
-EXIT_OUT_OF_MEMORY = 6
-EXIT_TIMEOUT = 7
-EXIT_TIMEOUT_AND_MEMORY = 8
-EXIT_SIGXCPU = -signal.SIGXCPU
 
-EXPECTED_EXITCODES = set([
-    EXIT_PLAN_FOUND, EXIT_UNSOLVABLE, EXIT_UNSOLVED_INCOMPLETE,
-    EXIT_OUT_OF_MEMORY, EXIT_TIMEOUT])
+def adapt_args(args, search_cost_type, heuristic_cost_type, plan_manager):
+    g_bound = plan_manager.get_best_plan_cost()
+    plan_counter = plan_manager.get_plan_counter()
+    print("g bound: %s" % g_bound)
+    print("next plan number: %d" % (plan_counter + 1))
 
-# The portfolio's exitcode is determined as follows:
-# There is exactly one type of unexpected exit code -> use it.
-# There are multiple types of unexpected exit codes -> EXIT_CRITICAL_ERROR.
-# [..., EXIT_PLAN_FOUND, ...] -> EXIT_PLAN_FOUND
-# [..., EXIT_UNSOLVABLE, ...] -> EXIT_UNSOLVABLE
-# [..., EXIT_UNSOLVED_INCOMPLETE, ...] -> EXIT_UNSOLVED_INCOMPLETE
-# [..., EXIT_OUT_OF_MEMORY, ..., EXIT_TIMEOUT, ...] -> EXIT_TIMEOUT_AND_MEMORY
-# [..., EXIT_TIMEOUT, ...] -> EXIT_TIMEOUT
-# [..., EXIT_OUT_OF_MEMORY, ...] -> EXIT_OUT_OF_MEMORY
-
-
-def set_limit(kind, soft, hard):
-    try:
-        resource.setrlimit(kind, (soft, hard))
-    except (OSError, ValueError) as err:
-        # This can happen if the limit has already been set externally.
-        print("Limit for %s could not be set to %s (%s). Previous limit: %s" %
-              (kind, (soft, hard), err, resource.getrlimit(kind)), file=sys.stderr)
-
-
-def get_plan_cost_and_cost_type(plan_file):
-    with open(plan_file) as input_file:
-        for line in input_file:
-            match = re.match(r"; cost = (\d+) \((unit-cost|general-cost)\)\n", line)
-            if match:
-                return int(match.group(1)), match.group(2)
-    os.remove(plan_file)
-    print("Could not retrieve plan cost from %s. Deleted the file." % plan_file)
-    return None, None
-
-
-def get_plan_file(plan_prefix, number):
-    return "%s.%d" % (plan_prefix, number)
-
-
-def get_plan_files(plan_prefix):
-    plan_files = []
-    for index in itertools.count(start=1):
-        plan_file = get_plan_file(plan_prefix, index)
-        if os.path.exists(plan_file):
-            plan_files.append(plan_file)
-        else:
-            break
-    return plan_files
-
-
-def get_cost_type(plan_prefix):
-    for plan_file in get_plan_files(plan_prefix):
-        _, cost_type = get_plan_cost_and_cost_type(plan_file)
-        if cost_type is not None:
-            return cost_type
-
-
-def get_g_bound_and_number_of_plans(plan_prefix):
-    plan_costs = []
-    for plan_file in get_plan_files(plan_prefix):
-        plan_cost, _ = get_plan_cost_and_cost_type(plan_file)
-        if plan_cost is not None:
-            if plan_costs and not plan_costs[-1] > plan_cost:
-                raise SystemExit(
-                    "Plan costs must decrease: %s" %
-                    " -> ".join(str(c) for c in plan_costs + [plan_cost]))
-            plan_costs.append(plan_cost)
-    bound = min(plan_costs) if plan_costs else "infinity"
-    return bound, len(plan_costs)
-
-
-def adapt_search(args, search_cost_type, heuristic_cost_type, plan_prefix):
-    g_bound, plan_no = get_g_bound_and_number_of_plans(plan_prefix)
     for index, arg in enumerate(args):
         if arg == "--heuristic":
             heuristic = args[index + 1]
@@ -122,95 +47,65 @@ def adapt_search(args, search_cost_type, heuristic_cost_type, plan_prefix):
             args[index + 1] = heuristic
         elif arg == "--search":
             search = args[index + 1]
-            if search.startswith("iterated"):
-                if "plan_counter=PLANCOUNTER" not in search:
-                    raise ValueError("When using iterated search, we must add "
-                                     "the option plan_counter=PLANCOUNTER")
-                plan_file = plan_prefix
-            else:
-                plan_file = get_plan_file(plan_prefix, plan_no + 1)
+            if "bound=BOUND" not in search:
+                raise ValueError(
+                    "Satisficing portfolios need the string "
+                    "\"bound=BOUND\" in each search configuration. "
+                    "See the FDSS portfolios for examples.")
             for name, value in [
                     ("BOUND", g_bound),
-                    ("PLANCOUNTER", plan_no),
                     ("H_COST_TYPE", heuristic_cost_type),
                     ("S_COST_TYPE", search_cost_type)]:
                 search = search.replace(name, str(value))
             args[index + 1] = search
             break
-    print("g bound: %s" % g_bound)
-    print("next plan number: %d" % (plan_no + 1))
-    return plan_file
 
 
-def run_search(executable, args, sas_file, plan_file, timeout=None, memory=None):
-    complete_args = [executable] + args + ["--plan-file", plan_file]
+def run_search(executable, args, sas_file, plan_manager, time, memory):
+    complete_args = [executable] + args + [
+        "--internal-plan-file", plan_manager.get_plan_prefix()]
     print("args: %s" % complete_args)
-    sys.stdout.flush()
 
-    def set_limits():
-        if timeout is not None:
-            # Don't try to raise the hard limit.
-            _, external_hard_limit = resource.getrlimit(resource.RLIMIT_CPU)
-            if external_hard_limit == resource.RLIM_INFINITY:
-                external_hard_limit = float("inf")
-            # Soft limit reached --> SIGXCPU.
-            # Hard limit reached --> SIGKILL.
-            soft_limit = int(math.ceil(timeout))
-            hard_limit = min(soft_limit + 1, external_hard_limit)
-            print("timeout: %.2f -> (%d, %d)" % (timeout, soft_limit, hard_limit))
-            sys.stdout.flush()
-            set_limit(resource.RLIMIT_CPU, soft_limit, hard_limit)
-        if memory is not None:
-            # Memory in Bytes
-            set_limit(resource.RLIMIT_AS, memory, memory)
-        else:
-            set_limit(resource.RLIMIT_AS, -1, -1)
-
-    with open(sas_file) as input_file:
-        returncode = subprocess.call(complete_args, stdin=input_file,
-                                     preexec_fn=set_limits)
-    print("returncode: %d" % returncode)
+    try:
+        exitcode = call.check_call(
+            complete_args, stdin=sas_file,
+            time_limit=time, memory_limit=memory)
+    except subprocess.CalledProcessError as err:
+        exitcode = err.returncode
+    print("exitcode: %d" % exitcode)
     print()
-    return returncode
+    return exitcode
 
 
-def get_elapsed_time():
-    """
-    Note: According to the os.times documentation, Windows sets the
-    child time components to 0, so time slices for portfolios will be
-    allocated slightly wrongly there.
-    """
-    return sum(os.times()[:4])
-
-
-def determine_timeout(remaining_time_at_start, configs, pos):
-    remaining_time = remaining_time_at_start - get_elapsed_time()
+def compute_run_time(timeout, configs, pos):
+    remaining_time = timeout - util.get_elapsed_time()
+    print("remaining time: {}".format(remaining_time))
     relative_time = configs[pos][0]
-    print("remaining time: %s" % remaining_time)
     remaining_relative_time = sum(config[0] for config in configs[pos:])
-    print("config %d: relative time %d, remaining %d" %
-          (pos, relative_time, remaining_relative_time))
+    print("config {}: relative time {}, remaining {}".format(
+          pos, relative_time, remaining_relative_time))
     # For the last config we have relative_time == remaining_relative_time, so
     # we use all of the remaining time at the end.
-    run_timeout = remaining_time * relative_time / remaining_relative_time
-    return run_timeout
+    return remaining_time * relative_time / remaining_relative_time
 
 
 def run_sat_config(configs, pos, search_cost_type, heuristic_cost_type,
-                   executable, sas_file, plan_prefix, remaining_time_at_start,
-                   memory):
-    args = list(configs[pos][1])
-    plan_file = adapt_search(args, search_cost_type, heuristic_cost_type,
-                             plan_prefix)
-    run_timeout = determine_timeout(remaining_time_at_start, configs, pos)
-    if run_timeout <= 0:
+                   executable, sas_file, plan_manager, timeout, memory):
+    run_time = compute_run_time(timeout, configs, pos)
+    if run_time <= 0:
         return None
-    return run_search(executable, args, sas_file, plan_file, run_timeout, memory)
+    _, args_template = configs[pos]
+    args = list(args_template)
+    adapt_args(args, search_cost_type, heuristic_cost_type, plan_manager)
+    args.extend([
+        "--internal-previous-portfolio-plans", str(plan_manager.get_plan_counter())])
+    result = run_search(executable, args, sas_file, plan_manager, run_time, memory)
+    plan_manager.process_new_plans()
+    return result
 
 
-def run_sat(configs, executable, sas_file, plan_prefix, final_config,
-            final_config_builder, remaining_time_at_start, memory):
-    exitcodes = []
+def run_sat(configs, executable, sas_file, plan_manager, final_config,
+            final_config_builder, timeout, memory):
     # If the configuration contains S_COST_TYPE or H_COST_TYPE and the task
     # has non-unit costs, we start by treating all costs as one. When we find
     # a solution, we rerun the successful config with real costs.
@@ -220,39 +115,36 @@ def run_sat(configs, executable, sas_file, plan_prefix, final_config,
     while configs:
         configs_next_round = []
         for pos, (relative_time, args) in enumerate(configs):
-            args = list(args)
             exitcode = run_sat_config(
                 configs, pos, search_cost_type, heuristic_cost_type,
-                executable, sas_file, plan_prefix, remaining_time_at_start,
-                memory)
+                executable, sas_file, plan_manager, timeout, memory)
             if exitcode is None:
-                return exitcodes
+                return
 
-            exitcodes.append(exitcode)
-            if exitcode == EXIT_UNSOLVABLE:
-                return exitcodes
+            yield exitcode
+            if exitcode == returncodes.EXIT_UNSOLVABLE:
+                return
 
-            if exitcode == EXIT_PLAN_FOUND:
-                configs_next_round.append(configs[pos][:])
+            if exitcode == returncodes.EXIT_PLAN_FOUND:
+                configs_next_round.append(args)
                 if (not changed_cost_types and can_change_cost_type(args) and
-                        get_cost_type(plan_prefix) == "general-cost"):
+                    plan_manager.get_problem_type() == "general cost"):
                     print("Switch to real costs and repeat last run.")
                     changed_cost_types = True
                     search_cost_type = "normal"
                     heuristic_cost_type = "plusone"
                     exitcode = run_sat_config(
                         configs, pos, search_cost_type, heuristic_cost_type,
-                        executable, sas_file, plan_prefix,
-                        remaining_time_at_start, memory)
+                        executable, sas_file, plan_manager, timeout, memory)
                     if exitcode is None:
-                        return exitcodes
+                        return
 
-                    exitcodes.append(exitcode)
-                    if exitcode == EXIT_UNSOLVABLE:
-                        return exitcodes
+                    yield exitcode
+                    if exitcode == returncodes.EXIT_UNSOLVABLE:
+                        return
                 if final_config_builder:
                     print("Build final config.")
-                    final_config = final_config_builder(args[:])
+                    final_config = final_config_builder(args)
                     break
 
         if final_config:
@@ -264,54 +156,63 @@ def run_sat(configs, executable, sas_file, plan_prefix, final_config,
     if final_config:
         print("Abort portfolio and run final config.")
         exitcode = run_sat_config(
-            [(1, list(final_config))], 0, search_cost_type,
-            heuristic_cost_type, executable, sas_file, plan_prefix,
-            remaining_time_at_start, memory)
+            [(1, final_config)], 0, search_cost_type,
+            heuristic_cost_type, executable, sas_file, plan_manager,
+            timeout, memory)
         if exitcode is not None:
-            exitcodes.append(exitcode)
-    return exitcodes
+            yield exitcode
 
 
-def run_opt(configs, executable, sas_file, plan_prefix, remaining_time_at_start,
-            memory):
-    exitcodes = []
+def run_unsolvable_resource_detection(
+        executable, args, sas_file, run_time, memory):
+    from .resources import detect
+    from . import plan_manager
+    projected_sas_file = sas_file.rstrip("/") + ".projected"
+    f_bound = detect.project_out_largest_resource(sas_file, projected_sas_file)
+    if f_bound is None:
+        return returncodes.EXIT_TIMEOUT
+    for index, arg in enumerate(args):
+        if "f_bound=compute" in arg:
+            args[index] = arg.replace("f_bound=compute", "f_bound=%d" % f_bound)
+    dummy_plan_manager = plan_manager.PlanManager("projected_sas_plan")
+    exitcode = run_search(
+        executable, args, projected_sas_file, dummy_plan_manager, run_time, memory)
+    exitcode_mapping = {
+        returncodes.EXIT_PLAN_FOUND: returncodes.EXIT_TIMEOUT,
+        returncodes.EXIT_UNSOLVED_INCOMPLETE: returncodes.EXIT_UNSOLVABLE,
+    }
+    return exitcode_mapping.get(exitcode, exitcode)
+
+
+def get_replace_relative_time_option_function(run_time):
+    def replace_relative_time_option(match):
+        assert len(match.groups("relativetime")) == 1
+        relativetime = match.groups("relativetime")[0]
+        return "=%d" % (run_time * int(relativetime) / 100)
+    return replace_relative_time_option
+
+def run_opt(configs, executable, sas_file, plan_manager, timeout, memory):
     for pos, (relative_time, args) in enumerate(configs):
-        timeout = determine_timeout(remaining_time_at_start, configs, pos)
-        exitcode = run_search(executable, args, sas_file, plan_prefix, timeout, memory)
-        exitcodes.append(exitcode)
+        run_time = compute_run_time(timeout, configs, pos)
+        args = [re.sub(r"=relative time (?P<relativetime>\d+)",
+                    get_replace_relative_time_option_function(run_time), arg)
+                for arg in args]
 
-        if exitcode in [EXIT_PLAN_FOUND, EXIT_UNSOLVABLE]:
-            break
-    return exitcodes
-
-
-def generate_exitcode(exitcodes):
-    print("Exit codes: %s" % exitcodes)
-    exitcodes = set(exitcodes)
-    if EXIT_SIGXCPU in exitcodes:
-        exitcodes.remove(EXIT_SIGXCPU)
-        exitcodes.add(EXIT_TIMEOUT)
-    unexpected_codes = exitcodes - EXPECTED_EXITCODES
-    if unexpected_codes:
-        print("Error: Unexpected exit codes: %s" % list(unexpected_codes))
-        if len(unexpected_codes) == 1:
-            return unexpected_codes.pop()
+        if any("f_bound=compute" in x for x in args):
+            exitcode = run_unsolvable_resource_detection(
+                executable, args, sas_file, run_time, memory)
         else:
-            return EXIT_CRITICAL_ERROR
-    for code in [EXIT_PLAN_FOUND, EXIT_UNSOLVABLE, EXIT_UNSOLVED_INCOMPLETE]:
-        if code in exitcodes:
-            return code
-    for code in [EXIT_OUT_OF_MEMORY, EXIT_TIMEOUT]:
-        if exitcodes == set([code]):
-            return code
-    if exitcodes == set([EXIT_OUT_OF_MEMORY, EXIT_TIMEOUT]):
-        return EXIT_TIMEOUT_AND_MEMORY
-    print("Error: Unhandled exit codes: %s" % exitcodes)
-    return EXIT_CRITICAL_ERROR
+            exitcode = run_search(
+                executable, args, sas_file, plan_manager, run_time, memory)
+
+        yield exitcode
+
+        if exitcode in [returncodes.EXIT_PLAN_FOUND, returncodes.EXIT_UNSOLVABLE]:
+            break
 
 
 def can_change_cost_type(args):
-    return any('S_COST_TYPE' in part or 'H_COST_TYPE' in part for part in args)
+    return any("S_COST_TYPE" in part or "H_COST_TYPE" in part for part in args)
 
 
 def get_portfolio_attributes(portfolio):
@@ -320,13 +221,12 @@ def get_portfolio_attributes(portfolio):
         content = portfolio_file.read()
         try:
             exec(content, attributes)
-        except ImportError as err:
-            if str(err) == "No module named portfolio":
-                raise ValueError(
-                    "The portfolio format has changed. New portfolios may only "
-                    "define attributes. See the FDSS portfolios for examples.")
-            else:
-                raise
+        except Exception:
+            traceback.print_exc()
+            raise ImportError(
+                "The portfolio %s could not be loaded. Maybe it still "
+                "uses the old portfolio syntax? See the FDSS portfolios "
+                "for examples using the new syntax." % portfolio)
     if "CONFIGS" not in attributes:
         raise ValueError("portfolios must define CONFIGS")
     if "OPTIMAL" not in attributes:
@@ -334,57 +234,40 @@ def get_portfolio_attributes(portfolio):
     return attributes
 
 
-def run(portfolio, executable, sas_file, plan_prefix):
+def run(portfolio, executable, sas_file, plan_manager, time, memory):
+    """
+    Run the configs in the given portfolio file.
+
+    The portfolio is allowed to run for at most *time* seconds and may
+    use a maximum of *memory* bytes.
+    """
     attributes = get_portfolio_attributes(portfolio)
     configs = attributes["CONFIGS"]
     optimal = attributes["OPTIMAL"]
     final_config = attributes.get("FINAL_CONFIG")
     final_config_builder = attributes.get("FINAL_CONFIG_BUILDER")
-    timeout = attributes.get("TIMEOUT")
+    if "TIMEOUT" in attributes:
+        sys.exit(
+            "The TIMEOUT attribute in portfolios has been removed. "
+            "Please pass a time limit to fast-downward.py.")
 
-    # Time limits are either positive values in seconds or -1 (unlimited).
-    soft_time_limit, hard_time_limit = resource.getrlimit(resource.RLIMIT_CPU)
-    print("External time limits: %d, %d" % (soft_time_limit, hard_time_limit))
-    external_time_limit = None
-    if soft_time_limit != resource.RLIM_INFINITY:
-        external_time_limit = soft_time_limit
-    elif hard_time_limit != resource.RLIM_INFINITY:
-        external_time_limit = hard_time_limit
-    if (external_time_limit is not None and
-            timeout is not None and
-            timeout != external_time_limit):
-        print("The externally set timeout (%d) differs from the one "
-              "in the portfolio file (%d). Is this expected?" %
-              (external_time_limit, timeout), file=sys.stderr)
-    # Prefer limits in the order: external soft limit, external hard limit,
-    # from portfolio file, default.
-    if external_time_limit is not None:
-        timeout = external_time_limit
-    elif timeout is None:
-        print("No timeout has been set for the portfolio so we take "
-              "the default of %ds." % DEFAULT_TIMEOUT, file=sys.stderr)
-        timeout = DEFAULT_TIMEOUT
-    print("Internal time limit: %d" % timeout)
+    if time is None:
+        if os.name == "nt":
+            sys.exit(limits.RESOURCE_MODULE_MISSING_MSG)
+        else:
+            sys.exit(
+                "Portfolios need a time limit. Please pass --search-time-limit "
+                "or --overall-time-limit to fast-downward.py.")
 
-    # Memory limits are either positive values in Bytes or -1 (unlimited).
-    soft_mem_limit, hard_mem_limit = resource.getrlimit(resource.RLIMIT_AS)
-    print("External memory limits: %d, %d" % (soft_mem_limit, hard_mem_limit))
-    if hard_mem_limit == resource.RLIM_INFINITY:
-        memory = None
-    else:
-        memory = hard_mem_limit
-    print("Internal memory limit: %s" % memory)
-
-    remaining_time_at_start = float(timeout) - get_elapsed_time()
-    print("remaining time at start: %.2f" % remaining_time_at_start)
+    timeout = util.get_elapsed_time() + time
 
     if optimal:
-        exitcodes = run_opt(configs, executable, sas_file, plan_prefix,
-                            remaining_time_at_start, memory)
+        exitcodes = run_opt(
+            configs, executable, sas_file, plan_manager, timeout, memory)
     else:
-        exitcodes = run_sat(configs, executable, sas_file, plan_prefix,
-                            final_config, final_config_builder,
-                            remaining_time_at_start, memory)
-    exitcode = generate_exitcode(exitcodes)
+        exitcodes = run_sat(
+            configs, executable, sas_file, plan_manager, final_config,
+            final_config_builder, timeout, memory)
+    exitcode = returncodes.generate_portfolio_exitcode(list(exitcodes))
     if exitcode != 0:
         raise subprocess.CalledProcessError(exitcode, ["run-portfolio", portfolio])

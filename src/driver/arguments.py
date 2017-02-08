@@ -1,13 +1,113 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import os.path
 
 from . import aliases
+from . import limits
+from . import util
 
 
-DESCRIPTION = """Fast Downward driver script. Arguments that do not
-have a special meaning for the driver (see below) are passed on to the
-search component."""
+DESCRIPTION = """Fast Downward driver script.
+
+Input files can be either a PDDL problem file (with an optional PDDL domain
+file), in which case the driver runs all three planner components and
+validates the found plans, or a SAS+ preprocessor output file, in which case
+the driver runs just the search component. You can override this default
+behaviour by selecting components manually with the flags below. The first
+component to be run determines the required input files:
+
+--translate: [DOMAIN] PROBLEM
+--preprocess: TRANSLATE_OUTPUT
+--search: PREPROCESS_OUTPUT
+--validate: [DOMAIN] PROBLEM PLAN
+
+Arguments given before the specified input files are interpreted by the driver
+script ("driver options"). Arguments given after the input files are passed on
+to the planner components ("component options"). In exceptional cases where no
+input files are needed, use "--" to separate driver from component options. In
+even more exceptional cases where input files begin with "--", use "--" to
+separate driver options from input files and also to separate input files from
+component options.
+
+By default, component options are passed to the search component. Use
+"--translate-options", "--preprocess-options", "--search-options" or
+"--validate-options" within the component options to override the default for
+the following options, until overridden again. (See below for examples.)"""
+
+LIMITS_HELP = """You can limit the time or memory for individual components
+or the whole planner. The effective limit for each component is the minimum
+of the component, overall, external soft, and external hard limits.
+
+Limits are given in seconds or MiB. You can change the unit by using the
+suffixes s, m, h and K, M, G.
+
+By default, all limits are inactive. Only external limits (e.g. set with
+ulimit) are respected.
+
+Portfolios require that a time limit is in effect. Portfolio configurations
+that exceed their time or memory limit are aborted, and the next
+configuration is run."""
+
+EXAMPLE_PORTFOLIO = os.path.relpath(
+    aliases.PORTFOLIOS["seq-tarjan-aidos-1"], start=util.REPO_ROOT_DIR)
+
+EXAMPLES = [
+    ("Translate and preprocess, then find a plan with A* + LM-Cut:",
+     ["./fast-downward.py", "benchmarks/gripper/prob01.pddl",
+      "--search", '"astar(lmcut())"']),
+    ("Translate and preprocess, run no search:",
+     ["./fast-downward.py", "--translate", "--preprocess",
+      "benchmarks/gripper/prob01.pddl"]),
+    ("Run predefined configuration (LAMA-2011) on preprocessed task:",
+     ["./fast-downward.py", "--alias", "seq-sat-lama-2011", "output"]),
+    ("Run a portfolio on a preprocessed task:",
+     ["./fast-downward.py", "--portfolio", EXAMPLE_PORTFOLIO,
+      "--search-time-limit", "30m", "output"]),
+    ("Run the search component in debug mode (with assertions enabled):",
+     ["./fast-downward.py", "--debug", "output", "--search", '"astar(ipdb())"']),
+    ("Pass options to translator and search components:",
+     ["./fast-downward.py", "benchmarks/gripper/prob01.pddl",
+      "--translate-options", "--invariant-generation-max-candidates", "0",
+      "--search-options", "--search", '"astar(lmcut())"']),
+    ("Validate existing plan:",
+     ["./fast-downward.py", "--validate",
+      "benchmarks/gripper/prob01.pddl", "sas_plan"]),
+]
+
+EPILOG = """component options:
+  --translate-options OPTION1 OPTION2 ...
+  --preprocess-options OPTION1 OPTION2 ...
+  --search-options OPTION1 OPTION2 ...
+                        pass OPTION1 OPTION2 ... to specified planner component
+                        (default: pass component options to search)
+
+Examples:
+
+%s
+""" % "\n\n".join("%s\n%s" % (desc, " ".join(cmd)) for desc, cmd in EXAMPLES)
+
+COMPONENTS_PLUS_OVERALL = ["translate", "preprocess", "search", "overall"]
+
+
+class RawHelpFormatter(argparse.HelpFormatter):
+    """Preserve newlines and spacing."""
+    def _fill_text(self, text, width, indent):
+        return ''.join([indent + line for line in text.splitlines(True)])
+
+    def _format_args(self, action, default_metavar):
+        """Show explicit help for remaining args instead of "..."."""
+        if action.nargs == argparse.REMAINDER:
+            return "INPUT_FILE1 [INPUT_FILE2] [COMPONENT_OPTION ...]"
+        else:
+            return argparse.HelpFormatter._format_args(self, action, default_metavar)
+
+
+def _rindex(seq, element):
+    """Like list.index, but gives the index of the *last* occurrence."""
+    seq = list(reversed(seq))
+    reversed_index = seq.index(element)
+    return len(seq) - 1 - reversed_index
 
 
 def _split_off_filenames(planner_args):
@@ -25,7 +125,7 @@ def _split_off_filenames(planner_args):
     of options, and all previous arguments are filenames."""
 
     if "--" in planner_args:
-        separator_pos = planner_args.rindex("--")
+        separator_pos = _rindex(planner_args, "--")
         num_filenames = separator_pos
         del planner_args[separator_pos]
     else:
@@ -51,6 +151,7 @@ def _split_planner_args(parser, args):
     args.translate_options = []
     args.preprocess_options = []
     args.search_options = []
+    args.validate_options = []
 
     curr_options = args.search_options
     for option in options:
@@ -60,6 +161,8 @@ def _split_planner_args(parser, args):
             curr_options = args.preprocess_options
         elif option == "--search-options":
             curr_options = args.search_options
+        elif option == "--validate-options":
+            curr_options = args.validate_options
         else:
             curr_options.append(option)
 
@@ -95,7 +198,7 @@ def _set_components_automatically(parser, args):
     if len(args.filenames) == 1 and _looks_like_search_input(args.filenames[0]):
         args.components = ["search"]
     else:
-        args.components = ["translate", "preprocess", "search"]
+        args.components = ["translate", "preprocess", "search", "validate"]
 
 
 def _set_components_and_inputs(parser, args):
@@ -112,12 +215,14 @@ def _set_components_and_inputs(parser, args):
        separate function."""
 
     args.components = []
-    if args.run_translator or args.run_all:
+    if args.translate or args.run_all:
         args.components.append("translate")
-    if args.run_preprocessor or args.run_all:
+    if args.preprocess or args.run_all:
         args.components.append("preprocess")
-    if args.run_search or args.run_all:
+    if args.search or args.run_all:
         args.components.append("search")
+    if args.validate or args.run_all:
+        args.components.append("validate")
 
     if args.components == ["translate", "search"]:
         parser.error("cannot run translator and search without preprocessor")
@@ -128,60 +233,139 @@ def _set_components_and_inputs(parser, args):
     args.translate_inputs = []
     args.preprocess_input = "output.sas"
     args.search_input = "output"
+    args.validate_inputs = None
 
     assert args.components
     first = args.components[0]
+    num_files = len(args.filenames)
+    # When passing --help to any of the components (or -h to the
+    # translator), we don't require input filenames and silently
+    # swallow any that are provided. This is undocumented to avoid
+    # cluttering the driver's --help output.
     if first == "translate":
-        if len(args.filenames) not in [1, 2]:
+        if "--help" in args.translate_options or "-h" in args.translate_options:
+            args.translate_inputs = []
+        elif num_files == 1:
+            task_file, = args.filenames
+            domain_file = util.find_domain_filename(task_file)
+            args.translate_inputs = [domain_file, task_file]
+        elif num_files == 2:
+            args.translate_inputs = args.filenames
+        else:
             parser.error("translator needs one or two input files")
-        args.translate_inputs = args.filenames
     elif first == "preprocess":
-        if len(args.filenames) != 1:
+        if "--help" in args.preprocess_options:
+            args.preprocess_input = None
+        elif num_files == 1:
+            args.preprocess_input, = args.filenames
+        else:
             parser.error("preprocessor needs exactly one input file")
-        args.preprocess_input, = args.filenames
     elif first == "search":
-        if len(args.filenames) != 1:
+        if "--help" in args.search_options:
+            args.search_input = None
+        elif num_files == 1:
+            args.search_input, = args.filenames
+        else:
             parser.error("search needs exactly one input file")
-        args.search_input, = args.filenames
+    elif first == "validate":
+        if "-h" in args.validate_options:
+            args.validate_inputs = []
+        elif num_files == 2:
+            task_file, plan_file = args.filenames
+            domain_file = util.find_domain_filename(task_file)
+            args.validate_inputs = [domain_file, task_file, plan_file]
+        elif num_files == 3:
+            args.validate_inputs = args.filenames
+        else:
+            parser.error("validate needs two or three input files: [DOMAIN] PROBLEM PLAN")
     else:
         assert False, first
 
 
+def _convert_limits_to_ints(parser, args):
+    for component in COMPONENTS_PLUS_OVERALL:
+        limits.set_time_limit_in_seconds(parser, args, component)
+        limits.set_memory_limit_in_bytes(parser, args, component)
+
+
 def parse_args():
-    # TODO: Need better usage string. We might also want to improve
-    # the help output more generally. Note that there are various ways
-    # to finetune this by including a formatter, an epilog, etc.
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument(
-        "--alias",
-        help="run a config with an alias (e.g. seq-sat-lama-2011)")
-    parser.add_argument(
-        "--debug", action="store_true",
-        help="use debug mode for search component")
-    parser.add_argument(
-        "--ipc", dest="alias",
-        help="same as --alias")
-    parser.add_argument(
-        "--plan-file", metavar="FILE", default="sas_plan",
-        help="write plan(s) to FILE{.1,.2,...} (default: %(default)s)")
-    parser.add_argument(
-        "--portfolio", metavar="FILE",
-        help="run a portfolio specified in FILE")
-    parser.add_argument(
+    parser = argparse.ArgumentParser(
+        description=DESCRIPTION, epilog=EPILOG,
+        formatter_class=RawHelpFormatter,
+        add_help=False)
+
+    help_options = parser.add_argument_group(
+        title=("driver options that show information and exit "
+               "(don't run planner)"))
+    # We manually add the help option because we want to control
+    # how it is grouped in the output.
+    help_options.add_argument(
+        "-h", "--help",
+        action="help", default=argparse.SUPPRESS,
+        help="show this help message and exit")
+    help_options.add_argument(
+        "--show-aliases", action="store_true",
+        help="show the known aliases (see --alias) and exit")
+
+    components = parser.add_argument_group(
+        title=("driver options selecting the planner components to be run\n"
+               "(may select several; default: auto-select based on input file(s))"))
+    components.add_argument(
         "--run-all", action="store_true",
         help="run all components of the planner")
-    parser.add_argument(
-        "--run-translator", action="store_true",
-        help="run translator component of the planner")
-    parser.add_argument(
-        "--run-preprocessor", action="store_true",
-        help="run preprocessor component of the planner")
-    parser.add_argument(
-        "--run-search", action="store_true",
-        help="run search component of the planner")
-    parser.add_argument(
-        "--show-aliases", action="store_true",
-        help="show the known aliases; don't run search")
+    components.add_argument(
+        "--translate", action="store_true",
+        help="run translator component")
+    components.add_argument(
+        "--preprocess", action="store_true",
+        help="run preprocessor component")
+    components.add_argument(
+        "--search", action="store_true",
+        help="run search component")
+    components.add_argument(
+        "--validate", action="store_true",
+        help="validate plans")
+
+    limits = parser.add_argument_group(
+        title="time and memory limits", description=LIMITS_HELP)
+    for component in COMPONENTS_PLUS_OVERALL:
+        limits.add_argument("--{}-time-limit".format(component))
+        limits.add_argument("--{}-memory-limit".format(component))
+
+    driver_other = parser.add_argument_group(
+        title="other driver options")
+    driver_other.add_argument(
+        "--alias",
+        help="run a config with an alias (e.g. seq-sat-lama-2011)")
+    driver_other.add_argument(
+        "--build",
+        help="BUILD can be a predefined build name like release32 "
+            "(default), debug32, release64 and debug64, a custom build "
+            "name, or the path to a directory holding the planner "
+            "binaries. The driver first looks for the planner binaries "
+            "under 'BUILD'. If this path does not exist, it tries the "
+            "directory '<repo>/builds/BUILD/bin', where the build "
+            "script creates them by default.")
+    driver_other.add_argument(
+        "--debug", action="store_true",
+        help="alias for --build=debug")
+    driver_other.add_argument(
+        "--log-level", choices=["debug", "info", "warning"],
+        default="info",
+        help="set log level (most verbose: debug; least verbose: warning; default: %(default)s)")
+
+    driver_other.add_argument(
+        "--plan-file", metavar="FILE", default="sas_plan",
+        help="write plan(s) to FILE (default: %(default)s; anytime configurations append .1, .2, ...)")
+    driver_other.add_argument(
+        "--portfolio", metavar="FILE",
+        help="run a portfolio specified in FILE")
+
+    driver_other.add_argument(
+        "--cleanup", action="store_true",
+        help="clean up temporary files (output, output.sas, sas_plan, sas_plan.*) and exit")
+
+
     parser.add_argument(
         "planner_args", nargs=argparse.REMAINDER,
         help="file names and options passed on to planner components")
@@ -190,10 +374,19 @@ def parse_args():
     # argument that doesn't belong to the driver doesn't look like an
     # option, i.e., doesn't start with "-". This is usually satisfied
     # because the argument is a filename; in exceptional cases, "--"
-    # can be used as an explicit separator. For example, "./plan.py --
+    # can be used as an explicit separator. For example, "./fast-downward.py --
     # --help" passes "--help" to the search code.
 
     args = parser.parse_args()
+
+    if args.build and args.debug:
+        parser.error("The option --debug is an alias for --build=debug. "
+                     "Do no specify both --debug and --build.")
+    if not args.build:
+        if args.debug:
+            args.build = "debug"
+        else:
+            args.build = "release"
 
     _split_planner_args(parser, args)
 
@@ -202,12 +395,15 @@ def parse_args():
             ("--portfolio", args.portfolio is not None),
             ("options for search component", bool(args.search_options))])
 
+    _convert_limits_to_ints(parser, args)
+
     if args.alias:
         try:
             aliases.set_options_for_alias(args.alias, args)
         except KeyError:
             parser.error("unknown alias: %r" % args.alias)
 
-    _set_components_and_inputs(parser, args)
+    if not args.show_aliases and not args.cleanup:
+        _set_components_and_inputs(parser, args)
 
     return args

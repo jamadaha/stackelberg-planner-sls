@@ -3,12 +3,19 @@ from __future__ import print_function
 
 import os
 
-from .run_components import DRIVER_DIR
+from .util import DRIVER_DIR
 
 
 PORTFOLIO_DIR = os.path.join(DRIVER_DIR, "portfolios")
 
 ALIASES = {}
+
+ALIASES["whatif-all"] = [
+    '--heuristic','h1=attack_success_prob_reuse(default_heuristic=lmcut)',
+    '--heuristic', 'h2=lmcut(cost_type=3)',
+    '--heuristic', 'h3=budget_dead_end(budget_heuristic=h2, prob_cost_heuristic=h1)',
+    '--search', 'fixsearch(search_engine=astar(h3, pruning=stubborn_sets_simple), attack_heuristic=h3, initial_attack_budget=2147483647, initial_fix_budget=2147483647)'
+]
 
 
 ALIASES["seq-sat-fd-autotune-1"] = [
@@ -51,7 +58,7 @@ eager(alt([tiebreaking([sum([g(),weight(hAdd,10)]),hAdd]),
            tiebreaking([sum([g(),weight(hgc,10)]),hgc]),
            tiebreaking([sum([g(),weight(hgc,10)]),hgc],pref_only=true)],
           boost=500),
-      preferred=[hcea,hgc],reopen_closed=true,pathmax=true,cost_type=normal)
+      preferred=[hcea,hgc],reopen_closed=true,cost_type=normal)
 ],repeat_last=true,continue_on_fail=true)"""]
 
 ALIASES["seq-sat-fd-autotune-2"] = [
@@ -125,19 +132,12 @@ ALIASES["seq-sat-lama-2011"] = [
 # Append --always to be on the safe side if we want to append
 # additional options later.
 
-ALIASES["seq-opt-fd-autotune"] = [
-    "--heuristic", "hlmcut=lmcut()",
-    "--heuristic", "hhmax=hmax()",
-    "--heuristic" "hselmax=selmax([hlmcut,hhmax],alpha=4,classifier=0,"
-    "                             conf_threshold=0.85,training_set=10,"
-    "                             sample=0,uniform=true)",
-    "--search", "astar(hselmax,mpd=false,pathmax=true,cost_type=normal)"]
-
-ALIASES["seq-opt-selmax"] = [
-    "--search",
-    "astar(selmax([lmcut(),"
-    "              lmcount(lm_merged([lm_hm(m=1),lm_rhw()]),admissible=true)"
-    "             ],training_set=1000),mpd=true)"]
+ALIASES["lama-first"] = [
+    "--heuristic",
+    "hlm,hff=lm_ff_syn(lm_rhw(reasonable_orders=true,"
+    "                         lm_cost_type=one,cost_type=one))",
+    "--search", """lazy_greedy([hff,hlm],preferred=[hff,hlm],
+                               cost_type=one,reopen_closed=false)"""]
 
 ALIASES["seq-opt-bjolp"] = [
     "--search",
@@ -171,7 +171,8 @@ def set_options_for_alias(alias_name, args):
     assert not args.portfolio
 
     if alias_name in ALIASES:
-        args.search_options = ALIASES[alias_name]
+        args.search_options = [x.replace(" ", "").replace("\n", "")
+                               for x in ALIASES[alias_name]]
     elif alias_name in PORTFOLIOS:
         args.portfolio = PORTFOLIOS[alias_name]
     else:
