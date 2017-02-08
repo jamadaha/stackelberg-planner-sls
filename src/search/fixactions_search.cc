@@ -82,7 +82,7 @@ void FixActionsSearch::initialize() {
 	}
 
 	if (do_attack_op_dom_pruning) {
-		compute_attack_op_dominance_relation();
+		compute_op_dominance_relation(attack_operators, dominated_attack_op_ids);
 	}
 
 	g_all_attack_operators.insert(g_all_attack_operators.begin(), attack_operators.begin(), attack_operators.end());
@@ -492,20 +492,20 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices() {
 	}
 }
 
-void FixActionsSearch::compute_attack_op_dominance_relation() {
-	cout << "Begin compute_attack_op_dominance_relation()..." << endl;
-	dominated_attack_op_ids.assign(attack_operators.size(), vector<int>());
+void FixActionsSearch::compute_op_dominance_relation(const vector<GlobalOperator> &ops, vector<vector<int>> &dominated_op_ids) {
+	cout << "Begin compute_op_dominance_relation()..." << endl;
+	dominated_op_ids.assign(ops.size(), vector<int>());
 
-	for (size_t op_no1 = 0; op_no1 < attack_operators.size(); op_no1++) {
-		for (size_t op_no2 = 0; op_no2 < attack_operators.size(); op_no2++) {
+	for (size_t op_no1 = 0; op_no1 < ops.size(); op_no1++) {
+		for (size_t op_no2 = 0; op_no2 < ops.size(); op_no2++) {
 			if(op_no1 == op_no2) {
 				continue;
 			}
 
 			bool dominated_or_equivalent = true;
 
-			const GlobalOperator &op1 = attack_operators[op_no1];
-			const GlobalOperator &op2 = attack_operators[op_no2];
+			const GlobalOperator &op1 = ops[op_no1];
+			const GlobalOperator &op2 = ops[op_no2];
 
 			//cout << "Checking dominacce of op1 with id " << op_no1 << ":" << endl;
 			//op1.dump();
@@ -557,7 +557,7 @@ void FixActionsSearch::compute_attack_op_dominance_relation() {
 			cout << "op1 dominates op2?: " << dominated_or_equivalent << endl;
 //#endif*/
 			if (dominated_or_equivalent) {
-				dominated_attack_op_ids[op_no1].push_back(op_no2);
+				dominated_op_ids[op_no1].push_back(op_no2);
 			}
 		}
 	}
@@ -677,32 +677,32 @@ void FixActionsSearch::prune_applicable_fix_ops_sss (const GlobalState &state, c
 	}
 }
 
-void FixActionsSearch::prune_dominated_attack_ops(vector<const GlobalOperator*> &attack_ops) {
-	vector<bool> marked_for_erase(attack_operators.size(), false);
-	vector<int> dominated_by(attack_operators.size(), -1);
+void FixActionsSearch::prune_dominated_ops(vector<const GlobalOperator*> &ops, vector<vector<int>> dominated_op_ids) {
+	vector<bool> marked_for_erase(dominated_op_ids.size(), false);
+	vector<int> dominated_by(dominated_op_ids.size(), -1);
 
 	//cout << "attack_ops:" << endl;
 
-	for (size_t op_no = 0; op_no < attack_ops.size(); op_no++) {
+	for (size_t op_no = 0; op_no < ops.size(); op_no++) {
 		//attack_ops[op_no]->dump();
-		if (!marked_for_erase[attack_ops[op_no]->get_op_id()]) {
-			const vector<int> dominated_ops = dominated_attack_op_ids[attack_ops[op_no]->get_op_id()];
+		if (!marked_for_erase[ops[op_no]->get_op_id()]) {
+			const vector<int> dominated_ops = dominated_op_ids[ops[op_no]->get_op_id()];
 			for (size_t dom_op_no = 0; dom_op_no < dominated_ops.size(); dom_op_no++) {
 				marked_for_erase[dominated_ops[dom_op_no]] = true;
-				dominated_by[dominated_ops[dom_op_no]] = attack_ops[op_no]->get_op_id();
+				dominated_by[dominated_ops[dom_op_no]] = ops[op_no]->get_op_id();
 			}
 		}
 	}
 
-	vector<const GlobalOperator*>::iterator it = attack_ops.begin();
-	for (; it != attack_ops.end();) {
+	vector<const GlobalOperator*>::iterator it = ops.begin();
+	for (; it != ops.end();) {
 		if (marked_for_erase[(*it)->get_op_id()]) {
 			/*cout << "op: " << endl;
 			(*it)->dump();
 			cout << "pruned because it was dominated by:" << endl;
 			attack_operators[dominated_by[(*it)->get_op_id()]].dump();*/
 
-			it = attack_ops.erase(it);
+			it = ops.erase(it);
 		} else {
 			++it;
 		}
@@ -781,7 +781,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(state, applicable_attack_operators);
 
 		if(do_attack_op_dom_pruning) {
-			prune_dominated_attack_ops(applicable_attack_operators);
+			prune_dominated_ops(applicable_attack_operators, dominated_attack_op_ids);
 		}
 
 		g_operators.clear();
