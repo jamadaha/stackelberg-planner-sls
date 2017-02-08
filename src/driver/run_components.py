@@ -98,7 +98,7 @@ def run_translate(args):
         "translator", args.translate_inputs, args.translate_options,
         time_limit, memory_limit)
     #translate = get_executable(args.build, REL_TRANSLATE_PATH)
-    translate = os.path.join(util.REPO_ROOT_DIR, "src", REL_TRANSLATE_PATH)
+    translate = os.path.join(util.REPO_ROOT_DIR, REL_TRANSLATE_PATH)
     call_component(
         translate, args.translate_inputs + args.translate_options,
         time_limit=time_limit, memory_limit=memory_limit)
