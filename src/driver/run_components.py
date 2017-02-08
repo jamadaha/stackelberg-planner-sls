@@ -27,6 +27,7 @@ else:
     sys.exit(1)
 
 def get_executable(build, rel_path):
+    rel_path = os.path.join(util.REPO_ROOT_DIR, rel_path)
     if not os.path.exists(rel_path):
         if not os.path.exists(rel_path + "-" + build):
             raise IOError(
