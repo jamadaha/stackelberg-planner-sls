@@ -60,6 +60,7 @@ int calculate_plan_cost(const vector<const GlobalOperator *> &plan) {
 
 int calculate_fix_actions_plan_cost(const vector<const GlobalOperator *> &plan) {
     int plan_cost = 0;
+    /* We removed the cost2 initial costs from fix actions
     unordered_set<int> scheme_ids;
     for (size_t i = 0; i < plan.size(); ++i) {
         plan_cost += plan[i]->get_cost();
@@ -68,6 +69,10 @@ int calculate_fix_actions_plan_cost(const vector<const GlobalOperator *> &plan) 
         	scheme_ids.insert(scheme_id);
         	plan_cost += plan[i]->get_cost2();
         }
+    }
+    */
+    for (size_t i = 0; i < plan.size(); ++i) {
+        plan_cost += plan[i]->get_cost();
     }
     return plan_cost;
 }

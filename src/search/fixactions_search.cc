@@ -129,6 +129,7 @@ void FixActionsSearch::sort_operators() {
 			attack_operators.push_back(g_operators[op_no]);
 
 		} else if (op_name.find("fix") == 0) {
+			/* We removed the invention cost and id from fix action names
 			string invention_cost_and_id_string = everything_before_whitespace.substr(underscore + 1);
 			size_t hash = invention_cost_and_id_string.find("#");
 			if (hash == string::npos) {
@@ -140,11 +141,12 @@ void FixActionsSearch::sort_operators() {
 			string id_string = invention_cost_and_id_string.substr(hash + 1);
 			int invention_cost = stoi(invention_cost_string);
 			int id = stoi(id_string);
+			 */
 
-			g_operators[op_no].set_cost2(invention_cost);
+			g_operators[op_no].set_cost2(0);
 			g_operators[op_no].set_conds_variable_name(fix_variable_name);
 			g_operators[op_no].set_effs_variable_name(fix_variable_name);
-			g_operators[op_no].set_scheme_id(id);
+			g_operators[op_no].set_scheme_id(0);
 			g_operators[op_no].set_op_id(fix_action_op_id);
 			fix_action_op_id++;
 
@@ -763,12 +765,21 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			spared_attacker_searches_because_fix_state_already_seen++;
 
 #ifdef FIX_SEARCH_DEBUG
-		cout << "Attack prob cost for this state is already known in PerStateInformation: " << attack_plan_cost << endl;
+			cout << "Attack prob cost for this state is already known in PerStateInformation: " << attack_plan_cost << endl;
 #endif
+			if (info.fix_actions_cost != -1 && fix_actions_cost > info.fix_actions_cost) {
+#ifdef FIX_SEARCH_DEBUG
+				cout << "Current fix action sequence is more expensive than already known sequence... don't make further recursice calls. " << endl;
+#endif
+				return;
+			}
 		} else {
 			attack_plan_cost = parent_attack_plan_cost;
-			info.attack_plan_prob_cost = attack_plan_cost;
-			info.attack_plan = parent_attack_plan;
+			if(check_fix_state_already_known) {
+				info.attack_plan_prob_cost = attack_plan_cost;
+				info.attack_plan = parent_attack_plan;
+				info.fix_actions_cost = fix_actions_cost;
+			}
 			spared_attacker_searches_because_parent_plan_applicable++;
 #ifdef FIX_SEARCH_DEBUG
 		cout << "Attack prob cost for this state is already known from parent_attack_plan: " << attack_plan_cost << endl;
@@ -852,6 +863,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		}
 		if (check_fix_state_already_known) {
 			info.attack_plan_prob_cost = attack_plan_cost;
+			info.fix_actions_cost = fix_actions_cost;
 		}
 	}
 
