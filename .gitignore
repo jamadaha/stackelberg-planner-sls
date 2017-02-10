@@ -20,3 +20,4 @@ output.sas
 Nessus_toolchain/NVD_raw
 language.settings.xml
 benchmarks/pentest-generator-suite6
+benchmarks/pentesting-test
