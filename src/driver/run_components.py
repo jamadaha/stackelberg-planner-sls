@@ -5,6 +5,9 @@ import os.path
 import subprocess
 import sys
 
+import hashlib
+import json
+
 from . import call
 from . import limits
 from . import portfolio_runner
@@ -56,6 +59,26 @@ def get_executable(build, rel_path):
     #        "Please run './build.py {build}'.".format(**locals()))
 
     #return abs_path
+
+def handle_budget_values(search_input, search_options):
+    fix = "minimal_fix_budget"
+    attack = "minimal_attack_budget"
+    fd_fix = "initial_fix_budget"
+    fd_attack = "initial_attack_budget"
+    lookup_file = os.path.join(util.DRIVER_DIR, "minimal_budgets.json")
+    if any("%s=minimal" % fd_fix in x for x in search_options) \
+        or any("%s=minimal" % fd_attack in x for x in search_options):
+        hash_md5 = hashlib.md5()
+        with open(search_input, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        x = hash_md5.hexdigest()
+        y = json.loads(open(lookup_file).read())
+        f = y[x][fix]
+        a = y[x][attack]
+        for i in range(len(search_options)):
+            search_options[i] = search_options[i].replace("%s=minimal" % fd_fix, "%s=%d" % (fd_fix, f))
+            search_options[i] = search_options[i].replace("%s=minimal" % fd_attack, "%s=%d" % (fd_attack, a))
 
 def print_component_settings(nick, inputs, options, time_limit, memory_limit):
     logging.info("{} input: {}".format(nick, inputs))
@@ -158,8 +181,8 @@ def run_search(args):
             else:
                 raise subprocess.CalledProcessError(
                     exitcode, [search] + args.search_options)
-
         try:
+            handle_budget_values(args.search_input, args.search_options)
             call_component(
                 search, args.search_options,
                 stdin=args.search_input,

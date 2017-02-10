@@ -10,6 +10,11 @@ PORTFOLIO_DIR = os.path.join(DRIVER_DIR, "portfolios")
 
 ALIASES = {}
 
+ALIASES["whatif"] = [
+    '--heuristic', 'h=lmcut',
+    '--search', 'fixsearch(search_engine=astar(h, pruning=null), attack_heuristic=h, initial_attack_budget=minimal, initial_fix_budget=minimal, attack_op_dom_pruning=false)'
+]
+
 ALIASES["whatif-all"] = [
     '--heuristic','h1=attack_success_prob_reuse(default_heuristic=lmcut)',
     '--heuristic', 'h2=lmcut(cost_type=3)',
