@@ -108,7 +108,9 @@ Such an Object looks as follows:
 	"zone_name": "x", // x is the name of this zone
 	"hosts": ["x", "y"], // this is an array of host names which are in this zone
 	"integrity_initially_compromised": x, // x can be either 0 or 1 indicating whether the attacker initially controlls the hosts in this network or not
-	"is_goal": x, // x can be either 0 or 1 indication whether the attacker's goal entails that he must control at least one host from this zone
+	"is_goal_confidentiality": x, // x can be either 0 or 1 indication whether the attacker's goal entails that he must compromise the confidentiality of at least one host from this zone
+	"is_goal_integrity": x, // x can be either 0 or 1 indication whether the attacker's goal entails that he must compromise the integrity of at least one host from this zone
+	"is_goal_availability": x, // x can be either 0 or 1 indication whether the attacker's goal entails that he must compromise the availability of at least one host from this zone
 	"allowed_incoming_rules": // this is an array of firewall rules indicating which incoming connections are allowed and not blocked
 	[
 		{					// this is an object representing an allowed incoming connection
