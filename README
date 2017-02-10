@@ -44,6 +44,11 @@ The script what-if-analysis.py basically needs four input files given via the fo
     --fix A .json filne in our own format which describes the possible fix actions (more below)
     --net A .json filne in our own format which describes the topology of the network belonging to the nessus scan
 
+The following three arguments are optional
+	--exploit-infos: a json file containting an array with objects that each specify a probability and cost for a CVE id. If no manual infos are provided for an CVE id, the prob. and cost are extracted from the nvd file
+	--initial-attack-budget: The budget for the attacker
+	--initial-fix-budget: The budget for the fix actions
+
 Example
 =======
 
@@ -113,4 +118,16 @@ Such an Object looks as follows:
 		}
 	]
 }
+
+Exploit infos description file format
+=====================================
+
+The .json file must contain a single array filled with objects, all specifying properties of an CVE id.
+Such an Object looks as follows:
+{
+	"CVE": "", // x is an CVE id
+	"prob": x, // (optional) x is the probability that this exploit is successful as decimal number (e.g. 0.5)
+	"cost": x // (optional) x is the attacker's cost for executing this exploit as integer number (e.g. 42)
+}
+
 
