@@ -1093,7 +1093,7 @@ SearchStatus FixActionsSearch::step() {
     cout << "reset_and_initialize_duration_sum: " << reset_and_initialize_duration_sum << "ms" << endl;
 	cout << "They were " << num_recursive_calls << " calls to expand_all_successors." << endl;
 	cout << "They were " << num_attacker_searches << " searches in Attacker Statespace" << endl;
-	cout << "We spared " << spared_attacker_searches_because_fix_state_already_seen << " attacker searches, beucause the fix state was already known" << endl;
+	cout << "We spared " << spared_attacker_searches_because_fix_state_already_seen << " attacker searches, because the fix state was already known" << endl;
 	cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable << " attacker searches, because the fix parent state attack plan was still applicable" << endl;
 	cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
 	cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
