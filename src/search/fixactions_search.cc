@@ -34,8 +34,10 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 		attack_heuristic = NULL;
 	}
 
-	g_initial_budget = opts.get<int>("initial_attack_budget");
-	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
+	attack_budget_factor = opts.get<int>("attack_budget_factor");
+	fix_budget_factor = opts.get<int>("fix_budget_factor");
+	g_initial_budget = opts.get<int>("initial_attack_budget") * attack_budget_factor;
+	initial_fix_actions_budget = opts.get<int>("initial_fix_budget") * fix_budget_factor;
 
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
@@ -1112,6 +1114,8 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<Heuristic*>("attack_heuristic", "The heuristic used for search in AttackerStateSpace", "", OptionFlags(false));
 	parser.add_option<int>("initial_attack_budget", "The initial attacker Budget", "2147483647");
 	parser.add_option<int>("initial_fix_budget", "The initial fix actions Budget", "2147483647");
+	parser.add_option<int>("attack_budget_factor", "The factor to multiply with attack actions budget", "1");
+	parser.add_option<int>("fix_budget_factor", "The factor to multiply with fix actions budget", "1");
 	parser.add_option<bool>("partial_order_reduction", "use partial order reduction for fix ops", "true");
 	parser.add_option<bool>("check_parent_attack_plan_applicable", "always check whether the attacker plan of the parent fix state is still applicable", "true");
 	parser.add_option<bool>("check_fix_state_already_known", "always check whether the current fix state is already known and spare search in attacker statespace", "true");
