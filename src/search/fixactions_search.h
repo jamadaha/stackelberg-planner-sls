@@ -12,17 +12,22 @@
 #include "search_engine.h"
 #include "successor_generator.h"
 #include "attack_success_prob_reuse_heuristic.h"
+#include "per_fix_state_information.h"
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
-struct FixSearchInfo {
+struct FixSearchInfoAttackPlan {
         int attack_plan_prob_cost;
         std::vector<int> attack_plan;
-        int fix_actions_cost;
-        FixSearchInfo(int _attack_plan_prob_cost = -1, std::vector<int> _attack_plan = std::vector<int>(), int _fix_actions_cost = -1)
+        FixSearchInfoAttackPlan(int _attack_plan_prob_cost = -1, std::vector<int> _attack_plan = std::vector<int>())
         : attack_plan_prob_cost(_attack_plan_prob_cost),
-		  attack_plan(_attack_plan),
-		  fix_actions_cost(_fix_actions_cost){ }
+		  attack_plan(_attack_plan){ }
+};
+
+struct FixSearchInfoFixSequence {
+        int fix_actions_cost;
+        FixSearchInfoFixSequence(int _fix_actions_cost = -1)
+        : fix_actions_cost(_fix_actions_cost){ }
 };
 
 
@@ -51,6 +56,8 @@ private:
 	std::vector<int> fix_variable_domain;
 	std::vector<std::string> fix_variable_name;
 	std::vector<std::vector<std::string> > fix_fact_names;
+	std::vector<int> fix_vars_attacker_preconditioned;
+
 	std::vector<int> fix_initial_state_data;
 	StateRegistry *fix_vars_state_registry = NULL;
 
@@ -66,9 +73,11 @@ private:
 
 	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
 	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
-	PerStateInformation<FixSearchInfo> fix_search_node_infos;
+	PerFixStateInformation<FixSearchInfoAttackPlan> fix_search_node_infos_attack_plan;
+	PerStateInformation<FixSearchInfoFixSequence> fix_search_node_infos_fix_sequence;
 	int max_fix_actions_budget = UNLTD_BUDGET;
 	int curr_fix_actions_budget = UNLTD_BUDGET;
+
 	int attack_budget_factor;
 	int fix_budget_factor;
 
@@ -84,6 +93,7 @@ private:
 	int all_attacker_states = 0;
 	int spared_attacker_searches_because_fix_state_already_seen = 0;
 	int spared_attacker_searches_because_parent_plan_applicable = 0;
+	int num_fix_op_paths = 0;
 protected:
     virtual void initialize();
     virtual SearchStatus step();
@@ -94,6 +104,7 @@ protected:
     void clean_attack_actions();
     void create_new_variable_indices();
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
+    void check_fix_vars_attacker_preconditioned();
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_and_dependent_fix_ops_matrices();
     void compute_op_dominance_relation(const std::vector<GlobalOperator> &ops, std::vector<std::vector<int>> &dominated_op_ids);
