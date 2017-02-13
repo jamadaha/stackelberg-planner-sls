@@ -4,6 +4,7 @@
 #include "segmented_vector.h"
 #include "global_state.h"
 
+#include <cassert>
 #include <vector>
 #include <unordered_set>
 
@@ -18,6 +19,7 @@ class PerFixStateInformation
             : m_relevant_variables(vars), states(states) {}
         size_t operator()(const unsigned &i) const
         {
+            assert(!m_relevant_variables.empty());
             const GlobalState &state = states[i];
             // hash function adapted from Python's hash function for tuples.
             size_t hash_value = 0x345678;
@@ -39,6 +41,7 @@ class PerFixStateInformation
               states(states) {}
         bool operator()(const unsigned &i, const unsigned &j) const
         {
+            assert(!m_relevant_variables.empty());
             const GlobalState &x = states[i];
             const GlobalState &y = states[j];
             for (int i = m_relevant_variables.size() - 1; i >= 0; --i) {
@@ -71,6 +74,7 @@ public:
     }
     T &operator[](const GlobalState &state)
     {
+        assert(!m_relevant_variables.empty());
         m_states.push_back(state);
         auto it = m_ids.insert(m_states.size() - 1);
         if (!it.second) {
