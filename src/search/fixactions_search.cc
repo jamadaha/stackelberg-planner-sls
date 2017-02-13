@@ -71,6 +71,8 @@ void FixActionsSearch::initialize() {
 
 	check_fix_vars_attacker_preconditioned();
 
+	fix_search_node_infos.set_relevant_variables(fix_vars_attacker_preconditioned);
+
 	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
 
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
@@ -330,7 +332,7 @@ void FixActionsSearch::check_fix_vars_attacker_preconditioned() {
 		}
 	}
 
-	for (size_t var = 0; fix_variable_domain.size(); var++) {
+	for (size_t var = 0; var < fix_variable_domain.size(); var++) {
 		if (is_fix_var_attacker_preconditioned[var]) {
 			fix_vars_attacker_preconditioned.push_back(var);
 		}
