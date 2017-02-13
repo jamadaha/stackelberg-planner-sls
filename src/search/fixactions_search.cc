@@ -736,6 +736,8 @@ void FixActionsSearch::prune_dominated_ops(vector<const GlobalOperator*> &ops, v
 	}
 }
 
+bool op_ptr_name_comp (const GlobalOperator *op1, const GlobalOperator *op2) { return op1->get_name() < op2->get_name(); }
+
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep) {
 	num_recursive_calls++;
 #ifdef FIX_SEARCH_DEBUG
@@ -917,6 +919,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	vector<const GlobalOperator *> applicable_ops;
 	fix_operators_successor_generator->generate_applicable_ops(state, applicable_ops);
+
+    sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
 
 	/*cout << "applicable ops: " << endl;
 	for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
