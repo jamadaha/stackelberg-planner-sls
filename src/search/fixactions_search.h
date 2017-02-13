@@ -12,6 +12,7 @@
 #include "search_engine.h"
 #include "successor_generator.h"
 #include "attack_success_prob_reuse_heuristic.h"
+#include "per_fix_state_information.h"
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
@@ -51,7 +52,7 @@ private:
 	std::vector<int> fix_variable_domain;
 	std::vector<std::string> fix_variable_name;
 	std::vector<std::vector<std::string> > fix_fact_names;
-	std::vector<bool> is_fix_var_attacker_preconditioned;
+	std::vector<int> fix_vars_attacker_preconditioned;
 
 	std::vector<int> fix_initial_state_data;
 	StateRegistry *fix_vars_state_registry = NULL;
@@ -68,7 +69,7 @@ private:
 
 	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
 	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
-	PerStateInformation<FixSearchInfo> fix_search_node_infos;
+	PerFixStateInformation<FixSearchInfo> fix_search_node_infos;
 	int initial_fix_actions_budget = UNLTD_BUDGET;
 	int attack_budget_factor;
 	int fix_budget_factor;

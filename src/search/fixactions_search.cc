@@ -71,6 +71,8 @@ void FixActionsSearch::initialize() {
 
 	check_fix_vars_attacker_preconditioned();
 
+	fix_search_node_infos.set_relevant_variables(fix_vars_attacker_preconditioned);
+
 	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
 
 	attack_operators_for_fix_vars_successor_generator = create_successor_generator(fix_variable_domain,
@@ -319,7 +321,7 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 }
 
 void FixActionsSearch::check_fix_vars_attacker_preconditioned() {
-	is_fix_var_attacker_preconditioned.assign(fix_variable_domain.size(), false);
+	vector<bool> is_fix_var_attacker_preconditioned(fix_variable_domain.size(), false);
 
 	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
 		const vector<GlobalCondition> &conditions = attack_operators[op_no].get_preconditions();
@@ -327,6 +329,12 @@ void FixActionsSearch::check_fix_vars_attacker_preconditioned() {
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
 			is_fix_var_attacker_preconditioned[var] = true;
+		}
+	}
+
+	for (size_t var = 0; var < fix_variable_domain.size(); var++) {
+		if (is_fix_var_attacker_preconditioned[var]) {
+			fix_vars_attacker_preconditioned.push_back(var);
 		}
 	}
 }
