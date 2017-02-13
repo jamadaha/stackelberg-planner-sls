@@ -37,7 +37,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	attack_budget_factor = opts.get<int>("attack_budget_factor");
 	fix_budget_factor = opts.get<int>("fix_budget_factor");
 	g_initial_budget = opts.get<int>("initial_attack_budget") * attack_budget_factor;
-	initial_fix_actions_budget = opts.get<int>("initial_fix_budget") * fix_budget_factor;
+	max_fix_actions_budget = opts.get<int>("initial_fix_budget") * fix_budget_factor;
 
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
@@ -144,6 +144,10 @@ void FixActionsSearch::sort_operators() {
 			int invention_cost = stoi(invention_cost_string);
 			int id = stoi(id_string);
 			 */
+
+			if (g_operators[op_no].get_cost() > max_fix_action_cost) {
+				max_fix_action_cost = g_operators[op_no].get_cost();
+			}
 
 			g_operators[op_no].set_cost2(0);
 			g_operators[op_no].set_conds_variable_name(fix_variable_name);
@@ -713,6 +717,9 @@ void FixActionsSearch::prune_dominated_ops(vector<const GlobalOperator*> &ops, v
 	}
 }
 
+
+bool op_ptr_name_comp (const GlobalOperator *op1, const GlobalOperator *op2) { return op1->get_name() < op2->get_name(); }
+
 void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const vector<int> &parent_attack_plan, int parent_attack_plan_cost, vector<int> &sleep) {
 	num_recursive_calls++;
 #ifdef FIX_SEARCH_DEBUG
@@ -892,6 +899,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	vector<const GlobalOperator *> applicable_ops;
 	fix_operators_successor_generator->generate_applicable_ops(state, applicable_ops);
 
+	//sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
+
 	/*cout << "applicable ops: " << endl;
 	for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
 		applicable_ops[op_no]->dump();
@@ -924,7 +933,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		fix_ops_sequence.push_back(op);
 		int new_fix_actions_cost = calculate_fix_actions_plan_cost(fix_ops_sequence);
-		if(new_fix_actions_cost > initial_fix_actions_budget) {
+		if(new_fix_actions_cost > curr_fix_actions_budget) {
 			// Continue, if adding this op exceeds the budget
 			fix_ops_sequence.pop_back();
 			continue;
@@ -1079,12 +1088,34 @@ void FixActionsSearch::dump_pareto_frontier () {
 }
 
 SearchStatus FixActionsSearch::step() {
-	cout << "Starting fix-actions search..." << endl;
-	vector<const GlobalOperator *> op_sequnce;
-	vector<int> parent_attack_plan;
-	vector<int> sleep(fix_operators.size(), 0);
+	cout << "Starting fix-actions IDS..." << endl;
+
+	curr_fix_actions_budget = max_fix_action_cost;
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep);
+
+	while (true) {
+		cout << "(Re)starting search with fix action budget: " << curr_fix_actions_budget << endl;
+		vector<const GlobalOperator *> op_sequnce;
+		vector<int> parent_attack_plan;
+		vector<int> sleep(fix_operators.size(), 0);
+		expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep);
+
+		if(get<1>(pareto_frontier[pareto_frontier.size() -1 ]) == numeric_limits<int>::max()) {
+			break;
+		}
+
+		if(curr_fix_actions_budget >= max_fix_actions_budget) {
+			break;
+		}
+
+		int new_fix_actions_budget = curr_fix_actions_budget * ids_fix_budget_factor;
+		if (new_fix_actions_budget < 0) {
+			new_fix_actions_budget = max_fix_actions_budget;
+		}
+
+		curr_fix_actions_budget = min(new_fix_actions_budget , max_fix_actions_budget);
+	}
+
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
     cout << "total time: " << g_timer << endl;

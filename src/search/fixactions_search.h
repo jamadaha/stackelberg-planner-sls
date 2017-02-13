@@ -67,9 +67,14 @@ private:
 	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
 	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
 	PerStateInformation<FixSearchInfo> fix_search_node_infos;
-	int initial_fix_actions_budget = UNLTD_BUDGET;
+	int max_fix_actions_budget = UNLTD_BUDGET;
+	int curr_fix_actions_budget = UNLTD_BUDGET;
 	int attack_budget_factor;
 	int fix_budget_factor;
+
+	double ids_fix_budget_factor = 1.5;
+
+	int max_fix_action_cost = 0; // The cost of the most expensive fix action
 
 	int num_recursive_calls = 0;
 	int num_attacker_searches = 0;
