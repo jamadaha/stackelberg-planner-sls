@@ -55,11 +55,16 @@ class PerFixStateInformation
     std::unordered_set<unsigned, HashState, CompareState> m_ids;
     SegmentedVector<T> m_data;
 public:
-    PerFixStateInformation(const std::vector<int> &relevant_variables)
-        : m_relevant_variables(relevant_variables),
-          m_ids(0, HashState(m_relevant_variables, m_states),
+    PerFixStateInformation()
+        : m_ids(0, HashState(m_relevant_variables, m_states),
                 CompareState(m_relevant_variables, m_states))
     {}
+    void set_relevant_variables(const std::vector<int> &vars)
+    {
+        m_relevant_variables.insert(m_relevant_variables.end(),
+                                    vars.begin(),
+                                    vars.end());
+    }
     T &operator[](const unsigned &i)
     {
         return m_data[i];
