@@ -51,6 +51,8 @@ private:
 	std::vector<int> fix_variable_domain;
 	std::vector<std::string> fix_variable_name;
 	std::vector<std::vector<std::string> > fix_fact_names;
+	std::vector<bool> is_fix_var_attacker_preconditioned;
+
 	std::vector<int> fix_initial_state_data;
 	StateRegistry *fix_vars_state_registry = NULL;
 
@@ -90,6 +92,7 @@ protected:
     void clean_attack_actions();
     void create_new_variable_indices();
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
+    void check_fix_vars_attacker_preconditioned();
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_and_dependent_fix_ops_matrices();
     void compute_op_dominance_relation(const std::vector<GlobalOperator> &ops, std::vector<std::vector<int>> &dominated_op_ids);
