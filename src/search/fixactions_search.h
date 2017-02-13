@@ -79,6 +79,7 @@ private:
 	int all_attacker_states = 0;
 	int spared_attacker_searches_because_fix_state_already_seen = 0;
 	int spared_attacker_searches_because_parent_plan_applicable = 0;
+	int num_fix_op_paths = 0;
 protected:
     virtual void initialize();
     virtual SearchStatus step();

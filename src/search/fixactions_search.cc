@@ -773,6 +773,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 #ifdef FIX_SEARCH_DEBUG
 				cout << "Current fix action sequence is more expensive than already known sequence... don't make further recursice calls. " << endl;
 #endif
+				num_fix_op_paths++;
 				return;
 			}
 		} else {
@@ -876,6 +877,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 	if (attack_plan_cost == numeric_limits<int>::max()) {
 		// Return, if attacker task was not solvable
+		num_fix_op_paths++;
 		return;
 	}
 
@@ -909,6 +911,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		applicable_ops_after_pruning[op_no]->dump();
 	}*/
 
+	bool at_least_one_recursion = false;
 	for (size_t op_no = 0; op_no < applicable_ops_after_pruning.size(); op_no++) {
 		const GlobalOperator *op = applicable_ops_after_pruning[op_no];
 
@@ -954,6 +957,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
 
+		at_least_one_recursion = true;
 		expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost, parent_attack_plan_applicable ? parent_attack_plan : attack_plan, attack_plan_cost, sleep);
 
 		// Remove all ops before op_no in applicable_ops from sleep set if they are commutative
@@ -967,9 +971,14 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		fix_ops_sequence.pop_back();
 	}
 
+	if(!at_least_one_recursion) {
+		num_fix_op_paths++;
+	}
+
 	if(free_attack_heuristic_per_state_info) {
 		delete attack_heuristic_search_space;
 	}
+
 
 }
 
@@ -1099,6 +1108,7 @@ SearchStatus FixActionsSearch::step() {
 	cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable << " attacker searches, because the fix parent state attack plan was still applicable" << endl;
 	cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
 	cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
+	cout << "Num fix action paths: " << num_fix_op_paths << endl;
 	dump_pareto_frontier();
 	exit(EXIT_CRITICAL_ERROR);
 	return IN_PROGRESS;
