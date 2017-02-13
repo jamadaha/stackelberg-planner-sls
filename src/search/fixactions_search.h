@@ -81,6 +81,8 @@ private:
 	int attack_budget_factor;
 	int fix_budget_factor;
 
+	bool returned_somewhere_bc_of_budget = false;
+
 	double ids_fix_budget_factor = 1.5;
 
 	int max_fix_action_cost = 0; // The cost of the most expensive fix action

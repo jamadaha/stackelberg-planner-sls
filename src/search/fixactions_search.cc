@@ -962,6 +962,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		if(new_fix_actions_cost > curr_fix_actions_budget) {
 			// Continue, if adding this op exceeds the budget
 			fix_ops_sequence.pop_back();
+			returned_somewhere_bc_of_budget = true;
 			continue;
 		}
 
@@ -1130,9 +1131,14 @@ SearchStatus FixActionsSearch::step() {
 		vector<const GlobalOperator *> op_sequnce;
 		vector<int> parent_attack_plan;
 		vector<int> sleep(fix_operators.size(), 0);
+		returned_somewhere_bc_of_budget = false;
 		expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep);
 
 		if(get<1>(pareto_frontier[pareto_frontier.size() -1 ]) == numeric_limits<int>::max()) {
+			break;
+		}
+
+		if(!returned_somewhere_bc_of_budget) {
 			break;
 		}
 
