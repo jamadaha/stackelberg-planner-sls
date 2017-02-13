@@ -899,7 +899,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	vector<const GlobalOperator *> applicable_ops;
 	fix_operators_successor_generator->generate_applicable_ops(state, applicable_ops);
 
-	//sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
+	sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
 
 	/*cout << "applicable ops: " << endl;
 	for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
