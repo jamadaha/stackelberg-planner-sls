@@ -319,7 +319,7 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 }
 
 void FixActionsSearch::check_fix_vars_attacker_preconditioned() {
-	is_fix_var_attacker_preconditioned.assign(fix_variable_domain.size(), false);
+	vector<bool> is_fix_var_attacker_preconditioned(fix_variable_domain.size(), false);
 
 	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
 		const vector<GlobalCondition> &conditions = attack_operators[op_no].get_preconditions();
@@ -327,6 +327,12 @@ void FixActionsSearch::check_fix_vars_attacker_preconditioned() {
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
 			is_fix_var_attacker_preconditioned[var] = true;
+		}
+	}
+
+	for (size_t var = 0; fix_variable_domain.size(); var++) {
+		if (is_fix_var_attacker_preconditioned[var]) {
+			fix_vars_attacker_preconditioned.push_back(var);
 		}
 	}
 }
