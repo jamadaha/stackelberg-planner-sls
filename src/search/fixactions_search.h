@@ -16,14 +16,18 @@
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
-struct FixSearchInfo {
+struct FixSearchInfoAttackPlan {
         int attack_plan_prob_cost;
         std::vector<int> attack_plan;
-        int fix_actions_cost;
-        FixSearchInfo(int _attack_plan_prob_cost = -1, std::vector<int> _attack_plan = std::vector<int>(), int _fix_actions_cost = -1)
+        FixSearchInfoAttackPlan(int _attack_plan_prob_cost = -1, std::vector<int> _attack_plan = std::vector<int>())
         : attack_plan_prob_cost(_attack_plan_prob_cost),
-		  attack_plan(_attack_plan),
-		  fix_actions_cost(_fix_actions_cost){ }
+		  attack_plan(_attack_plan){ }
+};
+
+struct FixSearchInfoFixSequence {
+        int fix_actions_cost;
+        FixSearchInfoFixSequence(int _fix_actions_cost = -1)
+        : fix_actions_cost(_fix_actions_cost){ }
 };
 
 
@@ -69,7 +73,8 @@ private:
 
 	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
 	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
-	PerFixStateInformation<FixSearchInfo> fix_search_node_infos;
+	PerFixStateInformation<FixSearchInfoAttackPlan> fix_search_node_infos_attack_plan;
+	PerStateInformation<FixSearchInfoFixSequence> fix_search_node_infos_fix_sequence;
 	int initial_fix_actions_budget = UNLTD_BUDGET;
 	int attack_budget_factor;
 	int fix_budget_factor;

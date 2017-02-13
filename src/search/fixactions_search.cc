@@ -71,7 +71,7 @@ void FixActionsSearch::initialize() {
 
 	check_fix_vars_attacker_preconditioned();
 
-	fix_search_node_infos.set_relevant_variables(fix_vars_attacker_preconditioned);
+	fix_search_node_infos_attack_plan.set_relevant_variables(fix_vars_attacker_preconditioned);
 
 	fix_operators_successor_generator = create_successor_generator(fix_variable_domain, fix_operators, fix_operators);
 
@@ -323,8 +323,8 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops) {
 void FixActionsSearch::check_fix_vars_attacker_preconditioned() {
 	vector<bool> is_fix_var_attacker_preconditioned(fix_variable_domain.size(), false);
 
-	for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
-		const vector<GlobalCondition> &conditions = attack_operators[op_no].get_preconditions();
+	for (size_t op_no = 0; op_no < attack_operators_with_fix_vars_preconds.size(); op_no++) {
+		const vector<GlobalCondition> &conditions = attack_operators_with_fix_vars_preconds[op_no].get_preconditions();
 
 		for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
 			int var = conditions[cond_no].var;
@@ -781,18 +781,19 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 	bool free_attack_heuristic_per_state_info = false;
 
 	int attack_plan_cost = numeric_limits<int>::max();
-	FixSearchInfo &info = fix_search_node_infos[state];
+	FixSearchInfoAttackPlan &info_attack_plan = fix_search_node_infos_attack_plan[state];
+	FixSearchInfoFixSequence &info_fix_sequence = fix_search_node_infos_fix_sequence[state];
 
-	if ((check_fix_state_already_known && info.attack_plan_prob_cost != -1) || parent_attack_plan_applicable) {
-		if(check_fix_state_already_known && info.attack_plan_prob_cost != -1) {
-			attack_plan_cost = info.attack_plan_prob_cost;
-			attack_plan = info.attack_plan;
+	if ((check_fix_state_already_known && info_attack_plan.attack_plan_prob_cost != -1) || parent_attack_plan_applicable) {
+		if(check_fix_state_already_known && info_attack_plan.attack_plan_prob_cost != -1) {
+			attack_plan_cost = info_attack_plan.attack_plan_prob_cost;
+			attack_plan = info_attack_plan.attack_plan;
 			spared_attacker_searches_because_fix_state_already_seen++;
 
 #ifdef FIX_SEARCH_DEBUG
 			cout << "Attack prob cost for this state is already known in PerStateInformation: " << attack_plan_cost << endl;
 #endif
-			if (info.fix_actions_cost != -1 && fix_actions_cost > info.fix_actions_cost) {
+			if (info_fix_sequence.fix_actions_cost != -1 && fix_actions_cost > info_fix_sequence.fix_actions_cost) {
 #ifdef FIX_SEARCH_DEBUG
 				cout << "Current fix action sequence is more expensive than already known sequence... don't make further recursice calls. " << endl;
 #endif
@@ -802,9 +803,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 		} else {
 			attack_plan_cost = parent_attack_plan_cost;
 			if(check_fix_state_already_known) {
-				info.attack_plan_prob_cost = attack_plan_cost;
-				info.attack_plan = parent_attack_plan;
-				info.fix_actions_cost = fix_actions_cost;
+				info_attack_plan.attack_plan_prob_cost = attack_plan_cost;
+				info_attack_plan.attack_plan = parent_attack_plan;
+				info_fix_sequence.fix_actions_cost = fix_actions_cost;
 			}
 			spared_attacker_searches_because_parent_plan_applicable++;
 #ifdef FIX_SEARCH_DEBUG
@@ -888,8 +889,8 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_plan_cost = numeric_limits<int>::max();
 		}
 		if (check_fix_state_already_known) {
-			info.attack_plan_prob_cost = attack_plan_cost;
-			info.fix_actions_cost = fix_actions_cost;
+			info_attack_plan.attack_plan_prob_cost = attack_plan_cost;
+			info_fix_sequence.fix_actions_cost = fix_actions_cost;
 		}
 	}
 
@@ -910,7 +911,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 			attack_plan.push_back(g_plan[op_no]->get_op_id());
 		}
 		if(check_fix_state_already_known) {
-			info.attack_plan = attack_plan;
+			info_attack_plan.attack_plan = attack_plan;
 		}
 	}
 
