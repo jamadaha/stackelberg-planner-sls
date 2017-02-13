@@ -62,6 +62,7 @@ HEADERS = \
           option_parser_util.h \
           segmented_vector.h \
           per_state_information.h \
+		  per_fix_state_information.h \
           pref_evaluator.h \
           relaxation_heuristic.h \
           rng.h \
