@@ -45,7 +45,7 @@ The script what-if-analysis.py basically needs four input files given via the fo
     --net A .json filne in our own format which describes the topology of the network belonging to the nessus scan
 
 The following three arguments are optional
-	--exploit-infos: a json file containting an array with objects that each specify a probability and cost for a CVE id. If no manual infos are provided for an CVE id, the prob. and cost are extracted from the nvd file
+	--exploit-infos: a json file containting an array with objects that each specify a probability and cost for a CVE id. If no manual infos are provided for an CVE id, the prob. and cost are extracted from the nvd file. One can also define completely new exploits.
 	--initial-attack-budget: The budget for the attacker
 	--initial-fix-budget: The budget for the fix actions
 
@@ -124,12 +124,25 @@ Such an Object looks as follows:
 Exploit infos description file format
 =====================================
 
-The .json file must contain a single array filled with objects, all specifying properties of an CVE id.
-Such an Object looks as follows:
+The .json file must contain a single array filled with objects, all specifying properties of an existing CVE id or of a completely new exploit with an unique id.
+
+To change properties of an existing exploit, such an Object looks as follows:
 {
-	"CVE": "", // x is an CVE id
+	"CVE": "x", // x is an CVE id
 	"prob": x, // (optional) x is the probability that this exploit is successful as decimal number (e.g. 0.5)
 	"cost": x // (optional) x is the attacker's cost for executing this exploit as integer number (e.g. 42)
+}
+
+To define a new exploit, such an Object looks as follows:
+{
+	"id": "x", // x is a new unique id, similar to CVE ids
+	"access_vector": "x", can be either "NETWORK" or "ADJACENT_NETWORK"
+	"prob": x, // x is the probability that this exploit is successful as decimal number (e.g. 0.5)
+	"cost": x, //  x is the attacker's cost for executing this exploit as integer number (e.g. 42)
+	"compromise": [], // the array contains a non-empty subset of the following compromise-types: "confidentiality", "integrity" and "availability"
+	"hosts": [], // the array contains a non-empty list of host names on which the exploit is applicable e.g. ("10.9.59.118")
+	"port": "x", // x is the port on which the connection between soruce and target hosts must be allowed to execute the exploit
+	"protocol": "x" // x is the protocol (e.g. tcp, udp) which the must be allowed for a connection between soruce and target hosts on the already specified port
 }
 
 
