@@ -1062,6 +1062,12 @@ void FixActionsSearch::add_node_to_pareto_frontier(triple<int, int, vector<vecto
 #endif
 			it++;
 		} else if (get<1>(*it) == get<1>(node)) {
+			if(get<2>(node)[0].size() == 0) {
+				// Do not add the empty fix ops sequence again
+				// Assert that the the empty fix ops sequence is the only element her in the frontier
+				assert(get<2>(*it).size() == 1 && get<2>(*it)[0].size() == 0);
+				return;
+			}
 #ifdef FIX_SEARCH_DEBUG
 			cout << "added additional fix action sequence to node with with fix cost: " << get<0>(node) << " and attack cost: " << get<1>(node) << endl;
 #endif
