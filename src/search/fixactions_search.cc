@@ -36,8 +36,15 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 
 	attack_budget_factor = opts.get<double>("attack_budget_factor");
 	fix_budget_factor = opts.get<double>("fix_budget_factor");
-	g_initial_budget = opts.get<int>("initial_attack_budget") * attack_budget_factor;
-	max_fix_actions_budget = opts.get<int>("initial_fix_budget") * fix_budget_factor;
+	g_initial_budget = opts.get<int>("initial_attack_budget");
+	max_fix_actions_budget = opts.get<int>("initial_fix_budget");
+
+	if (g_initial_budget < UNLTD_BUDGET) {
+		g_initial_budget = (int) ((double) g_initial_budget) * attack_budget_factor;
+	}
+	if(max_fix_actions_budget < UNLTD_BUDGET) {
+		max_fix_actions_budget = (int) ((double) max_fix_actions_budget) * fix_budget_factor;
+	}
 
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
