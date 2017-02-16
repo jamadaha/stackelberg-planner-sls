@@ -39,6 +39,13 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	g_initial_budget = opts.get<int>("initial_attack_budget") * attack_budget_factor;
 	initial_fix_actions_budget = opts.get<int>("initial_fix_budget") * fix_budget_factor;
 
+	if (g_initial_budget < UNLTD_BUDGET) {
+		g_initial_budget = (int) ((double) g_initial_budget) * attack_budget_factor;
+	}
+	if(initial_fix_actions_budget < UNLTD_BUDGET) {
+		initial_fix_actions_budget = (int) ((double) initial_fix_actions_budget) * fix_budget_factor;
+	}
+
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
 	check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
