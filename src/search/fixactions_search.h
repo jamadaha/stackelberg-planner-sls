@@ -78,8 +78,8 @@ private:
 	int max_fix_actions_budget = UNLTD_BUDGET;
 	int curr_fix_actions_budget = UNLTD_BUDGET;
 
-	int attack_budget_factor;
-	int fix_budget_factor;
+	double attack_budget_factor;
+	double fix_budget_factor;
 
 	bool returned_somewhere_bc_of_budget = false;
 
