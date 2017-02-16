@@ -76,8 +76,8 @@ private:
 	PerFixStateInformation<FixSearchInfoAttackPlan> fix_search_node_infos_attack_plan;
 	PerStateInformation<FixSearchInfoFixSequence> fix_search_node_infos_fix_sequence;
 	int initial_fix_actions_budget = UNLTD_BUDGET;
-	int attack_budget_factor;
-	int fix_budget_factor;
+	double attack_budget_factor;
+	double fix_budget_factor;
 
 	int num_recursive_calls = 0;
 	int num_attacker_searches = 0;

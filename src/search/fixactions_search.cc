@@ -36,8 +36,8 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 
 	attack_budget_factor = opts.get<double>("attack_budget_factor");
 	fix_budget_factor = opts.get<double>("fix_budget_factor");
-	g_initial_budget = opts.get<int>("initial_attack_budget") * attack_budget_factor;
-	initial_fix_actions_budget = opts.get<int>("initial_fix_budget") * fix_budget_factor;
+	g_initial_budget = opts.get<int>("initial_attack_budget");
+	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
 
 	if (g_initial_budget < UNLTD_BUDGET) {
 		g_initial_budget = (int) ((double) g_initial_budget) * attack_budget_factor;
