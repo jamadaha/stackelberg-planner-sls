@@ -41,6 +41,7 @@ bool is_task_delete_free()
     }
     std::vector<int> first(g_variable_domain.size(), -1);
     std::vector<bool> ineff(g_variable_domain.size());
+    std::vector<bool> inpre(g_variable_domain.size());
     for (unsigned opi = 0; opi < g_operators.size(); opi++) {
         std::fill(ineff.begin(), ineff.end(), false);
         const GlobalOperator &op = g_operators[opi];
@@ -49,31 +50,35 @@ bool is_task_delete_free()
                 first[e.var] = e.val == 0 ? 1 : 0;
             }
             if (first[e.var] == e.val) {
+                std::cout << 1 << std::endl;
                 return false;
             }
             ineff[e.var] = true;
         }
-        unsigned inpre = 0;
+        std::fill(inpre.begin(), inpre.end(), false);
         for (const auto &p : op.get_preconditions()) {
             if (first[p.var] == -1 && !ineff[p.var]) {
                 first[p.var] = p.val == 0 ? 1 : 0;
             }
             if (first[p.var] == p.val && !ineff[p.var]) {
+                std::cout << 2 << std::endl;
                 return false;
             }
-            if (ineff[p.var]) {
-                inpre++;
+            inpre[p.var] = true;
+        }
+        for (const auto &e : op.get_effects()) {
+            if (!inpre[e.var]) {
+                std::cout << 3 << std::endl;
+                return false;
             }
         }
-        if (ineff.size() > 1 && inpre != ineff.size()) {
-            return false;
-        }
     }
-    for (const auto &g : g_goal) {
-        if (first[g.first] == g.second) {
-            return false;
-        }
-    }
+    // for (const auto &g : g_goal) {
+    //     if (first[g.first] == g.second) {
+    //         std::cout << 4 << std::endl;
+    //         return false;
+    //     }
+    // }
     return true;
 }
 
@@ -137,12 +142,22 @@ void DelRaxSearch::initialize()
 
     m_reward.resize(g_variable_domain.size(), 0);
     for (unsigned var = 0; var < g_variable_domain.size(); var++) {
-        assert(m_positive_values[var] >= 0);
+        if (m_positive_values[var] < 0) {
+            // irrelevant variabls -- happens only in self generated output
+            // files
+            continue;
+        }
         size_t i = g_fact_names[var][m_positive_values[var]].find("_");
+        // std::cout << var << ": " << g_fact_names[var][m_positive_values[var]]
+        //           << " -> i=" << i << "; compare=" <<
+        //           (g_fact_names[var][m_positive_values[var]].compare(0, 11, "Atom reward") == 0)
+        //           << std::endl;
         if (g_fact_names[var][m_positive_values[var]].compare(0, 11, "Atom reward") == 0
                 && i != std::string::npos) {
-            m_reward[var] = atoi(g_fact_names[var][m_positive_values[var]].substr(1,
-                                 i - 1).c_str());
+            m_reward[var] = atoi(g_fact_names[var][m_positive_values[var]].substr(11,
+                                 i - 11).c_str());
+            // std::cout << "Rewarding " << g_fact_names[var][m_positive_values[var]] << ": "
+            //           << m_reward[var] << std::endl;
             if (m_reward[var] > 0) {
                 m_goal.push_back(var);
             }
@@ -288,6 +303,8 @@ SearchStatus DelRaxSearch::step()
     }
     std::reverse(m_relaxed_plan.begin(), m_relaxed_plan.end());
     set_plan(m_relaxed_plan);
+
+    std::cout << "Reward: " << calculate_plan_cost() << std::endl;
 
     return SOLVED;
 }
