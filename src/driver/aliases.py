@@ -12,7 +12,7 @@ ALIASES = {}
 
 ALIASES["whatif"] = [
     '--heuristic', 'h=lmcut',
-    '--search', 'fixsearch(search_engine=astar(h, pruning=null), attack_heuristic=h, initial_attack_budget=minimal, initial_fix_budget=minimal, attack_op_dom_pruning=false)'
+    '--search', 'fixsearch(search_engine=astar(h, pruning=null), attack_heuristic=h, attack_op_dom_pruning=true)'
 ]
 
 ALIASES["whatif-all"] = [

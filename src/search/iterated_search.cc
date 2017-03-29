@@ -9,22 +9,26 @@ IteratedSearch::IteratedSearch(const Options &opts)
       pass_bound(opts.get<bool>("pass_bound")),
       repeat_last_phase(opts.get<bool>("repeat_last")),
       continue_on_fail(opts.get<bool>("continue_on_fail")),
-      continue_on_solve(opts.get<bool>("continue_on_solve")) {
+      continue_on_solve(opts.get<bool>("continue_on_solve"))
+{
     last_phase_found_solution = false;
     best_bound = bound;
     iterated_found_solution = false;
     plan_counter = opts.get<int>("plan_counter");
 }
 
-IteratedSearch::~IteratedSearch() {
+IteratedSearch::~IteratedSearch()
+{
 }
 
-void IteratedSearch::initialize() {
+void IteratedSearch::initialize()
+{
     phase = 0;
 }
 
 SearchEngine *IteratedSearch::get_search_engine(
-    int engine_configs_index) {
+    int engine_configs_index)
+{
     OptionParser parser(engine_configs[engine_configs_index], false);
     SearchEngine *engine = parser.start_parsing<SearchEngine *>();
 
@@ -35,7 +39,8 @@ SearchEngine *IteratedSearch::get_search_engine(
     return engine;
 }
 
-SearchEngine *IteratedSearch::create_phase(int p) {
+SearchEngine *IteratedSearch::create_phase(int p)
+{
     int num_phases = engine_configs.size();
     if (p >= num_phases) {
         /* We've gone through all searches. We continue if
@@ -55,7 +60,8 @@ SearchEngine *IteratedSearch::create_phase(int p) {
     return get_search_engine(p);
 }
 
-SearchStatus IteratedSearch::step() {
+SearchStatus IteratedSearch::step()
+{
     current_search = create_phase(phase);
     if (current_search == NULL) {
         return found_solution() ? SOLVED : FAILED;
@@ -73,7 +79,7 @@ SearchStatus IteratedSearch::step() {
     if (last_phase_found_solution) {
         iterated_found_solution = true;
         found_plan = current_search->get_plan();
-        plan_cost = calculate_plan_cost(found_plan);
+        plan_cost = ::calculate_plan_cost(found_plan);
         if (plan_cost < best_bound) {
             ++plan_counter;
             save_plan(found_plan, plan_counter);
@@ -98,9 +104,11 @@ SearchStatus IteratedSearch::step() {
     return step_return_value();
 }
 
-SearchStatus IteratedSearch::step_return_value() {
-    if (iterated_found_solution)
+SearchStatus IteratedSearch::step_return_value()
+{
+    if (iterated_found_solution) {
         cout << "Best solution cost so far: " << best_bound << endl;
+    }
 
     if (last_phase_found_solution) {
         if (continue_on_solve) {
@@ -121,17 +129,20 @@ SearchStatus IteratedSearch::step_return_value() {
     }
 }
 
-void IteratedSearch::statistics() const {
+void IteratedSearch::statistics() const
+{
     cout << "Cumulative statistics:" << endl;
     search_progress.print_statistics();
 }
 
-void IteratedSearch::save_plan_if_necessary() const {
+void IteratedSearch::save_plan_if_necessary() const
+{
     // Don't need to save here, as we automatically save after
     // each successful search iteration.
 }
 
-static SearchEngine *_parse(OptionParser &parser) {
+static SearchEngine *_parse(OptionParser &parser)
+{
     parser.document_synopsis("Iterated search", "");
     parser.document_note(
         "Note 1",

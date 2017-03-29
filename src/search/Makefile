@@ -163,6 +163,8 @@ HEADERS += landmarks/exploration.h \
 #           pdbs/util.h \
 #           pdbs/zero_one_pdbs_heuristic.h \
 
+HEADERS += delrax_search.h
+
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
 TARGET = downward
 

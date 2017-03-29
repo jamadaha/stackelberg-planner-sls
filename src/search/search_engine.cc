@@ -17,7 +17,8 @@ SearchEngine::SearchEngine(const Options &opts)
       solution_found(false),
       search_space(OperatorCost(opts.get_enum("cost_type"))),
       cost_type(OperatorCost(opts.get_enum("cost_type"))),
-      max_time(opts.get<double>("max_time")) {
+      max_time(opts.get<double>("max_time"))
+{
     if (opts.get<int>("bound") < 0) {
         cerr << "error: negative cost bound " << opts.get<int>("bound") << endl;
         exit_with(EXIT_INPUT_ERROR);
@@ -25,31 +26,38 @@ SearchEngine::SearchEngine(const Options &opts)
     bound = opts.get<int>("bound");
 }
 
-SearchEngine::~SearchEngine() {
+SearchEngine::~SearchEngine()
+{
 }
 
-void SearchEngine::statistics() const {
+void SearchEngine::statistics() const
+{
 }
 
-bool SearchEngine::found_solution() const {
+bool SearchEngine::found_solution() const
+{
     return solution_found;
 }
 
-SearchStatus SearchEngine::get_status() const {
+SearchStatus SearchEngine::get_status() const
+{
     return status;
 }
 
-const SearchEngine::Plan &SearchEngine::get_plan() const {
+const SearchEngine::Plan &SearchEngine::get_plan() const
+{
     assert(solution_found);
     return plan;
 }
 
-void SearchEngine::set_plan(const Plan &p) {
+void SearchEngine::set_plan(const Plan &p)
+{
     solution_found = true;
     plan = p;
 }
 
-void SearchEngine::search() {
+void SearchEngine::search()
+{
     solution_found = false;
     status = IN_PROGRESS;
     initialize();
@@ -67,14 +75,17 @@ void SearchEngine::search() {
          << " [t=" << g_timer << "]" << endl;
 }
 
-bool SearchEngine::check_goal_and_set_plan(const GlobalState &state, int budget) {
+bool SearchEngine::check_goal_and_set_plan(const GlobalState &state,
+        int budget)
+{
     if (test_goal(state)) {
         cout << "Solution found!" << endl;
         Plan plan;
         search_space.trace_path(state, plan, budget);
         set_plan(plan);
-        if(goal_state != NULL)
-        	delete goal_state;
+        if (goal_state != NULL) {
+            delete goal_state;
+        }
         goal_state = new GlobalState(state);
         goal_state_budget = budget;
         return true;
@@ -82,16 +93,25 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state, int budget)
     return false;
 }
 
-void SearchEngine::save_plan_if_necessary() const {
-    if (found_solution())
+void SearchEngine::save_plan_if_necessary() const
+{
+    if (found_solution()) {
         save_plan(get_plan(), 0);
+    }
 }
 
-int SearchEngine::get_adjusted_cost(const GlobalOperator &op) const {
+int SearchEngine::get_adjusted_cost(const GlobalOperator &op) const
+{
     return get_adjusted_action_cost(op, cost_type);
 }
 
-void SearchEngine::add_options_to_parser(OptionParser &parser) {
+int SearchEngine::calculate_plan_cost() const
+{
+    return ::calculate_plan_cost(plan);
+}
+
+void SearchEngine::add_options_to_parser(OptionParser &parser)
+{
     ::add_cost_type_option_to_parser(parser);
     parser.add_option<int>(
         "bound",
