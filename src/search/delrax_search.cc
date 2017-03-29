@@ -123,7 +123,7 @@ void DelRaxSearch::initialize()
             assert(m_positive_values[e.var] == e.val);
             ineff[e.var] = true;
         }
-        for (const auto &p : op.get_effects()) {
+        for (const auto &p : op.get_preconditions()) {
             if (!ineff[p.var]) {
                 if (m_positive_values[p.var] == -1) {
                     m_positive_values[p.var] = p.val;
@@ -133,12 +133,12 @@ void DelRaxSearch::initialize()
         }
     }
 
-    for (const auto &g : g_goal) {
-        if (m_positive_values[g.first] == -1) {
-            m_positive_values[g.first] = g.second;
-        }
-        assert(m_positive_values[g.first] == g.second);
-    }
+    // for (const auto &g : g_goal) {
+    //     if (m_positive_values[g.first] == -1) {
+    //         m_positive_values[g.first] = g.second;
+    //     }
+    //     assert(m_positive_values[g.first] == g.second);
+    // }
 
     m_reward.resize(g_variable_domain.size(), 0);
     for (unsigned var = 0; var < g_variable_domain.size(); var++) {
