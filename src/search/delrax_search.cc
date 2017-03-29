@@ -304,7 +304,7 @@ SearchStatus DelRaxSearch::step()
     std::reverse(m_relaxed_plan.begin(), m_relaxed_plan.end());
     set_plan(m_relaxed_plan);
 
-    std::cout << "Reward: " << calculate_plan_cost() << std::endl;
+    // std::cout << "Reward: " << calculate_plan_cost() << std::endl;
 
     return SOLVED;
 }
@@ -317,7 +317,7 @@ int DelRaxSearch::calculate_plan_cost() const
             res += m_reward[var];
         }
     }
-    return res;
+    return -res;
 }
 
 void DelRaxSearch::add_options_to_parser(OptionParser &parser)
