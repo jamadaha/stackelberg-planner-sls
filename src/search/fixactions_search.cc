@@ -81,6 +81,10 @@ void FixActionsSearch::initialize()
 
     g_operators.clear();
 
+    // Not needed for delrax_search
+    delete g_successor_generator;
+    g_successor_generator = NULL;
+
     create_new_variable_indices();
 
     check_fix_vars_attacker_preconditioned();
@@ -927,14 +931,17 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
 
         chrono::high_resolution_clock::time_point tt1 =
             chrono::high_resolution_clock::now();
-        delete g_successor_generator;
-        g_successor_generator = create_successor_generator(g_variable_domain,
-                                g_operators, g_operators);
+
+        //delete g_successor_generator;
+        //g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
         //g_successor_generator->dump();
         //cout << "Attacker dump everything: " << endl;
         //dump_everything();
+
         search_engine->reset();
-        attack_heuristic->reset();
+		if (attack_heuristic != NULL) {
+			attack_heuristic->reset();
+		}
         chrono::high_resolution_clock::time_point tt2 =
             chrono::high_resolution_clock::now();
         auto duration2 = chrono::duration_cast<chrono::milliseconds>(tt2 - tt1).count();
