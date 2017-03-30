@@ -170,10 +170,16 @@ void DelRaxSearch::initialize()
     m_closed.resize(g_variable_domain.size());
 
     m_dirty = true;
+
+    initialized = true;
 }
 
 void DelRaxSearch::reset()
 {
+	if(!initialized) {
+		return;
+	}
+
     m_dirty = false;
 
     m_achievers.resize(g_variable_domain.size());

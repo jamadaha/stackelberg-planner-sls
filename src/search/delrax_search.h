@@ -19,6 +19,8 @@ protected:
 
     bool m_dirty;
 
+    bool initialized = false;
+
     std::vector<int> m_positive_values;
     std::vector<int> m_reward;
     std::vector<unsigned> m_goal;
