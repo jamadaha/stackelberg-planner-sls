@@ -30,8 +30,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
     search_engine = opts.get<SearchEngine *>("search_engine");
 
     if (opts.contains("attack_heuristic")) {
-        attack_heuristic =
-            opts.get<Heuristic *>("attack_heuristic"); // (AttackSuccessProbReuseHeuristic*) (((BudgetDeadEndHeuristic*)opts.get<Heuristic*>("attack_heuristic"))->get_prob_cost_heuristic());
+        attack_heuristic = opts.get<Heuristic *>("attack_heuristic"); // (AttackSuccessProbReuseHeuristic*) (((BudgetDeadEndHeuristic*)opts.get<Heuristic*>("attack_heuristic"))->get_prob_cost_heuristic());
     } else {
         attack_heuristic = NULL;
     }
@@ -75,7 +74,7 @@ void FixActionsSearch::initialize()
         exit(0);
     }
 
-    divideVariables();
+    divide_variables();
 
     clean_attack_actions();
 
@@ -213,22 +212,32 @@ double FixActionsSearch::prob_cost_to_prob(int prob_cost)
     return pow(2.0, -(((double)prob_cost) / 1000));
 }
 
-void FixActionsSearch::divideVariables()
+void FixActionsSearch::divide_variables()
 {
+    cout << "Begin divide_ariables()..." << endl;
+	num_attack_vars = 0;
+	attack_vars.assign(g_variable_domain.size(), false);
+
     for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
         const vector<GlobalEffect> &effects = attack_operators[op_no].get_effects();
         for (size_t i = 0; i < effects.size(); i++) {
             int var = effects[i].var;
-            attack_vars.insert(var);
+            if(attack_vars[var]) {
+            	continue;
+            } else {
+            	attack_vars[var] = true;
+            	num_attack_vars++;
+            }
         }
     }
     num_vars = g_variable_domain.size();
-    num_attack_vars = attack_vars.size();
     num_fix_vars = num_vars - num_attack_vars;
 }
 
 void FixActionsSearch::clean_attack_actions()
 {
+	cout << "Begin clean_attack_actions()..." << endl;
+
     for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
         const GlobalOperator &op = attack_operators[op_no];
         const vector<GlobalCondition> &conditions = op.get_preconditions();
@@ -236,7 +245,7 @@ void FixActionsSearch::clean_attack_actions()
         vector<GlobalCondition> attack_preconditions;
         for (size_t i = 0; i < conditions.size(); i++) {
             int var = conditions[i].var;
-            if (attack_vars.find(var) != attack_vars.end()) {
+            if (attack_vars[var]) {
                 // This is a precondition on an attack var
                 attack_preconditions.push_back(conditions[i]);
             } else {
@@ -261,13 +270,15 @@ void FixActionsSearch::clean_attack_actions()
 
 void FixActionsSearch::create_new_variable_indices()
 {
+	cout << "Begin create_new_variable_indices()..." << endl;
+
     int curr_attack_var_index = 0;
     int curr_fix_var_index = 0;
 
     map_var_id_to_new_var_id.resize(num_vars);
 
     for (int var = 0; var < num_vars; var++) {
-        if (attack_vars.find(var) != attack_vars.end()) {
+        if (attack_vars[var]) {
             // This is an attack var
             map_var_id_to_new_var_id[var] = curr_attack_var_index;
             curr_attack_var_index++;
@@ -288,7 +299,7 @@ void FixActionsSearch::create_new_variable_indices()
     int num_vars_temp = num_vars;
     int var = 0;
     for (int i = 0; i < num_vars_temp; i++) {
-        if (attack_vars.find(var) == attack_vars.end()) {
+        if (!attack_vars[var]) {
             // This is a fix var
             // Save it to local vectors
             fix_variable_domain.push_back(g_variable_domain[i]);
@@ -313,7 +324,7 @@ void FixActionsSearch::create_new_variable_indices()
     // Changing indices in g_goal to attack_var indices and ensuring that there is no fix goal variable
     for (size_t i = 0; i < g_goal.size(); i++) {
         int var = g_goal[i].first;
-        if (attack_vars.find(var) == attack_vars.end()) {
+        if (!attack_vars[var]) {
             cout << "There should be no goal defined for a non-attack var! Error in PDDL!"
                  << endl;
             exit(EXIT_INPUT_ERROR);
@@ -361,6 +372,8 @@ void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops)
 
 void FixActionsSearch::check_fix_vars_attacker_preconditioned()
 {
+	cout << "Begin check_fix_vars_attacker_preconditioned()..." << endl;
+
     vector<bool> is_fix_var_attacker_preconditioned(fix_variable_domain.size(),
             false);
 
@@ -1238,8 +1251,7 @@ void FixActionsSearch::dump_op_sequence_sequence(const
 void FixActionsSearch::dump_pareto_frontier_node(
     triple<int, int, vector<vector<const GlobalOperator *>>> &node)
 {
-    cout << "\t fix ops costs: " << get<0>(node) << ", attack prob: " <<
-         setprecision(3) << prob_cost_to_prob(get<1>(node)) << ", sequences: " << endl;
+    cout << "\t fix ops costs: " << get<0>(node) << ", attacker reward: " << abs(get<1>(node)) << ", sequences: " << endl;
     dump_op_sequence_sequence(get<2>(node));
 }
 

@@ -47,7 +47,7 @@ private:
 	SuccessorGeneratorSwitch *fix_operators_successor_generator = NULL;
 	SuccessorGeneratorSwitch *attack_operators_for_fix_vars_successor_generator = NULL;
 
-	std::unordered_set<int> attack_vars;
+	std::vector<bool> attack_vars;
 	int num_vars = 0;
 	int num_attack_vars = 0;
 	int num_fix_vars = 0;
@@ -94,7 +94,7 @@ protected:
     void sort_operators();
     int parse_success_prob_cost(std::string prob);
     double prob_cost_to_prob(int prob_cost);
-    void divideVariables();
+    void divide_variables();
     void clean_attack_actions();
     void create_new_variable_indices();
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
