@@ -486,7 +486,17 @@ SuccessorGeneratorSwitch *FixActionsSearch::create_successor_generator(
  */
 void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices()
 {
-    cout << "Begin compute_commutative_fix_ops_matrix()..." << endl;
+    cout << "Begin compute_commutative_and_dependent_fix_ops_matrices()..." << endl;
+
+    cout << "We assume that all fix actions are commutative and not dependent!" << endl;
+    {
+    	vector<bool> val(fix_operators.size(), true);
+    	commutative_fix_ops.assign(fix_operators.size(), val);
+    	dependent_fix_ops.assign(fix_operators.size(), val);
+    	return;
+    }
+
+
     vector<bool> val(fix_operators.size());
     commutative_fix_ops.assign(fix_operators.size(), val);
     dependent_fix_ops.assign(fix_operators.size(), val);
