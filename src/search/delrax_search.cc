@@ -101,6 +101,11 @@ void DelRaxSearch::verify()
 
 void DelRaxSearch::initialize()
 {
+	if (initialized) {
+		std::cout << "DelRax search already initialized... skip this!" << std::endl;
+		return;
+	}
+
     std::cout << "Initializing DelRax search ..." << std::endl;
     verify();
 
