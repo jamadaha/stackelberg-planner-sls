@@ -44,8 +44,12 @@ SortFixActionsByAttackerReward::~SortFixActionsByAttackerReward() {
 	// TODO Auto-generated destructor stub
 }
 
-bool SortFixActionsByAttackerReward::op_ptr_reward_comp(const GlobalOperator *op1, const GlobalOperator *op2) {
+bool SortFixActionsByAttackerReward::operator() (const GlobalOperator *op1, const GlobalOperator *op2) {
 	// Sort op with higher disabled attacker reward before op with lower disabled attacker reward
 	return disabled_attack_reward_for_fix_op_id[op1->get_op_id()] >= disabled_attack_reward_for_fix_op_id[op2->get_op_id()];
+}
+
+void SortFixActionsByAttackerReward::sort_attack_ops(vector<const GlobalOperator *> &attack_ops) {
+	sort(attack_ops.begin(), attack_ops.end(), *this);
 }
 

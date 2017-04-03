@@ -78,8 +78,6 @@ void FixActionsSearch::initialize()
 
     clean_attack_actions();
 
-    g_operators.clear();
-
     // Not needed for delrax_search
     delete g_successor_generator;
     g_successor_generator = NULL;
@@ -114,7 +112,18 @@ void FixActionsSearch::initialize()
     g_all_attack_operators.insert(g_all_attack_operators.begin(),
                                   attack_operators.begin(), attack_operators.end());
 
-    g_attack_op_included.resize(attack_operators.size(), false);
+    g_operators.clear();
+    g_operators.insert(g_operators.begin(),
+                                     attack_operators.begin(), attack_operators.end());
+    g_attack_op_included.resize(attack_operators.size(), true);
+
+	if (sort_attack_ops && use_partial_order_reduction) {
+		delrax_search::DelRaxSearch *delrax_search = (delrax_search::DelRaxSearch*) search_engine;
+		delrax_search->initialize();
+		sortFixActionsByAttackerReward = new SortFixActionsByAttackerReward(delrax_search->get_positive_values(),
+				delrax_search->get_reward(), fix_operators, attack_operators_with_fix_vars_preconds,
+				deleting_fix_facts_ops);
+	}
 
     chrono::high_resolution_clock::time_point t2 =
         chrono::high_resolution_clock::now();
@@ -206,7 +215,7 @@ int FixActionsSearch::parse_success_prob_cost(string prob)
 
 double FixActionsSearch::prob_cost_to_prob(int prob_cost)
 {
-    if (prob_cost == numeric_limits<int>::max()) {
+    if (prob_cost == ATTACKER_TASK_UNSOLVABLE) {
         return 0.0;
     }
     return pow(2.0, -(((double)prob_cost) / 1000));
@@ -852,7 +861,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
 
 #ifdef FIX_SEARCH_DEBUG
     cout << "in call of expand_all_successors for state: " << endl;
-    state.dump_fdr(fix_variable_domain, fix_variable_name);
+    //state.dump_fdr(fix_variable_domain, fix_variable_name);
     cout << "with id: " << state.get_id().hash() << endl;
     cout << "and current fix actions op_sequence: " << endl;
     for (size_t i = 0; i < fix_ops_sequence.size(); i++) {
@@ -887,7 +896,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
     AttackSearchSpace *attack_heuristic_search_space = NULL;
     bool free_attack_heuristic_per_state_info = false;
 
-    int attack_plan_cost = numeric_limits<int>::max();
+    int attack_plan_cost = ATTACKER_TASK_UNSOLVABLE;
     FixSearchInfoAttackPlan &info_attack_plan =
         fix_search_node_infos_attack_plan[state];
     FixSearchInfoFixSequence &info_fix_sequence =
@@ -1014,7 +1023,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
 #ifdef FIX_SEARCH_DEBUG
             cout << "Attacker task was not solvable!" << endl;
 #endif
-            attack_plan_cost = numeric_limits<int>::max();
+            attack_plan_cost = ATTACKER_TASK_UNSOLVABLE;
         }
         if (check_fix_state_already_known) {
             info_attack_plan.attack_plan_prob_cost = attack_plan_cost;
@@ -1028,7 +1037,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
                 fix_actions_cost, attack_plan_cost, temp_list_op_sequences);
     add_node_to_pareto_frontier(curr_node);
 
-    if (attack_plan_cost == numeric_limits<int>::max()) {
+    if (attack_plan_cost == ATTACKER_TASK_UNSOLVABLE) {
         // Return, if attacker task was not solvable
         num_fix_op_paths++;
         return;
@@ -1047,6 +1056,12 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
     vector<const GlobalOperator *> applicable_ops;
     fix_operators_successor_generator->generate_applicable_ops(state,
             applicable_ops);
+
+
+    if(sortFixActionsByAttackerReward != NULL) {
+    	cout << "Sort attack ops!" << endl;
+    	sortFixActionsByAttackerReward->sort_attack_ops(applicable_ops);
+    }
 
     //sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
 
@@ -1157,7 +1172,7 @@ void FixActionsSearch::add_node_to_pareto_frontier(
 {
 
     // First check whether attack_prob_costs == Intmax and fix_actions_cost < fix_action_costs_for_no_attacker_solution
-    if (get<1>(node) == numeric_limits<int>::max()) {
+    if (get<1>(node) == ATTACKER_TASK_UNSOLVABLE) {
         if (get<0>(node) < fix_action_costs_for_no_attacker_solution) {
             fix_action_costs_for_no_attacker_solution = get<0>(node);
         }

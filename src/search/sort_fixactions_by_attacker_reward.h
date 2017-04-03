@@ -17,7 +17,8 @@ class SortFixActionsByAttackerReward {
 public:
 	SortFixActionsByAttackerReward(const std::vector<int> &positive_values, const std::vector<int> &reward, const std::vector<GlobalOperator> &fix_operators, const std::vector<GlobalOperator> &attack_operators_with_fix_vars_preconds, const std::vector<std::vector<std::vector<const GlobalOperator *>>> &deleting_fix_facts_ops);
 	virtual ~SortFixActionsByAttackerReward();
-	bool op_ptr_reward_comp(const GlobalOperator *op1, const GlobalOperator *op2);
+	bool operator() (const GlobalOperator *op1, const GlobalOperator *op2);
+	void sort_attack_ops(std::vector<const GlobalOperator *> &attack_ops);
 };
 
 

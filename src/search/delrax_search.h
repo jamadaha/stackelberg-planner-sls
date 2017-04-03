@@ -37,12 +37,16 @@ protected:
     Plan m_relaxed_plan;
 
     void verify();
-    virtual void initialize() override;
     virtual SearchStatus step() override;
 public:
     DelRaxSearch(const Options &opts);
     virtual void reset() override;
     virtual int calculate_plan_cost() const override;
+
+    std::vector<int> &get_positive_values() { return m_positive_values; }
+    std::vector<int> &get_reward() {return m_reward; }
+
+    virtual void initialize() override;
     // template<typename Callback>
     // int evaluate_solution(const Callback &callback) const;
     static void add_options_to_parser(OptionParser &parser);

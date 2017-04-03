@@ -13,8 +13,12 @@
 #include "successor_generator.h"
 #include "attack_success_prob_reuse_heuristic.h"
 #include "per_fix_state_information.h"
+#include "sort_fixactions_by_attacker_reward.h"
+#include "delrax_search.h"
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
+
+#define ATTACKER_TASK_UNSOLVABLE 0 // numeric_limits<int>::max()
 
 struct FixSearchInfoAttackPlan {
         int attack_plan_prob_cost;
@@ -39,6 +43,7 @@ private:
 	bool check_parent_attack_plan_applicable = true;
 	bool check_fix_state_already_known = true;
 	bool do_attack_op_dom_pruning = true;
+	bool sort_attack_ops = true;
 
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
@@ -78,6 +83,8 @@ private:
 	int initial_fix_actions_budget = UNLTD_BUDGET;
 	double attack_budget_factor;
 	double fix_budget_factor;
+
+	SortFixActionsByAttackerReward *sortFixActionsByAttackerReward = NULL;
 
 	int num_recursive_calls = 0;
 	int num_attacker_searches = 0;
