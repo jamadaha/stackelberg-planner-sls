@@ -15,7 +15,7 @@ SortFixActionsByAttackerReward::SortFixActionsByAttackerReward(const vector<int>
 	disabled_attack_reward_for_fix_op_id.assign(fix_operators.size(), 0);
 
 	for (size_t op_no = 0; op_no < attack_operators_with_fix_vars_preconds.size(); op_no++) {
-		const GlobalOperator &op = g_operators[op_no];
+		const GlobalOperator &op = attack_operators_with_fix_vars_preconds[op_no];
 		int op_reward = 0;
 		for (const auto &e : op.get_effects()) {
 			int var = e.var;
