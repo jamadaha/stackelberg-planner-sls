@@ -46,7 +46,6 @@ SortFixActionsByAttackerReward::~SortFixActionsByAttackerReward() {
 
 bool SortFixActionsByAttackerReward::operator() (const GlobalOperator *op1, const GlobalOperator *op2) {
 	// Sort op with higher disabled attacker reward before op with lower disabled attacker reward
-	cout << "op1 id: " << op1->get_op_id() << ", op2 id: " << op2->get_op_id() << endl;
 	return disabled_attack_reward_for_fix_op_id[op1->get_op_id()] > disabled_attack_reward_for_fix_op_id[op2->get_op_id()];
 }
 
