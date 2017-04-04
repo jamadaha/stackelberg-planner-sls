@@ -1059,8 +1059,9 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state,
 
 
     if(sortFixActionsByAttackerReward != NULL) {
-    	cout << "Sort attack ops!" << endl;
-    	sortFixActionsByAttackerReward->sort_attack_ops(applicable_ops);
+    	cout << "Sort fix ops!" << endl;
+    	sortFixActionsByAttackerReward->sort_fix_ops(applicable_ops);
+    	cout << "After sorting fix ops" << endl;
     }
 
     //sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
