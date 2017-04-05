@@ -9,6 +9,7 @@
 #define SRC_SEARCH_FIXACTIONS_SEARCH_H_
 
 #include <unordered_set>
+#include <limits>
 #include "search_engine.h"
 #include "successor_generator.h"
 #include "attack_success_prob_reuse_heuristic.h"
@@ -19,6 +20,7 @@
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
 #define ATTACKER_TASK_UNSOLVABLE 0 // numeric_limits<int>::max()
+#define NO_ATTACKER_COST numeric_limits<int>::min() // 0
 
 struct FixSearchInfoAttackPlan {
         int attack_plan_prob_cost;
@@ -95,6 +97,9 @@ private:
 	int spared_attacker_searches_because_fix_state_already_seen = 0;
 	int spared_attacker_searches_because_parent_plan_applicable = 0;
 	int num_fix_op_paths = 0;
+
+	void iterate_applicable_ops(const std::vector<const GlobalOperator*>& applicable_ops_after_pruning, const GlobalState& state, const std::vector<int> &attack_plan, int attack_plan_cost, std::vector<const GlobalOperator*>& fix_ops_sequence, std::vector<int>& sleep, AttackSearchSpace* attack_heuristic_search_space, bool recurse, std::vector<int> &recursive_attacker_costs);
+
 protected:
     virtual void initialize();
     virtual SearchStatus step();
@@ -113,7 +118,7 @@ protected:
     void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
     void prune_applicable_fix_ops_sss (const GlobalState &state, const std::vector<int> &attack_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
     void prune_dominated_ops(std::vector<const GlobalOperator*> &ops, std::vector<std::vector<int>> dominated_op_ids);
-    void expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep);
+    int expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
     void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence);
