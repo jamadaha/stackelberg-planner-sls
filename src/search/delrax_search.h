@@ -17,8 +17,6 @@ class DelRaxSearch : public ::SearchEngine
 protected:
     const bool c_preprocess;
 
-    bool m_dirty;
-
     bool initialized = false;
 
     std::vector<int> m_positive_values;
@@ -43,8 +41,14 @@ public:
     virtual void reset() override;
     virtual int calculate_plan_cost() const override;
 
-    std::vector<int> &get_positive_values() { return m_positive_values; }
-    std::vector<int> &get_reward() {return m_reward; }
+    std::vector<int> &get_positive_values()
+    {
+        return m_positive_values;
+    }
+    std::vector<int> &get_reward()
+    {
+        return m_reward;
+    }
 
     virtual void initialize() override;
     // template<typename Callback>

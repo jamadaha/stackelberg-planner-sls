@@ -101,10 +101,10 @@ void DelRaxSearch::verify()
 
 void DelRaxSearch::initialize()
 {
-	if (initialized) {
-		std::cout << "DelRax search already initialized... skip this!" << std::endl;
-		return;
-	}
+    if (initialized) {
+        std::cout << "DelRax search already initialized... skip this!" << std::endl;
+        return;
+    }
 
     std::cout << "Initializing DelRax search ..." << std::endl;
     verify();
@@ -174,18 +174,14 @@ void DelRaxSearch::initialize()
     // m_achieved.resize(g_variable_domain.size());
     m_closed.resize(g_variable_domain.size());
 
-    m_dirty = true;
-
     initialized = true;
 }
 
 void DelRaxSearch::reset()
 {
-	if(!initialized) {
-		return;
-	}
-
-    m_dirty = false;
+    if (!initialized) {
+        return;
+    }
 
     m_achievers.resize(g_variable_domain.size());
     std::fill(m_achievers.begin(), m_achievers.end(), -1);
@@ -250,9 +246,7 @@ void DelRaxSearch::reset()
 
 SearchStatus DelRaxSearch::step()
 {
-    if (m_dirty) {
-        reset();
-    }
+    reset();
 
     int layer = 1;
     unsigned next = m_open_variables.size();
