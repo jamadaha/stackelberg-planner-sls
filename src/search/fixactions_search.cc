@@ -19,7 +19,7 @@
 #include <iomanip>
 #include "timer.h"
 
-#define FIX_SEARCH_DEBUG
+//#define FIX_SEARCH_DEBUG
 
 using namespace std;
 
@@ -1352,10 +1352,8 @@ SearchStatus FixActionsSearch::step()
     cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable
          << " attacker searches, because the fix parent state attack plan was still applicable"
          << endl;
-    cout << "Attacker Searchspace had " << (all_attacker_states /
-                                            num_attacker_searches) << " states on average" << endl;
-    cout << "Attacker Searchspaces accumulated " << g_state_registry->size() <<
-         " states in state_registry" << endl;
+    // cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
+    // cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
     // cout << "Num fix action paths: " << num_fix_op_paths << endl; TODO This is currently not computed correctly
     dump_pareto_frontier();
     exit(EXIT_CRITICAL_ERROR);
