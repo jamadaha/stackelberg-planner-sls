@@ -861,7 +861,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
 #endif
 
 #ifdef FIX_SEARCH_DEBUG
-    cout << "in call of expand_all_successors for state: " << endl;
+    cout << "in call of compute_pareto_frontier for state: " << endl;
     //state.dump_fdr(fix_variable_domain, fix_variable_name);
     cout << "with id: " << state.get_id().hash() << endl;
     cout << "and current fix actions op_sequence: " << endl;
@@ -872,6 +872,10 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
     cout << "fix_actions_cost: " << fix_actions_cost << endl;
     cout << "fix_action_costs_for_no_attacker_solution: " <<
          fix_action_costs_for_no_attacker_solution << endl;
+    if(!recurse) {
+    	cout << "We won't recurse in this execution of compute_pareto_frontier" << endl;
+    	num_recursive_calls_for_sorting++;
+    }
 #endif
 
     bool parent_attack_plan_applicable = false;
@@ -1337,11 +1341,13 @@ SearchStatus FixActionsSearch::step()
             attack_search_duration_sum) << "ms" << endl;
     cout << "reset_and_initialize_duration_sum: " <<
          reset_and_initialize_duration_sum << "ms" << endl;
-    cout << "They were " << num_recursive_calls <<
-         " calls to expand_all_successors." << endl;
+    cout << "They were in total " << num_recursive_calls <<
+         " calls to compute_pareto_frontier." << endl;
+    cout << "thereof because of sorting fix actions: " << num_recursive_calls_for_sorting << endl;
+    cout << "and " << (num_recursive_calls - num_recursive_calls_for_sorting) << " \"real\" calls" << endl;
     cout << "They were " << num_attacker_searches <<
          " searches in Attacker Statespace" << endl;
-    cout << "We spared " << spared_attacker_searches_because_fix_state_already_seen
+    cout << "We spared " << (spared_attacker_searches_because_fix_state_already_seen - (num_recursive_calls - num_recursive_calls_for_sorting) + 1)
          << " attacker searches, because the fix state was already known" << endl;
     cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable
          << " attacker searches, because the fix parent state attack plan was still applicable"
@@ -1350,7 +1356,7 @@ SearchStatus FixActionsSearch::step()
                                             num_attacker_searches) << " states on average" << endl;
     cout << "Attacker Searchspaces accumulated " << g_state_registry->size() <<
          " states in state_registry" << endl;
-    cout << "Num fix action paths: " << num_fix_op_paths << endl;
+    // cout << "Num fix action paths: " << num_fix_op_paths << endl; TODO This is currently not computed correctly
     dump_pareto_frontier();
     exit(EXIT_CRITICAL_ERROR);
     return IN_PROGRESS;

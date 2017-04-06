@@ -98,6 +98,7 @@ private:
 	int spared_attacker_searches_because_fix_state_already_seen = 0;
 	int spared_attacker_searches_because_parent_plan_applicable = 0;
 	int num_fix_op_paths = 0;
+	int num_recursive_calls_for_sorting = 0;
 
 	void iterate_applicable_ops(const std::vector<const GlobalOperator*>& applicable_ops_after_pruning, const GlobalState& state, const std::vector<int> &attack_plan, int attack_plan_cost, std::vector<const GlobalOperator*>& fix_ops_sequence, std::vector<int>& sleep, AttackSearchSpace* attack_heuristic_search_space, bool recurse, std::vector<int> &recursive_attacker_costs);
 
