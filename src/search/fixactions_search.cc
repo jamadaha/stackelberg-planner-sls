@@ -1105,7 +1105,11 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
 			myComp (const vector<int> &_recursive_attacker_costs):
 			recursive_attacker_costs(_recursive_attacker_costs) {}
 			bool operator() (const GlobalOperator *op1, const GlobalOperator *op2) {
-				return recursive_attacker_costs[op1->get_op_id()] > recursive_attacker_costs[op2->get_op_id()];
+				if (recursive_attacker_costs[op1->get_op_id()] == recursive_attacker_costs[op2->get_op_id()]) {
+					return op1->get_cost() < op2->get_cost();
+				} else {
+					return recursive_attacker_costs[op1->get_op_id()] > recursive_attacker_costs[op2->get_op_id()];
+				}
 			}
 		}myobject(recursive_attacker_costs);
 
