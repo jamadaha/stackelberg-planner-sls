@@ -45,7 +45,8 @@ private:
 	bool check_parent_attack_plan_applicable = true;
 	bool check_fix_state_already_known = true;
 	bool do_attack_op_dom_pruning = true;
-	bool sort_attack_ops = true;
+	bool sort_fix_ops_stupid = false;
+	bool sort_fix_ops_advanced = true;
 
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
@@ -118,7 +119,7 @@ protected:
     void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
     void prune_applicable_fix_ops_sss (const GlobalState &state, const std::vector<int> &attack_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
     void prune_dominated_ops(std::vector<const GlobalOperator*> &ops, std::vector<std::vector<int>> dominated_op_ids);
-    int expand_all_successors(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
+    int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
     void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence);

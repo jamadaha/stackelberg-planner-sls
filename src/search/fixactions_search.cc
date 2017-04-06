@@ -53,6 +53,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
         opts.get<bool>("check_parent_attack_plan_applicable");
     check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
     do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
+    sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
 }
 
 FixActionsSearch::~FixActionsSearch()
@@ -117,7 +118,7 @@ void FixActionsSearch::initialize()
                                      attack_operators.begin(), attack_operators.end());
     g_attack_op_included.resize(attack_operators.size(), true);
 
-	if (sort_attack_ops && use_partial_order_reduction) {
+	if (sort_fix_ops_stupid && use_partial_order_reduction) {
 		delrax_search::DelRaxSearch *delrax_search = (delrax_search::DelRaxSearch*) search_engine;
 		delrax_search->initialize();
 		sortFixActionsByAttackerReward = new SortFixActionsByAttackerReward(delrax_search->get_positive_values(),
@@ -846,7 +847,7 @@ bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
     return op1->get_name() < op2->get_name();
 }
 
-int FixActionsSearch::expand_all_successors(const GlobalState &state,
+int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         vector<const GlobalOperator *> &fix_ops_sequence, int fix_actions_cost,
         const vector<int> &parent_attack_plan, int parent_attack_plan_cost,
         vector<int> &sleep, bool recurse)
@@ -1062,13 +1063,6 @@ int FixActionsSearch::expand_all_successors(const GlobalState &state,
     fix_operators_successor_generator->generate_applicable_ops(state,
             applicable_ops);
 
-
-    /*if(sortFixActionsByAttackerReward != NULL) {
-    	cout << "Sort fix ops!" << endl;
-    	sortFixActionsByAttackerReward->sort_fix_ops(applicable_ops);
-    	cout << "After sorting fix ops" << endl;
-    }*/
-
     //sort(applicable_ops.begin(), applicable_ops.end(), op_ptr_name_comp);
 
     /*cout << "applicable ops: " << endl;
@@ -1090,21 +1084,29 @@ int FixActionsSearch::expand_all_successors(const GlobalState &state,
     	applicable_ops_after_pruning[op_no]->dump();
     }*/
 
-    vector<int> recursive_attacker_costs(fix_operators.size(), NO_ATTACKER_COST);
+    if(sortFixActionsByAttackerReward != NULL) {
+    	cout << "Sort fix ops!" << endl;
+    	sortFixActionsByAttackerReward->sort_fix_ops(applicable_ops);
+    	cout << "After sorting fix ops" << endl;
+    }
 
-    iterate_applicable_ops(applicable_ops_after_pruning, state, parent_attack_plan_applicable ? parent_attack_plan : attack_plan,
-			attack_plan_cost, fix_ops_sequence, sleep, attack_heuristic_search_space, false, recursive_attacker_costs);
+	if (sort_fix_ops_advanced) {
+		vector<int> recursive_attacker_costs(fix_operators.size(), NO_ATTACKER_COST);
 
-	struct myComp {
-		const vector<int> &recursive_attacker_costs;
-		myComp (const vector<int> &_recursive_attacker_costs):
+		iterate_applicable_ops(applicable_ops_after_pruning, state, parent_attack_plan_applicable ? parent_attack_plan : attack_plan,
+				attack_plan_cost, fix_ops_sequence, sleep, attack_heuristic_search_space, false, recursive_attacker_costs);
+
+		struct myComp {
+			const vector<int> &recursive_attacker_costs;
+			myComp (const vector<int> &_recursive_attacker_costs):
 			recursive_attacker_costs(_recursive_attacker_costs) {}
-		bool operator() (const GlobalOperator *op1, const GlobalOperator *op2) {
-		  return recursive_attacker_costs[op1->get_op_id()] > recursive_attacker_costs[op2->get_op_id()];
-	  }
-	} myobject(recursive_attacker_costs);
+			bool operator() (const GlobalOperator *op1, const GlobalOperator *op2) {
+				return recursive_attacker_costs[op1->get_op_id()] > recursive_attacker_costs[op2->get_op_id()];
+			}
+		}myobject(recursive_attacker_costs);
 
-	sort(applicable_ops_after_pruning.begin(), applicable_ops_after_pruning.end(), myobject);
+		sort(applicable_ops_after_pruning.begin(), applicable_ops_after_pruning.end(), myobject);
+	}
 
     vector<int> dummy;
 
@@ -1164,7 +1166,7 @@ void FixActionsSearch::iterate_applicable_ops(const vector<const GlobalOperator*
 			attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
 		}
 		at_least_one_recursion = true;
-		int attacker_cost = expand_all_successors(next_state, fix_ops_sequence, new_fix_actions_cost,
+		int attacker_cost = compute_pareto_frontier(next_state, fix_ops_sequence, new_fix_actions_cost,
 				attack_plan, attack_plan_cost, sleep, recurse);
 		if (!recurse) {
 			recursive_attacker_costs[op->get_op_id()] = attacker_cost;
@@ -1320,7 +1322,7 @@ SearchStatus FixActionsSearch::step()
     vector<int> sleep(fix_operators.size(), 0);
     chrono::high_resolution_clock::time_point t1 =
         chrono::high_resolution_clock::now();
-    expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce,
+    compute_pareto_frontier(fix_vars_state_registry->get_initial_state(), op_sequnce,
                           0, parent_attack_plan, 0, sleep, true);
     chrono::high_resolution_clock::time_point t2 =
         chrono::high_resolution_clock::now();
@@ -1383,6 +1385,8 @@ SearchEngine *_parse(OptionParser &parser)
                             "true");
     parser.add_option<bool>("attack_op_dom_pruning",
                             "use the attack operator dominance pruning", "true");
+    parser.add_option<bool>("sort_fix_ops",
+                            "When expanding fix state successors, first compute attacker cost in all successor states and then recurse in descending cost order.", "true");
     Options opts = parser.parse();
     if (!parser.dry_run()) {
         return new FixActionsSearch(opts);
