@@ -1,0 +1,183 @@
+
+#include "best_first_search.h"
+#include "second_order_task_preprocessing.h"
+#include "open_list_factory.h"
+
+#include "../state_registry.h"
+#include "../successor_generator.h"
+
+#include "../global_state.h"
+#include "../global_operator.h"
+
+#include "../option_parser.h"
+#include "../plugin.h"
+
+#include <limits>
+#include <string>
+#include <iostream>
+#include <cstdio>
+
+#define WORST_ATTACKER_VALUE std::numeric_limits<int>::max()
+
+namespace second_order_search
+{
+
+SORBestFirstSearch::SORBestFirstSearch(const Options &opts)
+    : SearchEngine(opts),
+      m_open_list(parse_open_list<StateID>(opts.get_enum("open_list"))),
+      m_inner_search(opts.get<SearchEngine*>("inner_search")),
+      m_pruning_method(opts.contains("pruning_method") ?
+                       opts.get<SuccessorPruningMethod *>("pruning_method") : NULL)
+{
+    m_g_limit = std::numeric_limits<int>::max();
+}
+
+void SORBestFirstSearch::initialize()
+{
+    preprocess_second_order_task();
+    std::cout << "Initializing second-order task best-first search ..."
+              << std::endl;
+    if (m_pruning_method != NULL) {
+        m_pruning_method->initialize();
+    }
+    GlobalState init = g_outer_initial_state();
+    SearchNode node = m_search_space[init];
+    node.open_initial();
+    m_open_list->push(node.get_info(), init.get_id());
+}
+
+void SORBestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
+{
+    typename ParetoFrontier::iterator it
+        = m_pareto_frontier.lower_bound(node.get_reward());
+
+    if ((it != m_pareto_frontier.end() && it->first == node.get_reward()
+            && it->second.first < node.get_g())
+            || (it != m_pareto_frontier.begin()
+                && ((--it)++)->second.first <= node.get_g())) {
+        return;
+    }
+
+    if (it != m_pareto_frontier.end() && it->first == node.get_reward()) {
+        if (it->second.first > node.get_g()) {
+            it->second.first = node.get_g();
+            it->second.second.clear();
+        }
+        it->second.second.push_back(node.get_state_id());
+    } else {
+        std::pair<int, std::vector<StateID> > &entry =
+            m_pareto_frontier[node.get_reward()];
+        entry.first = node.get_g();
+        entry.second.push_back(node.get_state_id());
+        it = m_pareto_frontier.lower_bound(node.get_reward());
+    }
+
+    assert(it != m_pareto_frontier.end());
+
+    it++;
+    while (it != m_pareto_frontier.end() && it->second.first >= node.get_g()) {
+        it = m_pareto_frontier.erase(it);
+    }
+}
+
+SearchStatus SORBestFirstSearch::step()
+{
+    if (m_open_list->empty()) {
+        return SOLVED;
+    }
+
+    GlobalState state = g_outer_state_registry->lookup_state(m_open_list->pop());
+    SearchNode node = m_search_space[state];
+    if (node.is_closed()) {
+        return IN_PROGRESS;
+    }
+    node.close();
+
+    // compute induced inner task
+    g_operators.clear();
+    g_outer_inner_successor_generator->generate_applicable_ops(state,
+            m_applicable_operators);
+    for (const GlobalOperator *op : m_applicable_operators) {
+        g_operators.push_back(*op);
+    }
+    m_applicable_operators.clear();
+    // TODO for mitit g_successor_generator is not required, and thus will not
+    // be constructed
+
+    // solve induced inner task:
+    streambuf *old = cout.rdbuf(); // <-- save
+    stringstream ss;
+    cout.rdbuf(ss.rdbuf());        // <-- redirect
+    m_inner_search->reset();
+    m_inner_search->search();
+    if (!m_inner_search->found_solution()) {
+        node.set_reward(WORST_ATTACKER_VALUE);
+        insert_into_pareto_frontier(node);
+        if (node.get_g() < m_g_limit) {
+            m_g_limit = node.get_g();
+        }
+        // everything from here on will be dominated
+        return IN_PROGRESS;
+    }
+    m_inner_search->save_plan_if_necessary();
+    cout.rdbuf(old);   			// <-- restore
+
+    node.set_reward(m_inner_search->calculate_plan_cost());
+    insert_into_pareto_frontier(node);
+
+    // generate outer successor states
+    g_outer_successor_generator->generate_applicable_ops(state,
+            m_applicable_operators);
+    if (m_pruning_method != NULL) {
+        m_pruning_method->prune_successors(state, g_plan, m_applicable_operators);
+    }
+    for (unsigned i = 0; i < m_applicable_operators.size(); i++) {
+        int succ_g = node.get_g() + get_adjusted_cost(*m_applicable_operators[i]);
+        if (succ_g >= m_g_limit) {
+            continue;
+        }
+        GlobalState succ = g_outer_state_registry->get_successor_state(state,
+                           *m_applicable_operators[i]);
+        SearchNode succ_node = m_search_space[succ];
+        succ_node.set_reward(node.get_reward());
+        if (succ_node.is_new()
+                || (succ_node.is_open() && succ_g < succ_node.get_g())) {
+            succ_node.open(state.get_id(), m_applicable_operators[i], succ_g);
+            m_open_list->push(succ_node.get_info(), succ.get_id());
+        }
+    }
+
+    return IN_PROGRESS;
+}
+
+void SORBestFirstSearch::save_plan_if_necessary() const
+{
+}
+
+void SORBestFirstSearch::add_options_to_parser(OptionParser &parser)
+{
+    parser.add_option<SearchEngine *>("inner_search", "", "delrax");
+
+    std::vector<std::string> open_lists;
+    get_open_list_options(open_lists);
+    parser.add_enum_option("open_list", open_lists, "", open_lists.front());
+
+    parser.add_option<SuccessorPruningMethod *>("pruning_method", "", "",
+            OptionFlags(false));
+
+    SearchEngine::add_options_to_parser(parser);
+}
+
+}
+
+static SearchEngine *_parse(OptionParser &parser)
+{
+    second_order_search::SORBestFirstSearch::add_options_to_parser(parser);
+    Options opts = parser.parse();
+    if (!parser.dry_run()) {
+        return new second_order_search::SORBestFirstSearch(opts);
+    }
+    return NULL;
+}
+
+static Plugin<SearchEngine> _plugin("sotbfs", _parse);

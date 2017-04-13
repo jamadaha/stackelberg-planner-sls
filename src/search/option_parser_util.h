@@ -27,23 +27,31 @@ template<class Entry>
 class OpenList;
 class PruningMethod;
 
+namespace second_order_search
+{
+class SuccessorPruningMethod;
+}
 
 struct ParseNode {
     ParseNode()
         : value(""),
-          key("") {
+          key("")
+    {
     }
 
     ParseNode(std::string val, std::string k = "")
         : value(val),
-          key(k) {
+          key(k)
+    {
     }
     std::string value;
     std::string key;
 
-    friend std::ostream &operator<<(std::ostream &out, const ParseNode &pn) {
-        if (pn.key.compare("") != 0)
+    friend std::ostream &operator<<(std::ostream &out, const ParseNode &pn)
+    {
+        if (pn.key.compare("") != 0) {
             out << pn.key << " = ";
+        }
         out << pn.value;
         return out;
     }
@@ -56,7 +64,8 @@ struct ArgError {
 
     std::string msg;
 
-    friend std::ostream &operator<<(std::ostream &out, const ArgError &err) {
+    friend std::ostream &operator<<(std::ostream &out, const ArgError &err)
+    {
         return out << "argument error: " << err.msg;
     }
 };
@@ -69,9 +78,10 @@ struct ParseError {
     ParseTree parse_tree;
     std::string substr;
 
-    friend std::ostream &operator<<(std::ostream &out, const ParseError &pe) {
+    friend std::ostream &operator<<(std::ostream &out, const ParseError &pe)
+    {
         out << "parse error: " << std::endl
-        << pe.msg << " at: " << std::endl;
+            << pe.msg << " at: " << std::endl;
         kptree::print_tree_bracketed<ParseNode>(pe.parse_tree, out);
         if (pe.substr.size() > 0) {
             out << " (cannot continue parsing after \"" << pe.substr << "\")" << std::endl;
@@ -83,34 +93,40 @@ struct ParseError {
 
 //a registry<T> maps a string to a T-factory
 template <class T>
-class Registry {
+class Registry
+{
 public:
-    typedef T (*Factory)(OptionParser &);
-    static Registry<T> *instance() {
+    typedef T(*Factory)(OptionParser &);
+    static Registry<T> *instance()
+    {
         if (!instance_) {
             instance_ = new Registry<T>();
         }
         return instance_;
     }
 
-    void register_object(std::string k, Factory f) {
+    void register_object(std::string k, Factory f)
+    {
         transform(k.begin(), k.end(), k.begin(), ::tolower); //k to lowercase
         registered[k] = f;
     }
 
-    bool contains(std::string k) {
+    bool contains(std::string k)
+    {
         return registered.find(k) != registered.end();
     }
 
-    Factory get(std::string k) {
+    Factory get(std::string k)
+    {
         return registered[k];
     }
 
-    std::vector<std::string> get_keys() {
+    std::vector<std::string> get_keys()
+    {
         std::vector<std::string> keys;
         for (typename std::map<std::string, Factory>::iterator it =
-                 registered.begin();
-             it != registered.end(); ++it) {
+                    registered.begin();
+                it != registered.end(); ++it) {
             keys.push_back(it->first);
         }
         return keys;
@@ -131,30 +147,36 @@ Registry<T> *Registry<T>::instance_ = 0;
 //Predefinitions<T> maps strings to pointers to
 //already created Heuristics/LandmarkGraphs
 template <class T>
-class Predefinitions {
+class Predefinitions
+{
 public:
-    static Predefinitions<T> *instance() {
+    static Predefinitions<T> *instance()
+    {
         if (!instance_) {
             instance_ = new Predefinitions<T>();
         }
         return instance_;
     }
 
-    void predefine(std::string k, T obj) {
+    void predefine(std::string k, T obj)
+    {
         transform(k.begin(), k.end(), k.begin(), ::tolower);
         predefined[k] = obj;
     }
 
-    bool contains(std::string k) {
+    bool contains(std::string k)
+    {
         return predefined.find(k) != predefined.end();
     }
 
-    T get(std::string k) {
+    T get(std::string k)
+    {
         return predefined[k];
     }
 
 private:
-    Predefinitions<T>() {
+    Predefinitions<T>()
+    {
     }
     static Predefinitions<T> *instance_;
     std::map<std::string, T> predefined;
@@ -165,7 +187,8 @@ Predefinitions<T> *Predefinitions<T>::instance_ = 0;
 
 
 
-class Synergy {
+class Synergy
+{
 public:
     std::vector<Heuristic *> heuristics;
 };
@@ -175,112 +198,136 @@ public:
 
 template <class T>
 struct TypeNamer {
-    static std::string name() {
+    static std::string name()
+    {
         return typeid(T()).name();
     }
 };
 
 template <>
 struct TypeNamer<int> {
-    static std::string name() {
+    static std::string name()
+    {
         return "int";
     }
 };
 
 template <>
 struct TypeNamer<bool> {
-    static std::string name() {
+    static std::string name()
+    {
         return "bool";
     }
 };
 
 template <>
 struct TypeNamer<double> {
-    static std::string name() {
+    static std::string name()
+    {
         return "double";
     }
 };
 
 template <>
 struct TypeNamer<std::string> {
-    static std::string name() {
+    static std::string name()
+    {
         return "string";
     }
 };
 
 template <>
 struct TypeNamer<Heuristic *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "Heuristic";
     }
 };
 
 template <>
 struct TypeNamer<LandmarkGraph *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "LandmarkGraph";
     }
 };
 
 template <>
 struct TypeNamer<ScalarEvaluator *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "ScalarEvaluator";
     }
 };
 
 template <>
 struct TypeNamer<SearchEngine *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "SearchEngine";
     }
 };
 
 template <>
 struct TypeNamer<ParseTree> {
-    static std::string name() {
+    static std::string name()
+    {
         return "ParseTree (this just means the input is parsed at a later point. The real type is probably a search engine.)";
     }
 };
 
 template <>
 struct TypeNamer<Synergy *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "Synergy";
     }
 };
 
 template <>
 struct TypeNamer<MergeStrategy *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "MergeStrategy";
     }
 };
 
 template <>
 struct TypeNamer<PruningMethod *> {
-    static std::string name() {
+    static std::string name()
+    {
+        return "PruningMethod";
+    }
+};
+
+template <>
+struct TypeNamer<second_order_search::SuccessorPruningMethod *> {
+    static std::string name()
+    {
         return "PruningMethod";
     }
 };
 
 template <>
 struct TypeNamer<ShrinkStrategy *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "ShrinkStrategy";
     }
 };
 
 template <class Entry>
 struct TypeNamer<OpenList<Entry> *> {
-    static std::string name() {
+    static std::string name()
+    {
         return "OpenList";
     }
 };
 
 template <class T>
 struct TypeNamer<std::vector<T> > {
-    static std::string name() {
+    static std::string name()
+    {
         return "list of " + TypeNamer<T>::name();
     }
 };
@@ -290,14 +337,16 @@ struct TypeNamer<std::vector<T> > {
 
 template <class T>
 struct TypeDocumenter {
-    static std::string synopsis() {
+    static std::string synopsis()
+    {
         return "";
     }
 };
 
 template <>
 struct TypeDocumenter<Heuristic *> {
-    static std::string synopsis() {
+    static std::string synopsis()
+    {
         return "A heuristic specification is either a newly created heuristic "
                "instance or a heuristic that has been defined previously. "
                "This page describes how one can specify a new heuristic instance. "
@@ -315,7 +364,8 @@ struct TypeDocumenter<Heuristic *> {
 
 template <>
 struct TypeDocumenter<LandmarkGraph *> {
-    static std::string synopsis() {
+    static std::string synopsis()
+    {
         return "A landmark graph specification is either a newly created "
                "instance or a landmark graph that has been defined previously. "
                "This page describes how one can specify a new landmark graph instance. "
@@ -326,7 +376,8 @@ struct TypeDocumenter<LandmarkGraph *> {
 
 template <>
 struct TypeDocumenter<ScalarEvaluator *> {
-    static std::string synopsis() {
+    static std::string synopsis()
+    {
         return "XXX TODO: description of the role of scalar evaluators and the connection to Heuristic";
     }
 };
@@ -336,34 +387,40 @@ struct TypeDocumenter<ScalarEvaluator *> {
 
 template<class T>
 typename tree<T>::sibling_iterator last_child(
-    const tree<T> &tr, typename tree<T>::sibling_iterator ti) {
+    const tree<T> &tr, typename tree<T>::sibling_iterator ti)
+{
     return --tr.end(ti);
 }
 
 template<class T>
-typename tree<T>::sibling_iterator last_child_of_root(const tree<T> &tr) {
+typename tree<T>::sibling_iterator last_child_of_root(const tree<T> &tr)
+{
     return last_child(tr, tr.begin());
 }
 
 template<class T>
 typename tree<T>::sibling_iterator first_child(
-    const tree<T> &tr, typename tree<T>::sibling_iterator ti) {
+    const tree<T> &tr, typename tree<T>::sibling_iterator ti)
+{
     return tr.begin(ti);
 }
 
 template<class T>
-typename tree<T>::sibling_iterator first_child_of_root(const tree<T> &tr) {
+typename tree<T>::sibling_iterator first_child_of_root(const tree<T> &tr)
+{
     return first_child(tr, tr.begin());
 }
 
 template<class T>
-typename tree<T>::sibling_iterator end_of_roots_children(const tree<T> &tr) {
+typename tree<T>::sibling_iterator end_of_roots_children(const tree<T> &tr)
+{
     return tr.end(tr.begin());
 }
 
 template<class T>
 tree<T> subtree(
-    const tree<T> &tr, typename tree<T>::sibling_iterator ti) {
+    const tree<T> &tr, typename tree<T>::sibling_iterator ti)
+{
     typename tree<T>::sibling_iterator ti_next = ti;
     ++ti_next;
     return tr.subtree(ti, ti_next);
@@ -371,25 +428,30 @@ tree<T> subtree(
 
 
 //Options is just a wrapper for map<string, boost::any>
-class Options {
+class Options
+{
 public:
     Options(bool hm = false)
-        : help_mode(hm) {
+        : help_mode(hm)
+    {
     }
 
-    void set_help_mode(bool hm) {
+    void set_help_mode(bool hm)
+    {
         help_mode = hm;
     }
 
     std::map<std::string, boost::any> storage;
 
     template <class T>
-    void set(std::string key, T value) {
+    void set(std::string key, T value)
+    {
         storage[key] = value;
     }
 
     template <class T>
-    T get(std::string key) const {
+    T get(std::string key) const
+    {
         std::map<std::string, boost::any>::const_iterator it;
         it = storage.find(key);
         if (it == storage.end()) {
@@ -411,7 +473,8 @@ public:
     }
 
     template <class T>
-    void verify_list_non_empty(std::string key) const {
+    void verify_list_non_empty(std::string key) const
+    {
         if (!help_mode) {
             std::vector<T> temp_vec = get<std::vector<T> >(key);
             if (temp_vec.empty()) {
@@ -425,15 +488,18 @@ public:
     }
 
     template <class T>
-    std::vector<T> get_list(std::string key) const {
+    std::vector<T> get_list(std::string key) const
+    {
         return get<std::vector<T> >(key);
     }
 
-    int get_enum(std::string key) const {
+    int get_enum(std::string key) const
+    {
         return get<int>(key);
     }
 
-    bool contains(std::string key) const {
+    bool contains(std::string key) const
+    {
         return storage.find(key) != storage.end();
     }
 private:
@@ -443,7 +509,8 @@ private:
 //TODO: get rid of OptionFlags, instead use default_value = "None" ?
 struct OptionFlags {
     explicit OptionFlags(bool mand = true)
-        : mandatory(mand) {
+        : mandatory(mand)
+    {
     }
     bool mandatory;
 };
@@ -458,7 +525,8 @@ struct ArgumentInfo {
           type_name(t_n),
           default_value(def_val),
           mandatory(mand),
-          value_explanations(val_expl) {
+          value_explanations(val_expl)
+    {
     }
     std::string kwd;
     std::string help;
@@ -471,7 +539,8 @@ struct ArgumentInfo {
 struct PropertyInfo {
     PropertyInfo(std::string prop, std::string descr)
         : property(prop),
-          description(descr) {
+          description(descr)
+    {
     }
     std::string property;
     std::string description;
@@ -481,7 +550,8 @@ struct NoteInfo {
     NoteInfo(std::string n, std::string descr, bool long_text_)
         : name(n),
           description(descr),
-          long_text(long_text_) {
+          long_text(long_text_)
+    {
     }
     std::string name;
     std::string description;
@@ -492,7 +562,8 @@ struct NoteInfo {
 struct LanguageSupportInfo {
     LanguageSupportInfo(std::string feat, std::string descr)
         : feature(feat),
-          description(descr) {
+          description(descr)
+    {
     }
     std::string feature;
     std::string description;
@@ -511,9 +582,11 @@ struct DocStruct {
 };
 
 //stores documentation for types parsed in help mode
-class DocStore {
+class DocStore
+{
 public:
-    static DocStore *instance() {
+    static DocStore *instance()
+    {
         if (!instance_) {
             instance_ = new DocStore();
         }
@@ -553,7 +626,8 @@ private:
     std::map<std::string, DocStruct> registered;
 };
 
-class DocPrinter {
+class DocPrinter
+{
 public:
     DocPrinter(std::ostream &out);
     virtual ~DocPrinter();
@@ -573,7 +647,8 @@ protected:
     virtual void print_category_footer() = 0;
 };
 
-class Txt2TagsPrinter : public DocPrinter {
+class Txt2TagsPrinter : public DocPrinter
+{
 public:
     Txt2TagsPrinter(std::ostream &out);
     virtual ~Txt2TagsPrinter();
@@ -588,7 +663,8 @@ protected:
     virtual void print_category_footer();
 };
 
-class PlainPrinter : public DocPrinter {
+class PlainPrinter : public DocPrinter
+{
 public:
     PlainPrinter(std::ostream &out, bool print_all = false);
     virtual ~PlainPrinter();
