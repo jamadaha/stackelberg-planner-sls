@@ -150,7 +150,7 @@ SearchStatus SORBestFirstSearch::step()
     m_stat_generated += m_applicable_operators.size();
     for (unsigned i = 0; i < m_applicable_operators.size(); i++) {
         int succ_g = node.get_g() + get_adjusted_cost(*m_applicable_operators[i]);
-        if (succ_g >= m_g_limit) {
+        if (succ_g > m_g_limit) {
             continue;
         }
         GlobalState succ = g_outer_state_registry->get_successor_state(state,
