@@ -12,6 +12,9 @@
 #include "../option_parser.h"
 #include "../plugin.h"
 
+#include "../globals.h"
+#include "../timer.h"
+
 #include <limits>
 #include <string>
 #include <iostream>
@@ -30,6 +33,14 @@ SORBestFirstSearch::SORBestFirstSearch(const Options &opts)
                        opts.get<SuccessorPruningMethod *>("pruning_method") : NULL)
 {
     m_g_limit = std::numeric_limits<int>::max();
+
+    m_stat_open = 0;
+    m_stat_expanded = 0;
+    m_stat_generated = 1;
+    m_stat_pruned_successors = 0;
+
+    m_stat_last_printed_states = 0;
+    m_stat_last_printed_pareto = 0;
 }
 
 void SORBestFirstSearch::initialize()
@@ -93,6 +104,9 @@ SearchStatus SORBestFirstSearch::step()
     }
     node.close();
 
+    m_stat_expanded++;
+    m_stat_open--;
+
     // compute induced inner task
     g_operators.clear();
     g_outer_inner_successor_generator->generate_applicable_ops(state,
@@ -128,9 +142,12 @@ SearchStatus SORBestFirstSearch::step()
     // generate outer successor states
     g_outer_successor_generator->generate_applicable_ops(state,
             m_applicable_operators);
+    m_stat_pruned_successors += m_applicable_operators.size();
     if (m_pruning_method != NULL) {
         m_pruning_method->prune_successors(state, g_plan, m_applicable_operators);
     }
+    m_stat_pruned_successors -= m_applicable_operators.size();
+    m_stat_generated += m_applicable_operators.size();
     for (unsigned i = 0; i < m_applicable_operators.size(); i++) {
         int succ_g = node.get_g() + get_adjusted_cost(*m_applicable_operators[i]);
         if (succ_g >= m_g_limit) {
@@ -142,16 +159,52 @@ SearchStatus SORBestFirstSearch::step()
         succ_node.set_reward(node.get_reward());
         if (succ_node.is_new()
                 || (succ_node.is_open() && succ_g < succ_node.get_g())) {
+            if (succ_node.is_new()) {
+                m_stat_open++;
+            }
             succ_node.open(state.get_id(), m_applicable_operators[i], succ_g);
             m_open_list->push(succ_node.get_info(), succ.get_id());
         }
     }
+    m_applicable_operators.clear();
+
+    print_statistic_line();
 
     return IN_PROGRESS;
 }
 
 void SORBestFirstSearch::save_plan_if_necessary() const
 {
+}
+
+void SORBestFirstSearch::print_statistic_line()
+{
+    if (m_stat_last_printed_states * 2 >= m_stat_expanded
+            || m_stat_last_printed_pareto != m_pareto_frontier.size()) {
+        m_stat_last_printed_pareto = m_stat_expanded;
+        m_stat_last_printed_pareto = m_pareto_frontier.size();
+        if (!m_pareto_frontier.empty()) {
+            printf("[P=%zu {(%d, %d)..(%d, %d)}, expanded=%zu, open=%zu, pruned=%zu, maxg=%d, t=%.3fs]\n",
+                   m_pareto_frontier.size(),
+                   m_pareto_frontier.begin()->first,
+                   m_pareto_frontier.begin()->second.first,
+                   m_pareto_frontier.rbegin()->first,
+                   m_pareto_frontier.rbegin()->second.first,
+                   m_stat_expanded,
+                   m_stat_open,
+                   m_stat_pruned_successors,
+                   m_g_limit,
+                   g_timer());
+        } else {
+            printf("[P=%zu, expanded=%zu, open=%zu, pruned=%zu, maxg=%d, t=%.3fs]\n",
+                   m_pareto_frontier.size(),
+                   m_stat_expanded,
+                   m_stat_open,
+                   m_stat_pruned_successors,
+                   m_g_limit,
+                   g_timer());
+        }
+    }
 }
 
 void SORBestFirstSearch::add_options_to_parser(OptionParser &parser)

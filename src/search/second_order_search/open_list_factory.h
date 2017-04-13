@@ -32,6 +32,14 @@ struct GetGRFromNode {
     std::pair<int, int> operator()(const SearchNodeInfo &info) const;
 };
 
+struct CompareGR {
+    bool operator()(const std::pair<int, int> &x,
+                    const std::pair<int, int> &y) const
+    {
+        return x.first < y.first || (x.first == y.first && x.second > y.second);
+    }
+};
+
 template<typename Value>
 OpenList<Value> *parse_open_list(int open_list)
 {
@@ -41,7 +49,7 @@ OpenList<Value> *parse_open_list(int open_list)
             new BestFirstOpenList<int, Value, std::less<int>, GetGFromNode>();
     case BGRF:
         return
-            new BestFirstOpenList<std::pair<int, int>, Value, std::less<std::pair<int, int> >, GetGRFromNode>();
+            new BestFirstOpenList<std::pair<int, int>, Value, CompareGR, GetGRFromNode>();
     }
     return NULL;
 }

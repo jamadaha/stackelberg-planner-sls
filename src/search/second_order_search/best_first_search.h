@@ -27,6 +27,17 @@ class SORBestFirstSearch : public SearchEngine
 {
     typedef std::map<int, std::pair<int, std::vector<StateID> >, std::greater<int> >
     ParetoFrontier;
+
+    size_t m_stat_last_printed_states;
+    size_t m_stat_last_printed_pareto;
+
+    size_t m_stat_open;
+    size_t m_stat_expanded;
+    size_t m_stat_generated;
+    size_t m_stat_pruned_successors;
+
+    void print_statistic_line();
+
 protected:
     int m_g_limit;
 

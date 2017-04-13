@@ -10,9 +10,9 @@ namespace second_order_search
 
 struct SearchNodeInfo {
     enum {NEW = 0, OPEN = 1, CLOSED = 2};
-    unsigned status : 2;
-    unsigned g : 31;
-    unsigned r : 31;
+    unsigned status;
+    unsigned g;
+    unsigned r;
 
     StateID parent;
     const GlobalOperator *op;
