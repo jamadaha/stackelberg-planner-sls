@@ -16,7 +16,7 @@ class StrongStubbornSet : public SuccessorPruningMethod
     std::vector<std::vector<unsigned> > m_operator_negated_by;
     std::vector<bool> m_is_applicable;
 public:
-    virtual void initialize();
+    virtual void initialize() override;
     virtual void prune_successors(const GlobalState &state,
                                   const std::vector<const GlobalOperator *> &inner_plan,
                                   std::vector<const GlobalOperator *> &aops) override;

@@ -179,9 +179,9 @@ void SORBestFirstSearch::save_plan_if_necessary() const
 
 void SORBestFirstSearch::print_statistic_line()
 {
-    if (m_stat_last_printed_states * 2 >= m_stat_expanded
+    if (m_stat_last_printed_states * 2 <= m_stat_expanded
             || m_stat_last_printed_pareto != m_pareto_frontier.size()) {
-        m_stat_last_printed_pareto = m_stat_expanded;
+        m_stat_last_printed_states = m_stat_expanded;
         m_stat_last_printed_pareto = m_pareto_frontier.size();
         if (!m_pareto_frontier.empty()) {
             printf("[P=%zu {(%d, %d)..(%d, %d)}, expanded=%zu, open=%zu, pruned=%zu, maxg=%d, t=%.3fs]\n",

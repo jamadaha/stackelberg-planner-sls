@@ -4,8 +4,6 @@
 class GlobalState;
 class GlobalOperator;
 
-#include "search_space.h"
-
 #include <vector>
 
 namespace second_order_search
@@ -13,10 +11,7 @@ namespace second_order_search
 
 class SuccessorPruningMethod
 {
-protected:
-    SearchSpace &m_search_space;
 public:
-    SuccessorPruningMethod(SearchSpace &search_space);
     virtual void initialize() {}
     virtual void prune_successors(const GlobalState &state,
                                   const std::vector<const GlobalOperator *> &inner_plan,

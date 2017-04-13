@@ -81,3 +81,14 @@ void StrongStubbornSet::prune_successors(const GlobalState &,
 }
 
 }
+
+static second_order_search::SuccessorPruningMethod *_parse(OptionParser &parser)
+{
+    if (!parser.dry_run()) {
+        return new second_order_search::StrongStubbornSet;
+    }
+    return NULL;
+}
+
+static Plugin<second_order_search::SuccessorPruningMethod> _plugin("sots3",
+        _parse);
