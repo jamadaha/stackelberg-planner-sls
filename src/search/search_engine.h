@@ -21,9 +21,9 @@ public:
     typedef std::vector<const GlobalOperator *> Plan;
 private:
     SearchStatus status;
-    bool solution_found;
     Plan plan;
 protected:
+    bool solution_found;
     SearchSpace search_space;
     SearchProgress search_progress;
     int bound;

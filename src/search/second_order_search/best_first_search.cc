@@ -20,7 +20,7 @@
 #include <iostream>
 #include <cstdio>
 
-#define WORST_ATTACKER_VALUE std::numeric_limits<int>::max()
+#define WORST_ATTACKER_REWARD std::numeric_limits<int>::max()
 
 namespace second_order_search
 {
@@ -46,7 +46,7 @@ SORBestFirstSearch::SORBestFirstSearch(const Options &opts)
 void SORBestFirstSearch::initialize()
 {
     preprocess_second_order_task();
-    std::cout << "Initializing second-order task best-first search ..."
+    std::cout << "Initializing 2OT best-first search ..."
               << std::endl;
     if (m_pruning_method != NULL) {
         m_pruning_method->initialize();
@@ -94,6 +94,7 @@ void SORBestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
 SearchStatus SORBestFirstSearch::step()
 {
     if (m_open_list->empty()) {
+        solution_found = true;
         return SOLVED;
     }
 
@@ -102,10 +103,20 @@ SearchStatus SORBestFirstSearch::step()
     if (node.is_closed()) {
         return IN_PROGRESS;
     }
+
     node.close();
+    m_stat_open--;
+
+    // m_g_limit might have been updated since state was added to open
+    if (node.get_g() > m_g_limit) {
+        return IN_PROGRESS;
+    }
 
     m_stat_expanded++;
-    m_stat_open--;
+
+    // NOTE in mitit the parent attack plan is not applicable in the child state
+    // if S3 pruning is enabled; thus the check for applicable attack plans is
+    // not implemented here
 
     // compute induced inner task
     g_operators.clear();
@@ -115,7 +126,7 @@ SearchStatus SORBestFirstSearch::step()
         g_operators.push_back(*op);
     }
     m_applicable_operators.clear();
-    // TODO for mitit g_successor_generator is not required, and thus will not
+    // NOTE for mitit g_successor_generator is not required, and thus will not
     // be constructed
 
     // solve induced inner task:
@@ -126,7 +137,7 @@ SearchStatus SORBestFirstSearch::step()
     m_inner_search->search();
     if (!m_inner_search->found_solution()) {
         cout.rdbuf(old);   			// <-- restore
-        node.set_reward(WORST_ATTACKER_VALUE);
+        node.set_reward(WORST_ATTACKER_REWARD);
         insert_into_pareto_frontier(node);
         if (node.get_g() < m_g_limit) {
             m_g_limit = node.get_g();
@@ -182,16 +193,11 @@ SearchStatus SORBestFirstSearch::step()
 
 void SORBestFirstSearch::save_plan_if_necessary()
 {
-    std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
-              std::endl;
-    std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
-    std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
-    std::cout << "(2OT) pruned successors: " << m_stat_pruned_successors <<
-              std::endl;
     std::cout << "(2OT) Pareto frontier contains " << m_pareto_frontier.size() <<
               " groups" << std::endl;
     std::cout << "---begin-pareto-frontier---" << std::endl;
     unsigned num = 1;
+    size_t num_states = 0;
     for (typename ParetoFrontier::reverse_iterator it = m_pareto_frontier.rbegin();
             it != m_pareto_frontier.rend();
             it++) {
@@ -202,10 +208,18 @@ void SORBestFirstSearch::save_plan_if_necessary()
         size_t counter = 1;
         for (unsigned i = 0; i < it->second.second.size(); i++) {
             m_search_space.print_backtrace(it->second.second[i], counter);
+            num_states++;
         }
         num++;
     }
     std::cout << "---end-pareto-frontier---" << std::endl;
+    std::cout << "(2OT) state(s) in Pareto frontier: " << num_states << std::endl;
+    std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
+              std::endl;
+    std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
+    std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
+    std::cout << "(2OT) pruned successors: " << m_stat_pruned_successors <<
+              std::endl;
 }
 
 void SORBestFirstSearch::print_statistic_line()
@@ -259,4 +273,4 @@ static SearchEngine *_parse(OptionParser &parser)
     return NULL;
 }
 
-static Plugin<SearchEngine> _plugin("sotbfs", _parse);
+static Plugin<SearchEngine> _plugin("2otbfs", _parse);

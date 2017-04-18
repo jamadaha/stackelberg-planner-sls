@@ -121,7 +121,7 @@ void SearchSpace::print_backtrace(const SearchNode &node,
 #ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
     if (node.get_parents().empty()) {
 #else
-    if (node.get_parent_operator() == NULL) {
+    if (node.get_parent_state_id() == StateID::no_state) {
 #endif
         std::cout << "        " << "---sequence-" << counter << "---" << std::endl;
         if (labels.empty()) {

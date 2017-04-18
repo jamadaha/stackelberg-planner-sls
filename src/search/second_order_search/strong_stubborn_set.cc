@@ -10,13 +10,16 @@
 #include "../plugin.h"
 
 #include <algorithm>
+#include <iostream>
 
 namespace second_order_search
 {
 
 void StrongStubbornSet::initialize()
 {
-    m_is_applicable.resize(g_outer_operators.size());
+    std::cout << "Initializing 2OT SSS..." << std::endl;
+
+    m_is_relevant.resize(g_outer_operators.size());
     m_operator_negated_by.resize(g_inner_operators.size());
 
     std::vector<std::vector<std::vector<unsigned> > > fact_neg_by(
@@ -46,11 +49,11 @@ void StrongStubbornSet::initialize()
     }
 
     for (unsigned opi = 0; opi < g_inner_operator_outer_conditions.size(); opi++) {
-        std::fill(m_is_applicable.begin(), m_is_applicable.end(), false);
+        std::fill(m_is_relevant.begin(), m_is_relevant.end(), false);
         for (const auto &c : g_inner_operator_outer_conditions[opi]) {
             for (unsigned x : fact_neg_by[c.var][c.val]) {
-                if (!m_is_applicable[x]) {
-                    m_is_applicable[x] = true;
+                if (!m_is_relevant[x]) {
+                    m_is_relevant[x] = true;
                     m_operator_negated_by[opi].push_back(x);
                 }
             }
@@ -62,15 +65,15 @@ void StrongStubbornSet::prune_successors(const GlobalState &,
         const std::vector<const GlobalOperator *> &inner_plan,
         std::vector<const GlobalOperator *> &aops)
 {
-    std::fill(m_is_applicable.begin(), m_is_applicable.end(), false);
+    std::fill(m_is_relevant.begin(), m_is_relevant.end(), false);
     for (const GlobalOperator *op : inner_plan) {
         for (unsigned x : m_operator_negated_by[op->get_op_id()]) {
-            m_is_applicable[x] = true;
+            m_is_relevant[x] = true;
         }
     }
     unsigned j = 0;
     for (unsigned i = 0; i < aops.size(); i++) {
-        if (m_is_applicable[aops[i]->get_op_id()]) {
+        if (m_is_relevant[aops[i]->get_op_id()]) {
             if (i != j) {
                 aops[j] = aops[i];
             }
@@ -90,5 +93,5 @@ static second_order_search::SuccessorPruningMethod *_parse(OptionParser &parser)
     return NULL;
 }
 
-static Plugin<second_order_search::SuccessorPruningMethod> _plugin("sots3",
+static Plugin<second_order_search::SuccessorPruningMethod> _plugin("2ots3",
         _parse);
