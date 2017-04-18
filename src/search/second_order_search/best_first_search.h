@@ -36,6 +36,7 @@ class SORBestFirstSearch : public SearchEngine
     size_t m_stat_generated;
     size_t m_stat_pruned_successors;
 
+    void force_print_statistic_line() const;
     void print_statistic_line();
 
 protected:
@@ -56,7 +57,7 @@ protected:
     virtual SearchStatus step() override;
 public:
     SORBestFirstSearch(const Options &opts);
-    virtual void save_plan_if_necessary() const;
+    virtual void save_plan_if_necessary();
     static void add_options_to_parser(OptionParser &parser);
 };
 

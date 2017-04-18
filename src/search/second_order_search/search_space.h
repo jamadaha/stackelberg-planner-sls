@@ -7,6 +7,8 @@
 
 #include "../segmented_vector.h"
 
+#include <vector>
+
 namespace second_order_search
 {
 
@@ -32,7 +34,7 @@ public:
     int get_g() const;
     int get_reward() const;
 
-    StateID get_parent() const;
+    StateID get_parent_state_id() const;
     const GlobalOperator *get_parent_operator() const;
 
     void open_initial();
@@ -46,9 +48,13 @@ class SearchSpace
 {
 private:
     SegmentedVector<SearchNodeInfo> m_infos;
+    void print_backtrace(const SearchNode &node,
+                         std::vector<const GlobalOperator *> &labels,
+                         size_t &counter);
 public:
     SearchNode operator[](const StateID &state_id);
     SearchNode operator[](const GlobalState &state_id);
+    void print_backtrace(const StateID &start, size_t &counter);
 };
 
 }

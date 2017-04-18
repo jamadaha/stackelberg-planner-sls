@@ -1,6 +1,6 @@
 
 #include "strong_stubborn_set.h"
-#include "second_order_task_preprocessing.h"
+#include "globals.h"
 #include "../globals.h"
 
 #include "../global_state.h"

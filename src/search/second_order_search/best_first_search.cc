@@ -1,6 +1,6 @@
 
 #include "best_first_search.h"
-#include "second_order_task_preprocessing.h"
+#include "globals.h"
 #include "open_list_factory.h"
 
 #include "../state_registry.h"
@@ -125,6 +125,7 @@ SearchStatus SORBestFirstSearch::step()
     m_inner_search->reset();
     m_inner_search->search();
     if (!m_inner_search->found_solution()) {
+        cout.rdbuf(old);   			// <-- restore
         node.set_reward(WORST_ATTACKER_VALUE);
         insert_into_pareto_frontier(node);
         if (node.get_g() < m_g_limit) {
@@ -132,9 +133,10 @@ SearchStatus SORBestFirstSearch::step()
         }
         // everything from here on will be dominated
         return IN_PROGRESS;
+    } else {
+        m_inner_search->save_plan_if_necessary();
+        cout.rdbuf(old);   			// <-- restore
     }
-    m_inner_search->save_plan_if_necessary();
-    cout.rdbuf(old);   			// <-- restore
 
     node.set_reward(m_inner_search->calculate_plan_cost());
     insert_into_pareto_frontier(node);
@@ -173,8 +175,32 @@ SearchStatus SORBestFirstSearch::step()
     return IN_PROGRESS;
 }
 
-void SORBestFirstSearch::save_plan_if_necessary() const
+void SORBestFirstSearch::save_plan_if_necessary()
 {
+    std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
+              std::endl;
+    std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
+    std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
+    std::cout << "(2OT) pruned successors: " << m_stat_pruned_successors <<
+              std::endl;
+    std::cout << "(2OT) Pareto frontier contains " << m_pareto_frontier.size() <<
+              " groups" << std::endl;
+    std::cout << "---begin-pareto-frontier---" << std::endl;
+    unsigned num = 1;
+    for (typename ParetoFrontier::reverse_iterator it = m_pareto_frontier.rbegin();
+            it != m_pareto_frontier.rend();
+            it++) {
+        std::cout << "    ---group-" << num << "--- {"
+                  << "reward: " << it->first
+                  << ", cost: " << it->second.first
+                  << "}" << std::endl;
+        size_t counter = 1;
+        for (unsigned i = 0; i < it->second.second.size(); i++) {
+            m_search_space.print_backtrace(it->second.second[i], counter);
+        }
+        num++;
+    }
+    std::cout << "---end-pareto-frontier---" << std::endl;
 }
 
 void SORBestFirstSearch::print_statistic_line()
@@ -183,28 +209,23 @@ void SORBestFirstSearch::print_statistic_line()
             || m_stat_last_printed_pareto != m_pareto_frontier.size()) {
         m_stat_last_printed_states = m_stat_expanded;
         m_stat_last_printed_pareto = m_pareto_frontier.size();
-        if (!m_pareto_frontier.empty()) {
-            printf("[P=%zu {(%d, %d)..(%d, %d)}, expanded=%zu, open=%zu, pruned=%zu, maxg=%d, t=%.3fs]\n",
-                   m_pareto_frontier.size(),
-                   m_pareto_frontier.begin()->first,
-                   m_pareto_frontier.begin()->second.first,
-                   m_pareto_frontier.rbegin()->first,
-                   m_pareto_frontier.rbegin()->second.first,
-                   m_stat_expanded,
-                   m_stat_open,
-                   m_stat_pruned_successors,
-                   m_g_limit,
-                   g_timer());
-        } else {
-            printf("[P=%zu, expanded=%zu, open=%zu, pruned=%zu, maxg=%d, t=%.3fs]\n",
-                   m_pareto_frontier.size(),
-                   m_stat_expanded,
-                   m_stat_open,
-                   m_stat_pruned_successors,
-                   m_g_limit,
-                   g_timer());
-        }
+        force_print_statistic_line();
     }
+}
+
+void SORBestFirstSearch::force_print_statistic_line() const
+{
+    assert(!m_pareto_frontier.empty());
+    printf("[P={(%d, %d)..(%d, %d)} (%zu), expanded=%zu, open=%zu, pruned=%zu, t=%.3fs]\n",
+           m_pareto_frontier.begin()->first,
+           m_pareto_frontier.begin()->second.first,
+           m_pareto_frontier.rbegin()->first,
+           m_pareto_frontier.rbegin()->second.first,
+           m_pareto_frontier.size(),
+           m_stat_expanded,
+           m_stat_open,
+           m_stat_pruned_successors,
+           g_timer());
 }
 
 void SORBestFirstSearch::add_options_to_parser(OptionParser &parser)

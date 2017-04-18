@@ -1,6 +1,8 @@
 
 #include "search_space.h"
 
+#include <iostream>
+
 namespace second_order_search
 {
 
@@ -46,7 +48,7 @@ int SearchNode::get_reward() const
     return info.r;
 }
 
-StateID SearchNode::get_parent() const
+StateID SearchNode::get_parent_state_id() const
 {
     return info.parent;
 }
@@ -93,6 +95,33 @@ SearchNode SearchSpace::operator[](const StateID &state_id)
 SearchNode SearchSpace::operator[](const GlobalState &state)
 {
     return this->operator[](state.get_id());
+}
+
+void SearchSpace::print_backtrace(const SearchNode &node,
+                                  std::vector<const GlobalOperator *> &labels,
+                                  size_t &counter)
+{
+    if (node.get_parent_operator() == NULL) {
+        std::cout << "        " << "---sequence-" << counter << "---" << std::endl;
+        if (labels.empty()) {
+            std::cout << "            <empty-sequence>" << std::endl;
+        } else {
+            for (int i = labels.size() - 1; i >= 0; i--) {
+                std::cout << "            " << labels[i]->get_name() << std::endl;
+            }
+        }
+        counter++;
+    } else {
+        labels.push_back(node.get_parent_operator());
+        print_backtrace(this->operator[](node.get_parent_state_id()), labels, counter);
+        labels.pop_back();
+    }
+}
+
+void SearchSpace::print_backtrace(const StateID &start, size_t &counter)
+{
+    std::vector<const GlobalOperator *> labels;
+    print_backtrace(this->operator[](start), labels, counter);
 }
 
 }

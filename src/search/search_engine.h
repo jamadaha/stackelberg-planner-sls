@@ -44,7 +44,7 @@ public:
     virtual ~SearchEngine();
     virtual void statistics() const;
     virtual void heuristic_statistics() const {}
-    virtual void save_plan_if_necessary() const;
+    virtual void save_plan_if_necessary();
     bool found_solution() const;
     SearchStatus get_status() const;
     const Plan &get_plan() const;

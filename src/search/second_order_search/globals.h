@@ -1,5 +1,5 @@
-#ifndef SECOND_ORDER_TASK_PREPROCESSING_H
-#define SECOND_ORDER_TASK_PREPROCESSING_H
+#ifndef SECOND_ORDER_TASK_GLOBALS_H
+#define SECOND_ORDER_TASK_GLOBALS_H
 
 #include "../global_operator.h"
 #include "../successor_generator.h"

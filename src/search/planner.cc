@@ -12,7 +12,8 @@
 
 using namespace std;
 
-int main(int argc, const char **argv) {
+int main(int argc, const char **argv)
+{
     register_event_handlers();
 
     if (argc < 2) {
@@ -20,8 +21,9 @@ int main(int argc, const char **argv) {
         exit_with(EXIT_INPUT_ERROR);
     }
 
-    if (string(argv[1]).compare("--help") != 0)
+    if (string(argv[1]).compare("--help") != 0) {
         read_everything(cin);
+    }
 
     SearchEngine *engine = 0;
 
