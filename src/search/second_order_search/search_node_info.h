@@ -3,6 +3,11 @@
 
 #include "../state_id.h"
 
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+#include <utility>
+#include <vector>
+#endif
+
 class GlobalOperator;
 
 namespace second_order_search
@@ -14,9 +19,20 @@ struct SearchNodeInfo {
     unsigned g;
     unsigned r;
 
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+    std::vector<std::pair<const GlobalOperator *, StateID> > parents;
+#else
     StateID parent;
     const GlobalOperator *op;
+#endif
 
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+    SearchNodeInfo() :
+        status(NEW),
+        g(0),
+        r(0)
+    {}
+#else
     SearchNodeInfo() :
         status(NEW),
         g(0),
@@ -24,6 +40,7 @@ struct SearchNodeInfo {
         parent(StateID::no_state),
         op(NULL)
     {}
+#endif
 };
 
 }

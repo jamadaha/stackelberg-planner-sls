@@ -48,6 +48,18 @@ int SearchNode::get_reward() const
     return info.r;
 }
 
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+void SearchNode::add_parent(const GlobalOperator *op, const StateID &parent)
+{
+    info.parents.emplace_back(op, parent);
+}
+
+const std::vector<std::pair<const GlobalOperator *, StateID> > &
+SearchNode::get_parents() const
+{
+    return info.parents;
+}
+#else
 StateID SearchNode::get_parent_state_id() const
 {
     return info.parent;
@@ -57,20 +69,25 @@ const GlobalOperator *SearchNode::get_parent_operator() const
 {
     return info.op;
 }
+#endif
 
 void SearchNode::open_initial()
 {
     info.status = SearchNodeInfo::OPEN;
     info.g = 0;
-    info.op = NULL;
 }
 
 void SearchNode::open(const StateID &parent, const GlobalOperator *op, int g)
 {
     info.status = SearchNodeInfo::OPEN;
     info.g = g;
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+    info.parents.clear();
+    info.parents.emplace_back(op, parent);
+#else
     info.parent = parent;
     info.op = op;
+#endif
 }
 
 void SearchNode::close()
@@ -101,7 +118,11 @@ void SearchSpace::print_backtrace(const SearchNode &node,
                                   std::vector<const GlobalOperator *> &labels,
                                   size_t &counter)
 {
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+    if (node.get_parents().empty()) {
+#else
     if (node.get_parent_operator() == NULL) {
+#endif
         std::cout << "        " << "---sequence-" << counter << "---" << std::endl;
         if (labels.empty()) {
             std::cout << "            <empty-sequence>" << std::endl;
@@ -112,9 +133,17 @@ void SearchSpace::print_backtrace(const SearchNode &node,
         }
         counter++;
     } else {
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+        for (auto &x : node.get_parents()) {
+            labels.push_back(x.first);
+            print_backtrace(this->operator[](x.second), labels, counter);
+            labels.pop_back();
+        }
+#else
         labels.push_back(node.get_parent_operator());
         print_backtrace(this->operator[](node.get_parent_state_id()), labels, counter);
         labels.pop_back();
+#endif
     }
 }
 

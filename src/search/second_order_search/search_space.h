@@ -34,8 +34,14 @@ public:
     int get_g() const;
     int get_reward() const;
 
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+    const std::vector<std::pair<const GlobalOperator *, StateID> > &get_parents()
+    const;
+    void add_parent(const GlobalOperator *op, const StateID &parent);
+#else
     StateID get_parent_state_id() const;
     const GlobalOperator *get_parent_operator() const;
+#endif
 
     void open_initial();
     void open(const StateID &parent, const GlobalOperator *op, int g);

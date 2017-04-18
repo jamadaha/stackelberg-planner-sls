@@ -167,6 +167,11 @@ SearchStatus SORBestFirstSearch::step()
             succ_node.open(state.get_id(), m_applicable_operators[i], succ_g);
             m_open_list->push(succ_node.get_info(), succ.get_id());
         }
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+        else if (succ_node.get_g() == succ_g) {
+            succ_node.add_parent(m_applicable_operators[i], state.get_id());
+        }
+#endif
     }
     m_applicable_operators.clear();
 
