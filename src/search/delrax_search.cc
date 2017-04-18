@@ -39,43 +39,55 @@ bool is_task_delete_free()
             return false;
         }
     }
-    std::vector<int> first(g_variable_domain.size(), -1);
+    std::vector<int> dummyval(g_variable_domain.size(), -1);
+    std::vector<int> preconditioned(g_variable_domain.size(), 0);
     std::vector<bool> ineff(g_variable_domain.size());
     std::vector<bool> inpre(g_variable_domain.size());
     for (unsigned opi = 0; opi < g_operators.size(); opi++) {
         std::fill(ineff.begin(), ineff.end(), false);
         const GlobalOperator &op = g_operators[opi];
         for (const auto &e : op.get_effects()) {
-            if (first[e.var] == -1) {
-                first[e.var] = e.val == 0 ? 1 : 0;
+            if (dummyval[e.var] == -1) {
+                dummyval[e.var] = e.val == 0 ? 1 : 0;
             }
-            if (first[e.var] == e.val) {
-                std::cout << 1 << std::endl;
+            if (dummyval[e.var] == e.val) {
+                std::cerr << "e1: op adds dummy value" << std::endl;
                 return false;
             }
             ineff[e.var] = true;
         }
         std::fill(inpre.begin(), inpre.end(), false);
         for (const auto &p : op.get_preconditions()) {
-            if (first[p.var] == -1 && !ineff[p.var]) {
-                first[p.var] = p.val == 0 ? 1 : 0;
-            }
-            if (first[p.var] == p.val && !ineff[p.var]) {
-                std::cout << 2 << std::endl;
-                return false;
+            if (!ineff[p.var]) {
+                if (dummyval[p.var] == -1) {
+                    dummyval[p.var] = p.val == 0 ? 1 : 0;
+                } else if (dummyval[p.val] == p.val) {
+                    std::cerr << "e2: op has a dummy value in its precondition" << std::endl;
+                    return false;
+                }
             }
             inpre[p.var] = true;
+            if (p.val == dummyval[p.var]) {
+                if (preconditioned[p.var] == 2) {
+                    std::cerr << "e3.1" << std::endl;
+                    return false;
+                }
+                preconditioned[p.var] = 1;
+            }
         }
         for (const auto &e : op.get_effects()) {
             if (!inpre[e.var]) {
-                std::cout << 3 << std::endl;
-                return false;
+                if (preconditioned[e.var] == 1) {
+                    std::cerr << "e3.2" << std::endl;
+                    return false;
+                }
+                preconditioned[e.var] = 2;
             }
         }
     }
     // for (const auto &g : g_goal) {
-    //     if (first[g.first] == g.second) {
-    //         std::cout << 4 << std::endl;
+    //     if (dummyval[g.dummyval] == g.second) {
+    //         std::cerr << 4 << std::endl;
     //         return false;
     //     }
     // }

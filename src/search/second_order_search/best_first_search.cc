@@ -236,10 +236,10 @@ void SORBestFirstSearch::force_print_statistic_line() const
 {
     assert(!m_pareto_frontier.empty());
     printf("[P={(%d, %d)..(%d, %d)} (%zu), expanded=%zu, open=%zu, pruned=%zu, t=%.3fs]\n",
-           m_pareto_frontier.begin()->first,
            m_pareto_frontier.begin()->second.first,
-           m_pareto_frontier.rbegin()->first,
+           m_pareto_frontier.begin()->first,
            m_pareto_frontier.rbegin()->second.first,
+           m_pareto_frontier.rbegin()->first,
            m_pareto_frontier.size(),
            m_stat_expanded,
            m_stat_open,
