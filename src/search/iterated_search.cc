@@ -135,7 +135,7 @@ void IteratedSearch::statistics() const
     search_progress.print_statistics();
 }
 
-void IteratedSearch::save_plan_if_necessary() const
+void IteratedSearch::save_plan_if_necessary()
 {
     // Don't need to save here, as we automatically save after
     // each successful search iteration.

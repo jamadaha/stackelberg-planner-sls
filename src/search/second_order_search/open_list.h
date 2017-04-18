@@ -6,7 +6,7 @@
 namespace second_order_search
 {
 
-class SearchNodeInfo;
+struct SearchNodeInfo;
 
 template <typename Value>
 class OpenList

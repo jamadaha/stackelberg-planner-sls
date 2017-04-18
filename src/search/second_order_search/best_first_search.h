@@ -57,7 +57,7 @@ protected:
     virtual SearchStatus step() override;
 public:
     SORBestFirstSearch(const Options &opts);
-    virtual void save_plan_if_necessary();
+    virtual void save_plan_if_necessary() override;
     static void add_options_to_parser(OptionParser &parser);
 };
 

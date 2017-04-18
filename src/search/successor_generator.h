@@ -6,7 +6,7 @@
 
 class GlobalOperator;
 class GlobalState;
-class GlobalCondition;
+struct GlobalCondition;
 
 class SuccessorGenerator
 {

@@ -13,7 +13,7 @@
 namespace second_order_search
 {
 
-class SearchNodeInfo;
+struct SearchNodeInfo;
 
 enum OPEN_LIST {
     BGF = 0, // Best G First

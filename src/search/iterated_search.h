@@ -33,7 +33,7 @@ class IteratedSearch : public SearchEngine {
 public:
     IteratedSearch(const Options &opts);
     virtual ~IteratedSearch();
-    virtual void save_plan_if_necessary() const;
+    virtual void save_plan_if_necessary();
     void statistics() const;
 };
 
