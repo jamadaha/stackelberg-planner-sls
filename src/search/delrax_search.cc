@@ -187,7 +187,6 @@ void DelRaxSearch::initialize()
     m_closed.resize(g_variable_domain.size());
 
     initialized = true;
-    reset();
 }
 
 void DelRaxSearch::reset()

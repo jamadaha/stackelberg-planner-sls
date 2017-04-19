@@ -15,24 +15,28 @@
 #include "../globals.h"
 #include "../timer.h"
 
+#include "../int_packer.h"
+
 #include <limits>
 #include <string>
 #include <iostream>
 #include <cstdio>
 
-#define WORST_ATTACKER_REWARD std::numeric_limits<int>::max()
+#define MAX_REWARD std::numeric_limits<int>::max()
 
 namespace second_order_search
 {
 
 SORBestFirstSearch::SORBestFirstSearch(const Options &opts)
     : SearchEngine(opts),
+      c_precompute_max_reward(opts.get<bool>("precompute_max_reward")),
       m_open_list(parse_open_list<StateID>(opts.get_enum("open_list"))),
       m_inner_search(opts.get<SearchEngine*>("inner_search")),
       m_pruning_method(opts.contains("pruning_method") ?
                        opts.get<SuccessorPruningMethod *>("pruning_method") : NULL)
 {
     m_g_limit = std::numeric_limits<int>::max();
+    m_max_reward = MAX_REWARD;
 
     m_stat_open = 0;
     m_stat_expanded = 0;
@@ -54,7 +58,28 @@ void SORBestFirstSearch::initialize()
     GlobalState init = g_outer_initial_state();
     SearchNode node = m_search_space[init];
     node.open_initial();
+    // *HACK* computing reward here is only required to properly initialize
+    // the inner search and its components ...
+    node.set_reward(compute_reward(init));
     m_open_list->push(node.get_info(), init.get_id());
+
+    // computing worst-attacker reward
+    // *NOTE* this computation is correct only in the mitit case
+    if (c_precompute_max_reward) {
+        IntPacker temp_packer(g_outer_variable_domain);
+        PackedStateBin *buffer = new PackedStateBin[temp_packer.get_num_bins()];
+        for (const auto &op : g_outer_operators) {
+            for (const auto &e : op.get_effects()) {
+                temp_packer.set(buffer, e.var, e.val);
+            }
+        }
+        GlobalState best_state(buffer, NULL, StateID(std::numeric_limits<int>::max()),
+                               &temp_packer);
+        m_max_reward = compute_reward(best_state);
+        delete[] buffer;
+    }
+
+    std::cout << "Maximal possible reward is: " << m_max_reward << std::endl;
 }
 
 void SORBestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
@@ -91,6 +116,38 @@ void SORBestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
     }
 }
 
+int SORBestFirstSearch::compute_reward(const GlobalState &state)
+{
+    // clear previous plan
+    g_plan.clear();
+
+    // compute induced inner task
+    g_operators.clear();
+    g_outer_inner_successor_generator->generate_applicable_ops(state,
+            m_applicable_operators);
+    for (const GlobalOperator *op : m_applicable_operators) {
+        g_operators.push_back(*op);
+    }
+    m_applicable_operators.clear();
+    // NOTE for mitit g_successor_generator is not required, and is hence not
+    // constructed
+
+    // solve induced inner task:
+    // streambuf *old = cout.rdbuf(); // <-- save
+    // stringstream ss;
+    // cout.rdbuf(ss.rdbuf());        // <-- redirect
+    m_inner_search->reset();
+    m_inner_search->search();
+    if (!m_inner_search->found_solution()) {
+        // cout.rdbuf(old);   			// <-- restore
+        return MAX_REWARD;
+    } else {
+        m_inner_search->save_plan_if_necessary();
+        // cout.rdbuf(old);   			// <-- restore
+        return m_inner_search->calculate_plan_cost();
+    }
+}
+
 SearchStatus SORBestFirstSearch::step()
 {
     if (m_open_list->empty()) {
@@ -117,40 +174,15 @@ SearchStatus SORBestFirstSearch::step()
     // NOTE in mitit the parent attack plan is not applicable in the child state
     // if S3 pruning is enabled; thus the check for applicable attack plans is
     // not implemented here
-
-    // compute induced inner task
-    g_operators.clear();
-    g_outer_inner_successor_generator->generate_applicable_ops(state,
-            m_applicable_operators);
-    for (const GlobalOperator *op : m_applicable_operators) {
-        g_operators.push_back(*op);
-    }
-    m_applicable_operators.clear();
-    // NOTE for mitit g_successor_generator is not required, and thus will not
-    // be constructed
-
-    // solve induced inner task:
-    streambuf *old = cout.rdbuf(); // <-- save
-    stringstream ss;
-    cout.rdbuf(ss.rdbuf());        // <-- redirect
-    m_inner_search->reset();
-    m_inner_search->search();
-    if (!m_inner_search->found_solution()) {
-        cout.rdbuf(old);   			// <-- restore
-        node.set_reward(WORST_ATTACKER_REWARD);
-        insert_into_pareto_frontier(node);
+    node.set_reward(compute_reward(state));
+    insert_into_pareto_frontier(node);
+    if (node.get_reward() == m_max_reward) {
         if (node.get_g() < m_g_limit) {
             m_g_limit = node.get_g();
         }
         // everything from here on will be dominated
         return IN_PROGRESS;
-    } else {
-        m_inner_search->save_plan_if_necessary();
-        cout.rdbuf(old);   			// <-- restore
     }
-
-    node.set_reward(m_inner_search->calculate_plan_cost());
-    insert_into_pareto_frontier(node);
 
     // generate outer successor states
     g_outer_successor_generator->generate_applicable_ops(state,
@@ -257,6 +289,8 @@ void SORBestFirstSearch::add_options_to_parser(OptionParser &parser)
 
     parser.add_option<SuccessorPruningMethod *>("pruning_method", "", "",
             OptionFlags(false));
+
+    parser.add_option<bool>("precompute_max_reward", "", "true");
 
     SearchEngine::add_options_to_parser(parser);
 }

@@ -16,7 +16,8 @@ typedef IntPacker::Bin PackedStateBin;
 
 // For documentation on classes relevant to storing and working with registered
 // states see the file state_registry.h.
-class GlobalState {
+class GlobalState
+{
     friend class StateRegistry;
     template <class Entry>
     friend class PerStateInformation;
@@ -27,23 +28,26 @@ class GlobalState {
     StateID id;
     IntPacker *state_packer;
     // Only used by the state registry.
-    GlobalState(const PackedStateBin *buffer_, const StateRegistry &registry_,
-            StateID id_, IntPacker *_state_packer = g_state_packer);
 
-    const PackedStateBin *get_packed_buffer() const {
+    const PackedStateBin *get_packed_buffer() const
+    {
         return buffer;
     }
 
-    const StateRegistry &get_registry() const {
+    const StateRegistry &get_registry() const
+    {
         return *registry;
     }
 
     // No implementation to prevent default construction
     GlobalState();
 public:
+    GlobalState(const PackedStateBin *buffer_, const StateRegistry *registry_,
+                StateID id_, IntPacker *_state_packer = g_state_packer);
     ~GlobalState();
 
-    StateID get_id() const {
+    StateID get_id() const
+    {
         return id;
     }
 
@@ -51,8 +55,10 @@ public:
 
     void dump_pddl() const;
     void dump_fdr() const;
-    void dump_pddl(const std::vector<int> &variable_domain, const std::vector<std::vector<std::string>> &fact_names) const;
-    void dump_fdr(const std::vector<int> &variable_domain, const std::vector<std::string> &variable_name) const;
+    void dump_pddl(const std::vector<int> &variable_domain,
+                   const std::vector<std::vector<std::string>> &fact_names) const;
+    void dump_fdr(const std::vector<int> &variable_domain,
+                  const std::vector<std::string> &variable_name) const;
 };
 
 #endif

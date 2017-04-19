@@ -40,7 +40,10 @@ class SORBestFirstSearch : public SearchEngine
     void print_statistic_line();
 
 protected:
+    const bool c_precompute_max_reward;
+
     int m_g_limit;
+    int m_max_reward;
 
     SearchSpace m_search_space;
     OpenList<StateID> *m_open_list;
@@ -51,6 +54,7 @@ protected:
 
     SuccessorPruningMethod *m_pruning_method;
 
+    int compute_reward(const GlobalState &state);
     void insert_into_pareto_frontier(const SearchNode &node);
 
     virtual void initialize() override;
