@@ -218,7 +218,7 @@ void SORBestFirstSearch::save_plan_if_necessary()
               std::endl;
     std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
     std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
-    std::cout << "(2OT) pruned successors: " << m_stat_pruned_successors <<
+    std::cout << "(2OT) pruned successor(s): " << m_stat_pruned_successors <<
               std::endl;
 }
 
@@ -236,10 +236,10 @@ void SORBestFirstSearch::force_print_statistic_line() const
 {
     assert(!m_pareto_frontier.empty());
     printf("[P={(%d, %d)..(%d, %d)} (%zu), expanded=%zu, open=%zu, pruned=%zu, t=%.3fs]\n",
-           m_pareto_frontier.begin()->second.first,
-           m_pareto_frontier.begin()->first,
            m_pareto_frontier.rbegin()->second.first,
            m_pareto_frontier.rbegin()->first,
+           m_pareto_frontier.begin()->second.first,
+           m_pareto_frontier.begin()->first,
            m_pareto_frontier.size(),
            m_stat_expanded,
            m_stat_open,
