@@ -96,8 +96,7 @@ bool is_task_delete_free()
 
 
 DelRaxSearch::DelRaxSearch(const Options &opts)
-    : ::SearchEngine(opts),
-      c_preprocess(opts.get<bool>("preprocess"))
+    : ::SearchEngine(opts)
 {
 }
 
@@ -337,9 +336,17 @@ int DelRaxSearch::calculate_plan_cost() const
     return -res;
 }
 
+void DelRaxSearch::dump_achieved_goal_facts() const
+{
+    for (const unsigned &v : m_goal) {
+        if (m_layer[v] >= 0) {
+            std::cout << g_fact_names[v][m_positive_values[v]] << std::endl;
+        }
+    }
+}
+
 void DelRaxSearch::add_options_to_parser(OptionParser &parser)
 {
-    parser.add_option<bool>("preprocess", "", "false");
     ::SearchEngine::add_options_to_parser(parser);
 }
 
