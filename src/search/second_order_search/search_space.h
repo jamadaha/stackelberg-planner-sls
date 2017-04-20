@@ -50,6 +50,7 @@ public:
     void set_reward(int reward);
 
     IntPacker::Bin *&get_counter();
+    const IntPacker::Bin *get_counter() const;
 };
 
 class SearchSpace

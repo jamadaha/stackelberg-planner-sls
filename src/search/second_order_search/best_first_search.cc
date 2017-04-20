@@ -130,6 +130,54 @@ void BestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
     }
 }
 
+void BestFirstSearch::set_reward(const SearchNode &parent,
+                                 const GlobalOperator &op,
+                                 SearchNode &node)
+{
+    node.set_reward(parent.get_reward()
+                    - compute_reward_difference(parent.get_counter(),
+                            op,
+                            node.get_counter()));
+
+    // g_outer_inner_successor_generator->generate_applicable_ops(
+    //     g_outer_state_registry->lookup_state(node.get_state_id()),
+    //     m_available_operators);
+    // for (const auto &x : m_available_operators) {
+    //     assert(!std::count(m_outer_to_inner_operator[op.get_op_id()].begin(),
+    //                        m_outer_to_inner_operator[op.get_op_id()].end(),
+    //                        x->get_op_id() + g_variable_domain.size()));
+    // }
+    // m_available_operators.clear();
+    //
+    // std::vector<int> test;
+    // rgraph_exploration(g_outer_state_registry->lookup_state(node.get_state_id()),
+    //                    test);
+    // std::cout << get_reward(test)
+    //           << ":" << get_reward(node.get_counter())
+    //           << ":" << node.get_reward()
+    //           << "::" << parent.get_reward()
+    //           << ":" << get_reward(parent.get_counter())
+    //           << std::endl;
+    // std::cout << op.get_name() << std::endl;
+    // for (unsigned i = 0; i < test.size(); i++) {
+    //     if (test[i] != get_counter_packer()->get(node.get_counter(), i)) {
+    //         std::cout << "DIFF [";
+    //         if (i < g_variable_domain.size()) {
+    //             std::cout << g_fact_names[i][0];
+    //         } else {
+    //             std::cout << g_inner_operators[i - g_variable_domain.size()].get_name();
+    //         }
+    //         std::cout << "] -> " << test[i] << " vs " << get_counter_packer()->get(
+    //                       node.get_counter(), i) << std::endl;
+    //     }
+    // }
+    // assert(container_equals(test,
+    //                         RandomAccessBin(get_counter_packer(), node.get_counter()),
+    //                         test.size()));
+    // assert(get_reward(test) == get_reward(node.get_counter()));
+    // assert(get_reward(test) == node.get_reward());
+}
+
 SearchStatus BestFirstSearch::step()
 {
     if (m_open_list->empty()) {
@@ -158,11 +206,9 @@ SearchStatus BestFirstSearch::step()
     // node.set_reward(compute_reward(state));
     if (c_lazy_reward_computation
             && node.get_parent_state_id() != StateID::no_state) {
-        SearchNode parent = m_search_space[node.get_parent_state_id()];
-        node.set_reward(parent.get_reward()
-                        - compute_reward_difference(parent.get_counter(),
-                                *node.get_parent_operator(),
-                                node.get_counter()));
+        set_reward(m_search_space[node.get_parent_state_id()],
+                   *node.get_parent_operator(),
+                   node);
     }
     insert_into_pareto_frontier(node);
 
@@ -216,25 +262,7 @@ SearchStatus BestFirstSearch::step()
             // TODO heuristic computation goes here
             m_stat_evaluated++;
             if (!c_lazy_reward_computation) {
-                int diff = compute_reward_difference(node.get_counter(),
-                                                     *m_applicable_operators[i],
-                                                     succ_node.get_counter());
-                succ_node.set_reward(node.get_reward()
-                                     - diff);
-
-                // std::vector<int> test;
-                // rgraph_exploration(succ, test);
-                // std::cout << get_reward(test)
-                //           << ":" << get_reward(succ_node.get_counter())
-                //           << ":" << succ_node.get_reward()
-                //           << ":" << node.get_reward()
-                //           << ":" << get_reward(node.get_counter())
-                //           << ":" << diff
-                //           << std::endl;
-                // assert(container_equals(test, RandomAccessBin(get_counter_packer(),
-                //                         succ_node.get_counter()), test.size()));
-                // assert(get_reward(test) == get_reward(succ_node.get_counter()));
-                // assert(get_reward(test) == succ_node.get_reward());
+                set_reward(node, *m_applicable_operators[i], succ_node);
             } else {
                 succ_node.set_reward(node.get_reward());
             }

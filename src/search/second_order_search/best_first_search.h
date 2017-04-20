@@ -60,6 +60,9 @@ protected:
 
     std::vector <const GlobalOperator *> m_applicable_operators;
 
+    void set_reward(const SearchNode &parent,
+                    const GlobalOperator &op,
+                    SearchNode &node);
     void insert_into_pareto_frontier(const SearchNode &node);
 
     virtual void initialize() override;

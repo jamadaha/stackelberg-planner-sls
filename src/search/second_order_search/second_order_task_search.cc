@@ -223,16 +223,18 @@ void SecondOrderTaskSearch::initialize()
               sizeof(IntPacker::Bin)) << std::endl;
 }
 
-void SecondOrderTaskSearch::rgraph_exploration(const GlobalState &state,
-        std::vector<int> &res)
+void SecondOrderTaskSearch::rgraph_exploration(
+    const GlobalState &state,
+    std::vector<int> &res)
 {
     res.clear();
     res.resize(m_arcs.size(), 0);
 
     std::deque<unsigned> open;
 
-    g_outer_inner_successor_generator->generate_applicable_ops(state,
-            m_available_operators);
+    g_outer_inner_successor_generator->generate_applicable_ops(
+        state,
+        m_available_operators);
 
     GlobalState inner_init = g_initial_state();
     for (unsigned i = 0; i < m_available_operators.size(); i++) {
