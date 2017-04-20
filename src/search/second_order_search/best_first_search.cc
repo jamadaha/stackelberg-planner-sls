@@ -43,7 +43,8 @@ BestFirstSearch::BestFirstSearch(const Options &opts)
     m_g_limit = std::numeric_limits<int>::max();
     m_max_reward = MAX_REWARD;
 
-    m_stat_open = 0;
+    m_stat_open = 1;
+
     m_stat_expanded = 0;
     m_stat_generated = 1;
     m_stat_pruned_successors = 0;
@@ -51,6 +52,10 @@ BestFirstSearch::BestFirstSearch(const Options &opts)
 
     m_stat_last_printed_states = 0;
     m_stat_last_printed_pareto = 0;
+
+    m_stat_inner_searches = 0;
+    m_stat_time_inner_search.reset();
+    m_stat_time_inner_search.stop();
 
     m_stat_current_g = 0;
 }
@@ -66,32 +71,23 @@ void BestFirstSearch::initialize()
     if (m_pruning_method != NULL) {
         m_pruning_method->initialize();
     }
-    GlobalState init = g_outer_initial_state();
-    SearchNode node = m_search_space[init];
-    node.open_initial();
-    // // *HACK* computing reward here is only required to properly initialize
-    // // the inner search and its components ...
-    // node.set_reward(compute_reward(init));
-    node.set_reward(get_initial_state_reward(node.get_counter()));
-    m_open_list->push(node.get_info(), init.get_id());
 
     // computing worst-attacker reward
     // *NOTE* this computation is correct only in the mitit case
     if (c_precompute_max_reward) {
-        IntPacker temp_packer(g_outer_variable_domain);
-        PackedStateBin *buffer = new PackedStateBin[temp_packer.get_num_bins()];
-        for (const auto &op : g_outer_operators) {
-            for (const auto &e : op.get_effects()) {
-                temp_packer.set(buffer, e.var, e.val);
-            }
-        }
-        GlobalState best_state(buffer, NULL, StateID(std::numeric_limits<int>::max()),
-                               &temp_packer);
-        std::vector<int> counter;
-        rgraph_exploration(best_state, counter);
-        m_max_reward = get_reward(counter);
-        delete[] buffer;
+        m_max_reward = compute_max_reward();
     }
+
+    GlobalState init = g_outer_initial_state();
+    SearchNode node = m_search_space[init];
+    node.open_initial();
+    if (c_incremental_rpg) {
+        node.set_reward(get_initial_state_reward(node.get_counter()));
+    } else {
+        node.set_reward(run_inner_search(init));
+    }
+
+    m_open_list->push(node.get_info(), init.get_id());
 
     std::cout << "Maximal possible reward is: " << m_max_reward << std::endl;
 }
@@ -134,48 +130,94 @@ void BestFirstSearch::set_reward(const SearchNode &parent,
                                  const GlobalOperator &op,
                                  SearchNode &node)
 {
-    node.set_reward(parent.get_reward()
-                    - compute_reward_difference(parent.get_counter(),
-                            op,
-                            node.get_counter()));
+    m_stat_inner_searches++;
+    m_stat_time_inner_search.resume();
 
-    // g_outer_inner_successor_generator->generate_applicable_ops(
-    //     g_outer_state_registry->lookup_state(node.get_state_id()),
-    //     m_available_operators);
-    // for (const auto &x : m_available_operators) {
-    //     assert(!std::count(m_outer_to_inner_operator[op.get_op_id()].begin(),
-    //                        m_outer_to_inner_operator[op.get_op_id()].end(),
-    //                        x->get_op_id() + g_variable_domain.size()));
-    // }
-    // m_available_operators.clear();
-    //
-    // std::vector<int> test;
-    // rgraph_exploration(g_outer_state_registry->lookup_state(node.get_state_id()),
-    //                    test);
-    // std::cout << get_reward(test)
-    //           << ":" << get_reward(node.get_counter())
-    //           << ":" << node.get_reward()
-    //           << "::" << parent.get_reward()
-    //           << ":" << get_reward(parent.get_counter())
-    //           << std::endl;
-    // std::cout << op.get_name() << std::endl;
-    // for (unsigned i = 0; i < test.size(); i++) {
-    //     if (test[i] != get_counter_packer()->get(node.get_counter(), i)) {
-    //         std::cout << "DIFF [";
-    //         if (i < g_variable_domain.size()) {
-    //             std::cout << g_fact_names[i][0];
-    //         } else {
-    //             std::cout << g_inner_operators[i - g_variable_domain.size()].get_name();
-    //         }
-    //         std::cout << "] -> " << test[i] << " vs " << get_counter_packer()->get(
-    //                       node.get_counter(), i) << std::endl;
-    //     }
-    // }
-    // assert(container_equals(test,
-    //                         RandomAccessBin(get_counter_packer(), node.get_counter()),
-    //                         test.size()));
-    // assert(get_reward(test) == get_reward(node.get_counter()));
-    // assert(get_reward(test) == node.get_reward());
+    if (c_incremental_rpg) {
+        node.set_reward(parent.get_reward()
+                        - compute_reward_difference(parent.get_counter(),
+                                op,
+                                node.get_counter()));
+
+        // g_outer_inner_successor_generator->generate_applicable_ops(
+        //     g_outer_state_registry->lookup_state(node.get_state_id()),
+        //     m_available_operators);
+        // for (const auto &x : m_available_operators) {
+        //     assert(!std::count(m_outer_to_inner_operator[op.get_op_id()].begin(),
+        //                        m_outer_to_inner_operator[op.get_op_id()].end(),
+        //                        x->get_op_id() + g_variable_domain.size()));
+        // }
+        // m_available_operators.clear();
+        //
+        // std::vector<int> test;
+        // rgraph_exploration(g_outer_state_registry->lookup_state(node.get_state_id()),
+        //                    test);
+        // std::cout << get_reward(test)
+        //           << ":" << get_reward(node.get_counter())
+        //           << ":" << node.get_reward()
+        //           << "::" << parent.get_reward()
+        //           << ":" << get_reward(parent.get_counter())
+        //           << std::endl;
+        // std::cout << op.get_name() << std::endl;
+        // for (unsigned i = 0; i < test.size(); i++) {
+        //     if (test[i] != get_counter_packer()->get(node.get_counter(), i)) {
+        //         std::cout << "DIFF [";
+        //         if (i < g_variable_domain.size()) {
+        //             std::cout << g_fact_names[i][0];
+        //         } else {
+        //             std::cout << g_inner_operators[i - g_variable_domain.size()].get_name();
+        //         }
+        //         std::cout << "] -> " << test[i] << " vs " << get_counter_packer()->get(
+        //                       node.get_counter(), i) << std::endl;
+        //     }
+        // }
+        // assert(container_equals(test,
+        //                         RandomAccessBin(get_counter_packer(), node.get_counter()),
+        //                         test.size()));
+        // assert(get_reward(test) == get_reward(node.get_counter()));
+        // assert(get_reward(test) == node.get_reward());
+    } else {
+        // node.set_reward()
+        node.set_reward(run_inner_search(g_outer_state_registry->lookup_state(
+                                             node.get_state_id())));
+    }
+
+    m_stat_time_inner_search.stop();
+}
+
+void BestFirstSearch::set_inner_plan(SearchNode &node)
+{
+    m_stat_time_inner_search.resume();
+    if (c_incremental_rpg) {
+        extract_inner_plan(node.get_counter(), g_plan);
+    } else {
+        assert(m_inner_search->found_solution());
+        m_inner_search->save_plan_if_necessary();
+    }
+    m_stat_time_inner_search.stop();
+}
+
+int BestFirstSearch::compute_max_reward()
+{
+    int res;
+    IntPacker temp_packer(g_outer_variable_domain);
+    PackedStateBin *buffer = new PackedStateBin[temp_packer.get_num_bins()];
+    for (const auto &op : g_outer_operators) {
+        for (const auto &e : op.get_effects()) {
+            temp_packer.set(buffer, e.var, e.val);
+        }
+    }
+    GlobalState best_state(buffer, NULL, StateID(std::numeric_limits<int>::max()),
+                           &temp_packer);
+    if (c_incremental_rpg) {
+        std::vector<int> counter;
+        rgraph_exploration(best_state, counter);
+        res = get_reward(counter);
+    } else {
+        res = run_inner_search(best_state);
+    }
+    delete[] buffer;
+    return res;
 }
 
 SearchStatus BestFirstSearch::step()
@@ -236,7 +278,7 @@ SearchStatus BestFirstSearch::step()
             m_applicable_operators);
     m_stat_pruned_successors += m_applicable_operators.size();
     if (m_pruning_method != NULL) {
-        extract_inner_plan(node.get_counter(), g_plan);
+        set_inner_plan(node);
         // std::cout << "---plan#" << state.get_id().hash() << "---" << std::endl;
         // for (unsigned i = 0; i < g_plan.size(); i++) {
         //     std::cout << g_plan[i]->get_name() << std::endl;

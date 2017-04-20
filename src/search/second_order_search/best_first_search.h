@@ -39,6 +39,9 @@ class BestFirstSearch : public SecondOrderTaskSearch
     size_t m_stat_evaluated;
     size_t m_stat_pruned_successors;
 
+    size_t m_stat_inner_searches;
+    Timer m_stat_time_inner_search;
+
     int m_stat_current_g;
 
     void force_print_statistic_line() const;
@@ -60,9 +63,11 @@ protected:
 
     std::vector <const GlobalOperator *> m_applicable_operators;
 
+    int compute_max_reward();
     void set_reward(const SearchNode &parent,
                     const GlobalOperator &op,
                     SearchNode &node);
+    void set_inner_plan(SearchNode &node);
     void insert_into_pareto_frontier(const SearchNode &node);
 
     virtual void initialize() override;

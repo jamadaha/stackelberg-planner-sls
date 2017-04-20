@@ -8,6 +8,11 @@
 
 #define MAX_REWARD std::numeric_limits<int>::max()
 
+namespace delrax_search
+{
+class DelRaxSearch;
+}
+
 namespace second_order_search
 {
 
@@ -36,8 +41,9 @@ struct RandomAccessBin {
 class SecondOrderTaskSearch : public SearchEngine
 {
 protected:
-    size_t m_stat_inner_searches;
-    Timer m_stat_time_inner_search;
+    const bool c_incremental_rpg;
+
+    delrax_search::DelRaxSearch *m_inner_search;
 
     std::vector <const GlobalOperator *> m_available_operators;
 
@@ -62,6 +68,8 @@ protected:
 
     void extract_inner_plan(const IntPacker::Bin *const &counter,
                             std::vector<const GlobalOperator *> &plan);
+
+    int run_inner_search(const GlobalState &state);
 
     virtual void initialize() override;
 public:

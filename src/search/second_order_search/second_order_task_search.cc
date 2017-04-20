@@ -23,11 +23,11 @@ namespace second_order_search
 {
 
 SecondOrderTaskSearch::SecondOrderTaskSearch(const Options &opts)
-    : SearchEngine(opts)
+    : SearchEngine(opts),
+      c_incremental_rpg(opts.get<bool>("incremental_rpg")),
+      m_inner_search(dynamic_cast<delrax_search::DelRaxSearch *>
+                     (opts.get<SearchEngine *>("inner_search")))
 {
-    m_stat_inner_searches = 0;
-    m_stat_time_inner_search.reset();
-    m_stat_time_inner_search.stop();
 }
 
 void SecondOrderTaskSearch::initialize()
@@ -35,33 +35,18 @@ void SecondOrderTaskSearch::initialize()
     std::cout << "Initializing 2OT search ..." << std::endl;
     preprocess_second_order_task();
 
-    // *HACK* computing inner task representation (rewards/postitive values)
-    // using delraxsearch ...
-    Options temp;
-    temp.set<int>("cost_type", 0);
-    temp.set<double>("max_time", -1);
-    temp.set<int>("bound", 1002341);
-    delrax_search::DelRaxSearch temp_search(temp);
-    g_operators.clear();
-    g_outer_inner_successor_generator->generate_applicable_ops(
-        g_outer_initial_state(),
-        m_available_operators);
-    for (const GlobalOperator *op : m_available_operators) {
-        g_operators.push_back(*op);
+    // *HACK* make sure inner search is properly initialized
+    run_inner_search(g_outer_initial_state());
+
+    if (!c_incremental_rpg) {
+        return;
     }
-    m_available_operators.clear();
-    std::streambuf *old = std::cout.rdbuf(); // <-- save
-    std::stringstream ss;
-    std::cout.rdbuf(ss.rdbuf());        // <-- redirect
-    temp_search.reset();
-    temp_search.search();
-    std::cout.rdbuf(old);   			// <-- restore
 
     // copying data structures ...
-    std::copy(temp_search.get_reward().begin(),
-              temp_search.get_reward().end(),
+    std::copy(m_inner_search->get_reward().begin(),
+              m_inner_search->get_reward().end(),
               std::back_inserter(m_rewards));
-    const std::vector<int> &pv = temp_search.get_positive_values();
+    const std::vector<int> &pv = m_inner_search->get_positive_values();
     // TODO copy/compute goal i.e. facts with non-zero reward ?
     m_arcs.resize(g_variable_domain.size() + g_inner_operators.size());
     m_inv_arcs.resize(g_variable_domain.size() + g_inner_operators.size());
@@ -297,9 +282,6 @@ int SecondOrderTaskSearch::compute_reward_difference(
     const GlobalOperator &op,
     IntPacker::Bin *&res)
 {
-    m_stat_inner_searches++;
-    m_stat_time_inner_search.resume();
-
     res = new IntPacker::Bin[m_counter_packer->get_num_bins()];
     memcpy(res, parent, m_counter_packer->get_num_bins() * sizeof(IntPacker::Bin));
 
@@ -335,8 +317,6 @@ int SecondOrderTaskSearch::compute_reward_difference(
         }
     }
 
-    m_stat_time_inner_search.stop();
-
     return -diff;
 }
 
@@ -344,8 +324,6 @@ void SecondOrderTaskSearch::extract_inner_plan(const IntPacker::Bin *const
         &counter,
         std::vector<const GlobalOperator *> &plan)
 {
-    m_stat_time_inner_search.resume();
-
     std::fill(m_closed.begin(), m_closed.end(), false);
     std::deque<unsigned> open;
     for (unsigned var = 0; var < m_closed.size(); var++) {
@@ -372,12 +350,37 @@ void SecondOrderTaskSearch::extract_inner_plan(const IntPacker::Bin *const
     }
 
     std::reverse(plan.begin(), plan.end());
+}
 
-    m_stat_time_inner_search.stop();
+int SecondOrderTaskSearch::run_inner_search(const GlobalState &state)
+{
+    g_outer_inner_successor_generator->generate_applicable_ops(
+        state,
+        m_available_operators);
+    g_operators.clear();
+    for (const GlobalOperator *op : m_available_operators) {
+        g_operators.push_back(*op);
+    }
+    m_available_operators.clear();
+
+    std::streambuf *old = std::cout.rdbuf(); // <-- save
+    std::stringstream ss;
+    std::cout.rdbuf(ss.rdbuf());        // <-- redirect
+    m_inner_search->reset();
+    m_inner_search->search();
+    int res = MAX_REWARD;
+    if (m_inner_search->found_solution()) {
+        res = m_inner_search->calculate_plan_cost();
+    }
+    std::cout.rdbuf(old);   			// <-- restore
+
+    return res;
 }
 
 void SecondOrderTaskSearch::add_options_to_parser(OptionParser &parser)
 {
+    parser.add_option<SearchEngine *>("inner_search", "", "delrax");
+    parser.add_option<bool>("incremental_rpg", "", "true");
     SearchEngine::add_options_to_parser(parser);
 }
 
