@@ -4,13 +4,15 @@
 #ifndef SECOND_ORDER_BEST_FIRST_SEARCH_H
 #define SECOND_ORDER_BEST_FIRST_SEARCH_H
 
-#include "../search_engine.h"
+#include "second_order_task_search.h"
 
 #include "open_list.h"
 #include "search_space.h"
 #include "../state_id.h"
 
 #include "successor_pruning_method.h"
+
+#include "../timer.h"
 
 #include <map>
 #include <vector>
@@ -23,7 +25,7 @@ class GlobalOperator;
 namespace second_order_search
 {
 
-class SORBestFirstSearch : public SearchEngine
+class BestFirstSearch : public SecondOrderTaskSearch
 {
     typedef std::map<int, std::pair<int, std::vector<StateID> >, std::greater<int> >
     ParetoFrontier;
@@ -34,13 +36,21 @@ class SORBestFirstSearch : public SearchEngine
     size_t m_stat_open;
     size_t m_stat_expanded;
     size_t m_stat_generated;
+    size_t m_stat_evaluated;
     size_t m_stat_pruned_successors;
+
+    size_t m_stat_inner_searches;
+    Timer m_stat_time_inner_search;
+
+    int m_stat_current_g;
 
     void force_print_statistic_line() const;
     void print_statistic_line();
 
 protected:
+    const bool c_silent;
     const bool c_precompute_max_reward;
+    const bool c_lazy_reward_computation;
 
     int m_g_limit;
     int m_max_reward;
@@ -49,18 +59,21 @@ protected:
     OpenList<StateID> *m_open_list;
     ParetoFrontier m_pareto_frontier;
 
-    std::vector <const GlobalOperator *> m_applicable_operators;
-    SearchEngine *m_inner_search;
-
     SuccessorPruningMethod *m_pruning_method;
 
-    int compute_reward(const GlobalState &state);
+    std::vector <const GlobalOperator *> m_applicable_operators;
+
+    int compute_max_reward();
+    void set_reward(const SearchNode &parent,
+                    const GlobalOperator &op,
+                    SearchNode &node);
+    void set_inner_plan(SearchNode &node);
     void insert_into_pareto_frontier(const SearchNode &node);
 
     virtual void initialize() override;
     virtual SearchStatus step() override;
 public:
-    SORBestFirstSearch(const Options &opts);
+    BestFirstSearch(const Options &opts);
     virtual void save_plan_if_necessary() override;
     static void add_options_to_parser(OptionParser &parser);
 };

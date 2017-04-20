@@ -100,6 +100,16 @@ void SearchNode::set_reward(int r)
     info.r = r;
 }
 
+IntPacker::Bin *&SearchNode::get_counter()
+{
+    return info.counter;
+}
+
+const IntPacker::Bin *SearchNode::get_counter() const
+{
+    return info.counter;
+}
+
 SearchNode SearchSpace::operator[](const StateID &state_id)
 {
     size_t i = state_id.hash();

@@ -19,7 +19,7 @@ GlobalState g_outer_initial_state();
 
 extern std::vector<int> g_outer_variable_domain;
 extern std::vector<std::string> g_outer_variable_name;
-extern std::vector<std::vector<std::string> > g_outer_variable_fact_names;
+extern std::vector<std::vector<std::string> > g_outer_fact_names;
 
 extern std::vector<int> g_outer_initial_state_data;
 

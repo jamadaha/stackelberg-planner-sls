@@ -15,8 +15,6 @@ bool is_task_delete_free();
 class DelRaxSearch : public ::SearchEngine
 {
 protected:
-    const bool c_preprocess;
-
     bool initialized = false;
 
     std::vector<int> m_positive_values;
@@ -41,6 +39,27 @@ public:
     virtual void reset() override;
     virtual int calculate_plan_cost() const override;
 
+    const std::vector<int> &get_positive_values() const
+    {
+        return m_positive_values;
+    }
+    const std::vector<int> &get_reward() const
+    {
+        return m_reward;
+    }
+    const std::vector<unsigned> &get_goal() const
+    {
+        return m_goal;
+    }
+    const std::vector<std::vector<unsigned> > &get_preconditions() const
+    {
+        return m_in_pre;
+    }
+    const std::vector<std::vector<unsigned> > &get_effects() const
+    {
+        return m_in_effect;
+    }
+
     std::vector<int> &get_positive_values()
     {
         return m_positive_values;
@@ -49,6 +68,8 @@ public:
     {
         return m_reward;
     }
+
+    void dump_achieved_goal_facts() const;
 
     virtual void initialize() override;
     // template<typename Callback>

@@ -173,6 +173,7 @@ HEADERS += second_order_search/open_list.h \
            second_order_search/globals.h \
            second_order_search/successor_pruning_method.h \
            second_order_search/strong_stubborn_set.h \
+		   second_order_search/second_order_task_search.h \
 		   second_order_search/best_first_search.h
 
 

@@ -138,8 +138,8 @@ void preprocess_second_order_task()
         } else {
             g_outer_variable_domain.push_back(g_variable_domain[var]);
             g_outer_variable_name.push_back(g_variable_name[var]);
-            g_outer_variable_fact_names.emplace_back();
-            g_outer_variable_fact_names.back().swap(g_fact_names[var]);
+            g_outer_fact_names.emplace_back();
+            g_outer_fact_names.back().swap(g_fact_names[var]);
             g_outer_initial_state_data.push_back(g_initial_state_data[var]);
             newvarids[var] = outer_var_id++;
         }
@@ -160,7 +160,9 @@ void preprocess_second_order_task()
 
 #ifndef NDEBUG
     // make sure everything is set correctly
-    for (const GlobalOperator &op : g_inner_operators) {
+    for (unsigned i = 0; i < g_inner_operators.size(); i++) {
+        const GlobalOperator &op = g_inner_operators[i];
+        assert(op.get_op_id() == (int) i);
         for (const GlobalCondition &c : op.get_preconditions()) {
             assert(c.var < (int) g_variable_domain.size()
                    && c.val < g_variable_domain[c.var]);
@@ -170,7 +172,9 @@ void preprocess_second_order_task()
                    && e.val < g_variable_domain[e.var]);
         }
     }
-    for (const GlobalOperator &op : g_outer_operators) {
+    for (unsigned i = 0; i < g_outer_operators.size(); i++) {
+        const GlobalOperator &op = g_outer_operators[i];
+        assert(op.get_op_id() == (int) i);
         for (const GlobalCondition &c : op.get_preconditions()) {
             assert(c.var < (int) g_outer_variable_domain.size()
                    && c.val < g_outer_variable_domain[c.var]);
@@ -194,7 +198,7 @@ void preprocess_second_order_task()
         if (!is_inner_var[var]) {
             std::cerr << "There should be no goal defined for OUTER variables! "
                       << "Ignoring the goal var#" << var << "=" << g_goal[i].second << " ("
-                      << g_outer_variable_fact_names[newvarids[var]][g_goal[i].second] << ")"
+                      << g_outer_fact_names[newvarids[var]][g_goal[i].second] << ")"
                       << std::endl;
             //exit(EXIT_INPUT_ERROR);
         } else {
@@ -243,7 +247,7 @@ void preprocess_second_order_task()
 
 std::vector<int> g_outer_variable_domain;
 std::vector<std::string> g_outer_variable_name;
-std::vector<std::vector<std::string> > g_outer_variable_fact_names;
+std::vector<std::vector<std::string> > g_outer_fact_names;
 
 std::vector<int> g_outer_initial_state_data;
 
