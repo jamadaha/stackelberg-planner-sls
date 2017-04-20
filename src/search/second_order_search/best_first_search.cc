@@ -35,6 +35,7 @@ BestFirstSearch::BestFirstSearch(const Options &opts)
     : SecondOrderTaskSearch(opts),
       c_silent(opts.get<bool>("silent")),
       c_precompute_max_reward(opts.get<bool>("precompute_max_reward")),
+      c_lazy_reward_computation(opts.get<bool>("lazy")),
       m_open_list(parse_open_list<StateID>(opts.get_enum("open_list"))),
       m_pruning_method(opts.contains("pruning_method") ?
                        opts.get<SuccessorPruningMethod *>("pruning_method") : NULL)
@@ -57,7 +58,11 @@ BestFirstSearch::BestFirstSearch(const Options &opts)
 void BestFirstSearch::initialize()
 {
     SecondOrderTaskSearch::initialize();
-    std::cout << "Initializing 2OT best-first search ..." << std::endl;
+    std::cout << "Initializing 2OT best-first search";
+    if (c_lazy_reward_computation) {
+        std::cout << " with lazy reward-computation";
+    }
+    std::cout << " ..." << std::endl;
     if (m_pruning_method != NULL) {
         m_pruning_method->initialize();
     }
@@ -141,26 +146,35 @@ SearchStatus BestFirstSearch::step()
     node.close();
     m_stat_open--;
 
+    // m_g_limit might have been updated since state was added to open
+    if (node.get_g() > m_g_limit) {
+        solution_found = true;
+        return SOLVED;
+    }
+
     // NOTE in mitit the parent attack plan is not applicable in the child state
     // if S3 pruning is enabled; thus the check for applicable attack plans is
     // not implemented here
     // node.set_reward(compute_reward(state));
+    if (c_lazy_reward_computation
+            && node.get_parent_state_id() != StateID::no_state) {
+        SearchNode parent = m_search_space[node.get_parent_state_id()];
+        node.set_reward(parent.get_reward()
+                        - compute_reward_difference(parent.get_counter(),
+                                *node.get_parent_operator(),
+                                node.get_counter()));
+    }
     insert_into_pareto_frontier(node);
 
     // std::cout << "---STATE#" << state.get_id().hash() << "--- (" << node.get_g() <<
     //           ", " << node.get_reward() << ")"
     //           << std::endl;
-    if (node.get_reward() == m_max_reward) {
+    if (node.get_reward() == m_max_reward || node.get_g() == m_g_limit) {
         // std::cout << "<none>" << std::endl;
         if (node.get_g() < m_g_limit) {
             m_g_limit = node.get_g();
         }
         // everything from here on will be dominated
-        return IN_PROGRESS;
-    }
-
-    // m_g_limit might have been updated since state was added to open
-    if (node.get_g() >= m_g_limit) {
         return IN_PROGRESS;
     }
 
@@ -196,23 +210,34 @@ SearchStatus BestFirstSearch::step()
                            *m_applicable_operators[i]);
         SearchNode succ_node = m_search_space[succ];
         // *NOTE* only correct for monotone 2OR tasks
-        // succ_node.set_reward(node.get_reward());
 
         if (succ_node.is_new()) {
             m_stat_open++;
             // TODO heuristic computation goes here
             m_stat_evaluated++;
-            succ_node.set_reward(node.get_reward()
-                                 - compute_reward_difference(node.get_counter(),
-                                         *m_applicable_operators[i],
-                                         succ_node.get_counter()));
+            if (!c_lazy_reward_computation) {
+                int diff = compute_reward_difference(node.get_counter(),
+                                                     *m_applicable_operators[i],
+                                                     succ_node.get_counter());
+                succ_node.set_reward(node.get_reward()
+                                     - diff);
 
-            // std::vector<int> test;
-            // rgraph_exploration(succ, test);
-            // assert(container_equals(test, RandomAccessBin(get_counter_packer(),
-            //                         succ_node.get_counter()), test.size()));
-            // assert(get_reward(test) == get_reward(succ_node.get_counter()));
-            // assert(get_reward(test) == succ_node.get_reward());
+                // std::vector<int> test;
+                // rgraph_exploration(succ, test);
+                // std::cout << get_reward(test)
+                //           << ":" << get_reward(succ_node.get_counter())
+                //           << ":" << succ_node.get_reward()
+                //           << ":" << node.get_reward()
+                //           << ":" << get_reward(node.get_counter())
+                //           << ":" << diff
+                //           << std::endl;
+                // assert(container_equals(test, RandomAccessBin(get_counter_packer(),
+                //                         succ_node.get_counter()), test.size()));
+                // assert(get_reward(test) == get_reward(succ_node.get_counter()));
+                // assert(get_reward(test) == succ_node.get_reward());
+            } else {
+                succ_node.set_reward(node.get_reward());
+            }
         }
 
         if (succ_node.is_new()
@@ -228,9 +253,11 @@ SearchStatus BestFirstSearch::step()
     }
     m_applicable_operators.clear();
 
-    delete[](node.get_counter());
-    node.get_counter() = NULL;
-    assert(node.get_counter() == NULL);
+    if (!c_lazy_reward_computation) {
+        delete (node.get_counter());
+        node.get_counter() = NULL;
+        assert(node.get_counter() == NULL);
+    }
 
     print_statistic_line();
 
@@ -325,6 +352,7 @@ void BestFirstSearch::add_options_to_parser(OptionParser &parser)
 
     parser.add_option<bool>("precompute_max_reward", "", "true");
     parser.add_option<bool>("silent", "", "false");
+    parser.add_option<bool>("lazy", "", "true");
 
     SecondOrderTaskSearch::add_options_to_parser(parser);
 }

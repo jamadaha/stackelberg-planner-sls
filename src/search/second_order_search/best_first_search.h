@@ -47,6 +47,7 @@ class BestFirstSearch : public SecondOrderTaskSearch
 protected:
     const bool c_silent;
     const bool c_precompute_max_reward;
+    const bool c_lazy_reward_computation;
 
     int m_g_limit;
     int m_max_reward;

@@ -125,6 +125,12 @@ void SecondOrderTaskSearch::initialize()
     }
 
 #ifndef NDEBUG
+    for (unsigned x = 0; x < m_arcs.size(); x++) {
+        for (const unsigned &y : m_arcs[x]) {
+            assert(x < g_variable_domain.size() || y < g_variable_domain.size());
+            assert(x >= g_variable_domain.size() || y >= g_variable_domain.size());
+        }
+    }
     for (unsigned i = 0; i < g_inner_operators.size(); i++) {
         unsigned nump = 0;
         for (const auto &c : g_inner_operators[i].get_preconditions()) {
@@ -138,15 +144,24 @@ void SecondOrderTaskSearch::initialize()
     std::vector<bool> onstack;
     std::vector<int> ids(m_arcs.size(), -1);
     std::deque<unsigned> q;
-    for (unsigned x = 0; x < m_arcs.size(); x++) {
+    bool loop = false;
+    std::vector<unsigned> loop_;
+    for (unsigned x = 0; !loop && x < m_arcs.size(); x++) {
         if (ids[x] == -1) {
             q.push_back(x);
             while (!q.empty()) {
                 unsigned y = q.back();
                 q.pop_back();
                 if (ids[y] == -1) {
+                    if (loop) {
+                        continue;
+                    }
                     ids[y] = onstack.size();
                     onstack.push_back(true);
+                }
+                if (loop) {
+                    loop_.push_back(y);
+                    continue;
                 }
                 bool done = true;
                 for (unsigned z : m_arcs[y]) {
@@ -159,8 +174,11 @@ void SecondOrderTaskSearch::initialize()
                     } else {
                         assert(ids[z] >= 0 && ids[z] < (int) onstack.size());
                         if (onstack[ids[z]]) {
+                            loop = true;
                             std::cerr << "Cannot handle relaxed planning graphs with cycles!" << std::endl;
-                            exit_with(EXIT_CRITICAL_ERROR);
+                            loop_.push_back(z);
+                            loop_.push_back(y);
+                            break;
                         }
                     }
                 }
@@ -169,6 +187,20 @@ void SecondOrderTaskSearch::initialize()
                 }
             }
         }
+    }
+    if (loop) {
+        std::reverse(loop_.begin(), loop_.end());
+        std::cerr << "---begin-cycle---" << std::endl;
+        for (const unsigned &x : loop_) {
+            if (x < g_variable_domain.size()) {
+                std::cerr << g_fact_names[x][pv[x]] << std::endl;
+            } else {
+                std::cerr << g_inner_operators[x - g_variable_domain.size()].get_name() <<
+                          std::endl;
+            }
+        }
+        std::cerr << "---end-cycle---" << std::endl;
+        exit_with(EXIT_CRITICAL_ERROR);
     }
 #endif
 
@@ -275,6 +307,7 @@ int SecondOrderTaskSearch::compute_reward_difference(
     for (const unsigned &x : m_outer_to_inner_operator[op.get_op_id()]) {
         assert(x < m_arcs.size());
         if (m_counter_packer->get(res, x) > 0) {
+            assert(x >= m_rewards.size());
             assert(m_counter_packer->get(res, x) == 1);
             m_counter_packer->set(res, x, 0);
             open.push_back(x);
