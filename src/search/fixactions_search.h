@@ -32,8 +32,10 @@ struct FixSearchInfoAttackPlan {
 
 struct FixSearchInfoFixSequence {
         int fix_actions_cost;
-        FixSearchInfoFixSequence(int _fix_actions_cost = -1)
-        : fix_actions_cost(_fix_actions_cost){ }
+        bool already_in_frontier;
+        FixSearchInfoFixSequence(int _fix_actions_cost = -1, bool _already_in_frontier = false)
+        : fix_actions_cost(_fix_actions_cost),
+		  already_in_frontier(_already_in_frontier){ }
 };
 
 

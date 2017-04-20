@@ -505,9 +505,10 @@ void FixActionsSearch::compute_commutative_and_dependent_fix_ops_matrices()
     cout << "We assume that all fix actions are commutative and not dependent!" <<
          endl;
     {
-        vector<bool> val(fix_operators.size(), true);
-        commutative_fix_ops.assign(fix_operators.size(), val);
-        dependent_fix_ops.assign(fix_operators.size(), val);
+        vector<bool> val1(fix_operators.size(), true);
+        commutative_fix_ops.assign(fix_operators.size(), val1);
+        vector<bool> val2(fix_operators.size(), false);
+        dependent_fix_ops.assign(fix_operators.size(), val2);
         return;
     }
 
@@ -877,11 +878,13 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
     cout << "fix_actions_cost: " << fix_actions_cost << endl;
     cout << "fix_action_costs_for_no_attacker_solution: " <<
          fix_action_costs_for_no_attacker_solution << endl;
+#endif
     if (!recurse) {
+#ifdef FIX_SEARCH_DEBUG
         cout << "We won't recurse in this execution of compute_pareto_frontier" << endl;
+#endif
         num_recursive_calls_for_sorting++;
     }
-#endif
 
     bool parent_attack_plan_applicable = false;
     if (check_parent_attack_plan_applicable && parent_attack_plan.size() > 0) {
@@ -926,9 +929,10 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
                  << attack_plan_cost << endl;
 #endif
             if (info_fix_sequence.fix_actions_cost != -1
-                    && fix_actions_cost > info_fix_sequence.fix_actions_cost) {
+                    && fix_actions_cost >= info_fix_sequence.fix_actions_cost
+					&& info_fix_sequence.already_in_frontier) {
 #ifdef FIX_SEARCH_DEBUG
-                cout << "Current fix action sequence is more expensive than already known sequence... don't make further recursice calls. "
+                cout << "Current fix action sequence is more or equally expensive than already known sequence... don't make further recursive calls. "
                      << endl;
 #endif
                 num_fix_op_paths++;
@@ -1061,6 +1065,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
     triple<int, int, vector<vector<const GlobalOperator *>>> curr_node = make_tuple(
                 fix_actions_cost, attack_plan_cost, temp_list_op_sequences);
     add_node_to_pareto_frontier(curr_node);
+    info_fix_sequence.already_in_frontier = true;
 
     if (attack_plan_cost == ATTACKER_TASK_UNSOLVABLE) {
         // Return, if attacker task was not solvable
@@ -1174,9 +1179,9 @@ void FixActionsSearch::iterate_applicable_ops(const
             continue;
         }
         if (new_fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
-            cout
-                    << "Do not continue with this op, because the new fix_action_cost is already greater than fix_action_costs_for_no_attacker_solution"
-                    << endl;
+            //cout
+            //       << "Do not continue with this op, because the new fix_action_cost is already greater than fix_action_costs_for_no_attacker_solution"
+            //        << endl;
             fix_ops_sequence.pop_back();
             continue;
         }
