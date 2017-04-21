@@ -24,6 +24,9 @@
 #include <iostream>
 #include <cstdio>
 
+#include <sstream>
+#include <fstream>
+
 #ifndef NDEBUG
 // #define VERBOSE_DEBUGGING
 #endif
@@ -338,41 +341,86 @@ void BestFirstSearch::save_plan_if_necessary()
 {
     std::cout << "(2OT) Pareto frontier consists of " << m_pareto_frontier.size() <<
               " groups" << std::endl;
+    std::ostringstream json;
+    json << "[";
+    std::vector<std::vector<const GlobalOperator *> > paths;
     size_t num_states = 0;
-    if (!c_silent) {
-        std::cout << "---begin-pareto-frontier---" << std::endl;
-        unsigned num = 1;
-        for (typename ParetoFrontier::reverse_iterator it = m_pareto_frontier.rbegin();
-                it != m_pareto_frontier.rend();
-                it++) {
-            std::cout << "    ---group-" << num << "--- {"
-                      << "reward: " << it->first
-                      << ", cost: " << it->second.first
-                      << "}" << std::endl;
-            size_t counter = 1;
-            for (unsigned i = 0; i < it->second.second.size(); i++) {
-#ifdef VERBOSE_DEBUGGING
-                std::cout << "        ---begin-state-" << i << "--- [" <<
-                          it->second.second[i].hash() << "]" << std::endl;
-                GlobalState state = g_outer_state_registry->lookup_state(it->second.second[i]);
-                for (unsigned var = 0; var < g_outer_variable_domain.size(); var++) {
-                    std::cout << "        " << g_outer_fact_names[var][state[var]] << std::endl;
-                }
-                std::cout << "        ---end-state---" << std::endl;
-#endif
-                m_search_space.print_backtrace(it->second.second[i], counter);
-                num_states++;
-            }
-            num++;
-        }
-        std::cout << "---end-pareto-frontier---" << std::endl;
-    } else {
-        for (typename ParetoFrontier::reverse_iterator it = m_pareto_frontier.rbegin();
-                it != m_pareto_frontier.rend();
-                it++) {
-            num_states += it->second.second.size();
-        }
+
+
+    std::streambuf *old = NULL;
+    if (c_silent) {
+        old = std::cout.rdbuf(); // <-- save
+        std::stringstream ss;
+        std::cout.rdbuf(ss.rdbuf());        // <-- redirect
     }
+
+    std::cout << "---begin-pareto-frontier---" << std::endl;
+    unsigned num = 1;
+    for (typename ParetoFrontier::reverse_iterator it = m_pareto_frontier.rbegin();
+            it != m_pareto_frontier.rend();
+            it++) {
+
+        if (it != m_pareto_frontier.rbegin()) {
+            json << ",\n";
+        }
+        json << "{"
+             << "\"reward\": " << it->first
+             << ", \"cost\": " << it->second.first
+             << ", \"sequences\": [";
+
+        std::cout << "    ---group-" << num << "--- {"
+                  << "reward: " << it->first
+                  << ", cost: " << it->second.first
+                  << "}" << std::endl;
+
+        size_t counter = 1;
+        for (unsigned i = 0; i < it->second.second.size(); i++) {
+#ifdef VERBOSE_DEBUGGING
+            std::cout << "        ---begin-state-" << i << "--- [" <<
+                      it->second.second[i].hash() << "]" << std::endl;
+            GlobalState state = g_outer_state_registry->lookup_state(it->second.second[i]);
+            for (unsigned var = 0; var < g_outer_variable_domain.size(); var++) {
+                std::cout << "        " << g_outer_fact_names[var][state[var]] << std::endl;
+            }
+            std::cout << "        ---end-state---" << std::endl;
+#endif
+
+            m_search_space.backtrace(it->second.second[i], paths);
+            for (const std::vector<const GlobalOperator *> &seq : paths) {
+                if (counter > 1)  {
+                    json << ",\n";
+                }
+                json << "  [";
+
+                std::cout << "        " << "---sequence-" << counter << "---" << std::endl;
+                if (seq.empty()) {
+                    std::cout << "            <empty-sequence>" << std::endl;
+                } else {
+                    for (unsigned i = 0; i < seq.size(); i++) {
+                        json << (i > 0 ? ", " : "")
+                             << "\"" << seq[i]->get_name() << "\"";
+
+                        std::cout << "            " << seq[i]->get_name() << std::endl;
+                    }
+                }
+
+                counter++;
+
+                json << "]";
+            }
+            paths.clear();
+            num_states++;
+        }
+        num++;
+
+        json << "]}";
+    }
+    std::cout << "---end-pareto-frontier---" << std::endl;
+
+    if (c_silent) {
+        std::cout.rdbuf(old);
+    }
+
     std::cout << "(2OT) state(s) in Pareto frontier: " << num_states << std::endl;
     std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
               std::endl;
@@ -383,6 +431,14 @@ void BestFirstSearch::save_plan_if_necessary()
               std::endl;
     std::cout << "(2OT) inner searches: " << m_stat_inner_searches << std::endl;
     printf("(2OT) inner search time: %.4fs\n", m_stat_time_inner_search());
+
+
+    json << "]";
+
+    std::ofstream out;
+    out.open("pareto_frontier.json");
+    out << json.str();
+    out.close();
 }
 
 void BestFirstSearch::print_statistic_line()
@@ -422,7 +478,7 @@ void BestFirstSearch::add_options_to_parser(OptionParser &parser)
 
     parser.add_option<bool>("precompute_max_reward", "", "true");
     parser.add_option<bool>("silent", "", "false");
-    parser.add_option<bool>("lazy", "", "true");
+    parser.add_option<bool>("lazy", "", "false");
 
     SecondOrderTaskSearch::add_options_to_parser(parser);
 }

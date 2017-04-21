@@ -2,6 +2,7 @@
 #include "search_space.h"
 
 #include <iostream>
+#include <algorithm>
 
 namespace second_order_search
 {
@@ -122,6 +123,39 @@ SearchNode SearchSpace::operator[](const StateID &state_id)
 SearchNode SearchSpace::operator[](const GlobalState &state)
 {
     return this->operator[](state.get_id());
+}
+
+void SearchSpace::backtrace(const SearchNode &node,
+                            std::vector<const GlobalOperator *> &labels,
+                            std::vector<std::vector<const GlobalOperator *> > &res)
+{
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+    if (node.get_parents().empty()) {
+#else
+    if (node.get_parent_state_id() == StateID::no_state) {
+#endif
+        res.push_back(labels);
+        std::reverse(res.back().begin(), res.back().end());
+    } else {
+#ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
+        for (auto &x : node.get_parents()) {
+            labels.push_back(x.first);
+            backtrace(this->operator[](x.second), labels, res);
+            labels.pop_back();
+        }
+#else
+        labels.push_back(node.get_parent_operator());
+        backtrace(this->operator[](node.get_parent_state_id()), labels, res);
+        labels.pop_back();
+#endif
+    }
+}
+
+void SearchSpace::backtrace(const StateID &start,
+                            std::vector<std::vector<const GlobalOperator *> > &res)
+{
+    std::vector<const GlobalOperator *> labels;
+    backtrace(this->operator[](start), labels, res);
 }
 
 void SearchSpace::print_backtrace(const SearchNode &node,

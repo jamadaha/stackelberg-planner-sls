@@ -60,10 +60,15 @@ private:
     void print_backtrace(const SearchNode &node,
                          std::vector<const GlobalOperator *> &labels,
                          size_t &counter);
+    void backtrace(const SearchNode &node,
+                   std::vector<const GlobalOperator *> &labels,
+                   std::vector<std::vector<const GlobalOperator *> > &sequences);
 public:
     SearchNode operator[](const StateID &state_id);
     SearchNode operator[](const GlobalState &state_id);
     void print_backtrace(const StateID &start, size_t &counter);
+    void backtrace(const StateID &start,
+                   std::vector<std::vector<const GlobalOperator *> > &sequences);
 };
 
 }
