@@ -60,7 +60,9 @@ BestFirstSearch::BestFirstSearch(const Options &opts)
     m_stat_time_inner_search.reset();
     m_stat_time_inner_search.stop();
 
-    m_stat_current_g = 0;
+    m_stat_current_g = -1;
+    m_stat_expanded_last_f_layer = 0;
+    m_stat_last_g = -1;
 }
 
 void BestFirstSearch::initialize()
@@ -129,9 +131,9 @@ void BestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
     }
 }
 
-void BestFirstSearch::set_reward(const SearchNode &parent,
-                                 const GlobalOperator &op,
-                                 SearchNode &node)
+void BestFirstSearch::compute_and_set_reward(const SearchNode &parent,
+        const GlobalOperator &op,
+        SearchNode &node)
 {
     m_stat_inner_searches++;
     m_stat_time_inner_search.resume();
@@ -245,15 +247,21 @@ SearchStatus BestFirstSearch::step()
         return SOLVED;
     }
 
+    m_stat_current_g = node.get_g();
+
+    print_statistic_line();
+
+    m_stat_expanded++;
+
     // NOTE in mitit the parent attack plan is not applicable in the child state
     // if S3 pruning is enabled; thus the check for applicable attack plans is
     // not implemented here
     // node.set_reward(compute_reward(state));
     if (c_lazy_reward_computation
             && node.get_parent_state_id() != StateID::no_state) {
-        set_reward(m_search_space[node.get_parent_state_id()],
-                   *node.get_parent_operator(),
-                   node);
+        compute_and_set_reward(m_search_space[node.get_parent_state_id()],
+                               *node.get_parent_operator(),
+                               node);
     }
     insert_into_pareto_frontier(node);
 
@@ -268,9 +276,6 @@ SearchStatus BestFirstSearch::step()
         // everything from here on will be dominated
         return IN_PROGRESS;
     }
-
-    m_stat_expanded++;
-    m_stat_current_g = node.get_g();
 
     // (dynamic_cast<delrax_search::DelRaxSearch *>
     //  (m_inner_search))->dump_achieved_goal_facts();
@@ -307,7 +312,7 @@ SearchStatus BestFirstSearch::step()
             // TODO heuristic computation goes here
             m_stat_evaluated++;
             if (!c_lazy_reward_computation) {
-                set_reward(node, *m_applicable_operators[i], succ_node);
+                compute_and_set_reward(node, *m_applicable_operators[i], succ_node);
             } else {
                 succ_node.set_reward(node.get_reward());
             }
@@ -331,8 +336,6 @@ SearchStatus BestFirstSearch::step()
         node.get_counter() = NULL;
         assert(node.get_counter() == NULL);
     }
-
-    print_statistic_line();
 
     return IN_PROGRESS;
 }
@@ -425,10 +428,13 @@ void BestFirstSearch::save_plan_if_necessary()
     std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
               std::endl;
     std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
-    std::cout << "(2OT) evaluated state(s): " << m_stat_expanded << std::endl;
+    std::cout << "(2OT) evaluated state(s): " << m_stat_evaluated << std::endl;
     std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
     std::cout << "(2OT) pruned successor(s): " << m_stat_pruned_successors <<
               std::endl;
+    std::cout << "(2OT) state(s) in open list: " << m_stat_open << std::endl;
+    std::cout << "(2OT) state(s) expanded until last f-layer: " <<
+              m_stat_expanded_last_f_layer << std::endl;
     std::cout << "(2OT) inner searches: " << m_stat_inner_searches << std::endl;
     printf("(2OT) inner search time: %.4fs\n", m_stat_time_inner_search());
 
@@ -443,6 +449,11 @@ void BestFirstSearch::save_plan_if_necessary()
 
 void BestFirstSearch::print_statistic_line()
 {
+    if (m_stat_last_g != m_stat_current_g) {
+        m_stat_last_g = m_stat_current_g;
+        m_stat_expanded_last_f_layer = m_stat_expanded;
+    }
+
     if (m_stat_last_printed_states * 2 <= m_stat_expanded
             || m_stat_last_printed_pareto != m_pareto_frontier.size()) {
         m_stat_last_printed_states = m_stat_expanded;
@@ -453,25 +464,26 @@ void BestFirstSearch::print_statistic_line()
 
 void BestFirstSearch::force_print_statistic_line() const
 {
-    assert(!m_pareto_frontier.empty());
-    printf("[g=%d, P={(%d, %d)..(%d, %d)} (%zu), expanded=%zu, open=%zu, pruned=%zu, t=%.3fs]\n",
-           m_stat_current_g,
-           m_pareto_frontier.rbegin()->second.first,
-           m_pareto_frontier.rbegin()->first,
-           m_pareto_frontier.begin()->second.first,
-           m_pareto_frontier.begin()->first,
-           m_pareto_frontier.size(),
-           m_stat_expanded,
-           m_stat_open,
-           m_stat_pruned_successors,
-           g_timer());
+    if (!m_pareto_frontier.empty()) {
+        printf("[g=%d, P={(%d, %d)..(%d, %d)} (%zu), expanded=%zu, open=%zu, pruned=%zu, t=%.3fs]\n",
+               m_stat_current_g,
+               m_pareto_frontier.rbegin()->second.first,
+               m_pareto_frontier.rbegin()->first,
+               m_pareto_frontier.begin()->second.first,
+               m_pareto_frontier.begin()->first,
+               m_pareto_frontier.size(),
+               m_stat_expanded,
+               m_stat_open,
+               m_stat_pruned_successors,
+               g_timer());
+    }
 }
 
 void BestFirstSearch::add_options_to_parser(OptionParser &parser)
 {
     std::vector<std::string> open_lists;
     get_open_list_options(open_lists);
-    parser.add_enum_option("open_list", open_lists, "", open_lists.front());
+    parser.add_enum_option("open_list", open_lists, "", open_lists.back());
 
     parser.add_option<SuccessorPruningMethod *>("pruning_method", "", "",
             OptionFlags(false));
