@@ -125,9 +125,9 @@ protected:
     int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
     void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
 
-    void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence);
-    void dump_op_sequence_sequence(const std::vector<std::vector<const GlobalOperator*>> &op_sequence_sequence);
-    void dump_pareto_frontier_node(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
+    void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence, std::ostringstream &json);
+    void dump_op_sequence_sequence(const std::vector<std::vector<const GlobalOperator*>> &op_sequence_sequence, std::ostringstream &json);
+    void dump_pareto_frontier_node(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node, std::ostringstream &json);
     void dump_pareto_frontier ();
 
 public:

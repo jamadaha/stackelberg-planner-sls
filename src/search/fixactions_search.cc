@@ -17,6 +17,8 @@
 #include "budget_dead_end_heuristic.h"
 #include <chrono>
 #include <iomanip>
+#include <sstream>
+#include <fstream>
 #include "timer.h"
 
 //#define FIX_SEARCH_DEBUG
@@ -87,6 +89,9 @@ void FixActionsSearch::initialize()
     create_new_variable_indices();
 
     check_fix_vars_attacker_preconditioned();
+
+    cout << "fix_variable_domain.size() = " << fix_variable_domain.size() << endl;
+    cout << "fix_vars_attacker_preconditioned.size() = " << fix_vars_attacker_preconditioned.size() << endl;
 
     fix_search_node_infos_attack_plan.set_relevant_variables(
         fix_vars_attacker_preconditioned);
@@ -1004,7 +1009,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         search_engine->search();       // <-- call
         chrono::high_resolution_clock::time_point t2 =
             chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
+        auto duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
         attack_search_duration_sum += duration;
 
 #ifndef FIX_SEARCH_DEBUG
@@ -1311,42 +1316,66 @@ void FixActionsSearch::add_node_to_pareto_frontier(
 }
 
 void FixActionsSearch::dump_op_sequence(const vector<const GlobalOperator *>
-                                        &op_sequence)
+                                        &op_sequence, std::ostringstream &json)
 {
+
+	json << "  [";
     if (op_sequence.size() < 1) {
         cout << "\t\t\t <empty sequence>" << endl;
+        json << "]";
         return;
     }
 
     for (size_t i = 0; i < op_sequence.size(); ++i) {
+    	json << (i > 0 ? ", " : "") << "\"" << op_sequence[i]->get_name() << "\"";
         cout << "\t\t\t " << op_sequence[i]->get_name() << endl;
     }
+    json << "]";
 }
 
 void FixActionsSearch::dump_op_sequence_sequence(const
-        vector<vector<const GlobalOperator *>> &op_sequence_sequence)
+        vector<vector<const GlobalOperator *>> &op_sequence_sequence, std::ostringstream &json)
 {
     for (size_t i = 0; i < op_sequence_sequence.size(); ++i) {
+        if (i > 0)  {
+            json << ",\n";
+        }
         cout << "\t\t sequence " << i << ":" << endl;
-        dump_op_sequence(op_sequence_sequence[i]);
+        dump_op_sequence(op_sequence_sequence[i], json);
     }
 }
 
 void FixActionsSearch::dump_pareto_frontier_node(
-    triple<int, int, vector<vector<const GlobalOperator *>>> &node)
+    triple<int, int, vector<vector<const GlobalOperator *>>> &node, std::ostringstream &json)
 {
     cout << "\t fix ops costs: " << get<0>(node) << ", attacker reward: " << abs(
              get<1>(node)) << ", sequences: " << endl;
-    dump_op_sequence_sequence(get<2>(node));
+    json << "{"
+         << "\"reward\": " << abs(get<1>(node))
+         << ", \"cost\": " << get<0>(node)
+         << ", \"sequences\": [";
+    dump_op_sequence_sequence(get<2>(node), json);
+    json << "]}";
 }
 
 void FixActionsSearch::dump_pareto_frontier()
 {
+    std::ostringstream json;
+    json << "[";
     cout << "Resulting Pareto-frontier: " << endl;
     for (size_t i = 0; i < pareto_frontier.size(); ++i) {
-        dump_pareto_frontier_node(pareto_frontier[i]);
+    	if(i > 0) {
+    		json << ",\n";
+    	}
+        dump_pareto_frontier_node(pareto_frontier[i], json);
     }
     cout << "END Pareto-frontier" << endl;
+
+    json << "]";
+    std::ofstream out;
+    out.open("pareto_frontier.json");
+    out << json.str();
+    out.close();
 }
 
 SearchStatus FixActionsSearch::step()
@@ -1367,10 +1396,10 @@ SearchStatus FixActionsSearch::step()
     cout << "FixSearch initialize took: " << fix_search_initialize_duration << "ms"
          << endl;
     cout << "Complete Fixsearch took: " << duration << "ms" << endl;
-    cout << "Search in Attacker Statespace took " << attack_search_duration_sum <<
+    cout << "Search in Attacker Statespace took " << (attack_search_duration_sum/1000) <<
          "ms" << endl;
     cout << "Search in Fixactions Statespace took " << (duration -
-            attack_search_duration_sum) << "ms" << endl;
+            (attack_search_duration_sum/1000)) << "ms" << endl;
     cout << "reset_and_initialize_duration_sum: " <<
          reset_and_initialize_duration_sum << "ms" << endl;
     cout << "They were in total " << num_recursive_calls <<
