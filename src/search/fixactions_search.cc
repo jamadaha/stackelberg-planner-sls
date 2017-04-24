@@ -858,6 +858,27 @@ bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
     return op1->get_name() < op2->get_name();
 }
 
+string FixActionsSearch::fix_state_to_string(const GlobalState &state) {
+	string res = "";
+	for (size_t i = 0; i < fix_variable_domain.size(); i++) {
+		res += to_string(state[i]);
+	}
+	return res;
+}
+
+string FixActionsSearch::ops_to_string(vector<const GlobalOperator *> &ops) {
+	sort(ops.begin(), ops.end(), op_ptr_name_comp);
+	string res = "";
+	for (size_t i = 0; i < ops.size(); i++) {
+		if(i > 0) {
+			res += " ";
+		}
+		res += ops[i]->get_name();
+	}
+	return res;
+}
+
+
 int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         vector<const GlobalOperator *> &fix_ops_sequence, int fix_actions_cost,
         const vector<int> &parent_attack_plan, int parent_attack_plan_cost,
@@ -1139,6 +1160,8 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
     }
 
     vector<int> dummy;
+
+    cout << fix_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
 
     iterate_applicable_ops(applicable_ops_after_pruning, state,
                            parent_attack_plan_applicable ? parent_attack_plan : attack_plan,
