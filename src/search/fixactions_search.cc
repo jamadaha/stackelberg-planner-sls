@@ -1083,8 +1083,8 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
             cout << "1" << endl;
             vector<const GlobalOperator *> ops(attack_plan.size());
             for (size_t op_no = 0; op_no < attack_plan.size(); op_no++) {
-            	cout << "op_no: " << op_no << ", fix_operators.size(): " << fix_operators.size() << ", attack_plan.size(): " << attack_plan.size() << ", ops.size():" << ops.size() << ", attack_plan[op_no]: " << attack_plan[op_no] << endl;
-            	ops[op_no] = &fix_operators[attack_plan[op_no]];
+            	cout << "op_no: " << op_no << ", attack_operators.size(): " << attack_operators.size() << ", attack_plan.size(): " << attack_plan.size() << ", ops.size():" << ops.size() << ", attack_plan[op_no]: " << attack_plan[op_no] << endl;
+            	ops[op_no] = &attack_operators[attack_plan[op_no]];
             }
             cout << "2" << endl;
             cerr << fix_state_to_string(state) << ": " << ops_to_string(ops) << endl;
