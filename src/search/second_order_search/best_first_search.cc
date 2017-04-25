@@ -318,6 +318,13 @@ SearchStatus BestFirstSearch::step()
         // }
         // std::cout << std::endl;
         m_pruning_method->prune_successors(state, g_plan, m_applicable_operators);
+
+        /*vector<const GlobalOperator *> ops(g_plan.size());
+        for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
+        	ops[op_no] = g_plan[op_no];
+        }
+        cerr << fix_state_to_string(state) << ": " << ops_to_string(ops) << endl;*/
+
         g_plan.clear();
     }
 
