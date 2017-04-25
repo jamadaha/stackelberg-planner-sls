@@ -321,7 +321,7 @@ SearchStatus BestFirstSearch::step()
         g_plan.clear();
     }
 
-    cout << fix_state_to_string(state) << ": " << ops_to_string(m_applicable_operators) << endl;
+    cerr << fix_state_to_string(state) << ": " << ops_to_string(m_applicable_operators) << endl;
 
     m_stat_pruned_successors -= m_applicable_operators.size();
     m_stat_generated += m_applicable_operators.size();

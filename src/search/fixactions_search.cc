@@ -1161,7 +1161,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
 
     vector<int> dummy;
 
-    cout << fix_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
+    cerr << fix_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
 
     iterate_applicable_ops(applicable_ops_after_pruning, state,
                            parent_attack_plan_applicable ? parent_attack_plan : attack_plan,
