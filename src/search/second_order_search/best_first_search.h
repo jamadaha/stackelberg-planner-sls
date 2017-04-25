@@ -50,6 +50,9 @@ class BestFirstSearch : public SecondOrderTaskSearch
     void force_print_statistic_line() const;
     void print_statistic_line();
 
+    std::string fix_state_to_string(const GlobalState &state);
+    std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
+
 protected:
     const bool c_silent;
     const bool c_precompute_max_reward;

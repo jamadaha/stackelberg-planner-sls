@@ -225,6 +225,31 @@ int BestFirstSearch::compute_max_reward()
     return res;
 }
 
+bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
+{
+    return op1->get_name() < op2->get_name();
+}
+
+string BestFirstSearch::fix_state_to_string(const GlobalState &state) {
+	string res = "";
+	for (size_t i = 0; i < g_outer_variable_domain.size(); i++) {
+		res += to_string(state[i]);
+	}
+	return res;
+}
+
+string BestFirstSearch::ops_to_string(vector<const GlobalOperator *> &ops) {
+	sort(ops.begin(), ops.end(), op_ptr_name_comp);
+	string res = "";
+	for (size_t i = 0; i < ops.size(); i++) {
+		if(i > 0) {
+			res += " ";
+		}
+		res += ops[i]->get_name();
+	}
+	return res;
+}
+
 SearchStatus BestFirstSearch::step()
 {
     if (m_open_list->empty()) {
@@ -295,6 +320,9 @@ SearchStatus BestFirstSearch::step()
         m_pruning_method->prune_successors(state, g_plan, m_applicable_operators);
         g_plan.clear();
     }
+
+    cout << fix_state_to_string(state) << ": " << ops_to_string(m_applicable_operators) << endl;
+
     m_stat_pruned_successors -= m_applicable_operators.size();
     m_stat_generated += m_applicable_operators.size();
     for (unsigned i = 0; i < m_applicable_operators.size(); i++) {
