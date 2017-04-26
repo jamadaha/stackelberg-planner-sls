@@ -108,6 +108,9 @@ void BestFirstSearch::initialize()
         for (size_t i = 0; i < g_outer_operators.size(); i++) {
             m_sleep_packer->set(node.get_sleep(), i, 0);
         }
+        std::cout << "Bytes per sleep_set: "
+                  << (m_sleep_packer->get_num_bins() * sizeof(IntPacker::Bin))
+                  << std::endl;
     }
 
     std::cout << "Maximal possible reward is: " << m_max_reward << std::endl;
