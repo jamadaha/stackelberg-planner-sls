@@ -111,6 +111,16 @@ const IntPacker::Bin *SearchNode::get_counter() const
     return info.counter;
 }
 
+IntPacker::Bin *&SearchNode::get_sleep()
+{
+    return info.sleep;
+}
+
+const IntPacker::Bin *SearchNode::get_sleep() const
+{
+    return info.sleep;
+}
+
 SearchNode SearchSpace::operator[](const StateID &state_id)
 {
     size_t i = state_id.hash();

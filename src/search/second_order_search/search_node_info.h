@@ -20,6 +20,7 @@ struct SearchNodeInfo {
     unsigned g;
     int r;
     IntPacker::Bin *counter;
+    IntPacker::Bin *sleep;
 
 #ifdef COMPUTE_COMPLETE_PARETO_FRONTIER
     std::vector<std::pair<const GlobalOperator *, StateID> > parents;
@@ -33,7 +34,8 @@ struct SearchNodeInfo {
         status(NEW),
         g(0),
         r(0),
-        counter(NULL)
+        counter(NULL),
+        sleep(NULL)
     {}
 #else
     SearchNodeInfo() :
@@ -41,6 +43,7 @@ struct SearchNodeInfo {
         g(0),
         r(0),
         counter(NULL),
+        sleep(NULL),
         parent(StateID::no_state),
         op(NULL)
     {}

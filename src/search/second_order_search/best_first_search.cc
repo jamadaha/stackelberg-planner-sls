@@ -19,6 +19,8 @@
 
 #include "../delrax_search.h"
 
+#include "../utilities.h"
+
 #include <limits>
 #include <string>
 #include <iostream>
@@ -39,10 +41,15 @@ BestFirstSearch::BestFirstSearch(const Options &opts)
       c_silent(opts.get<bool>("silent")),
       c_precompute_max_reward(opts.get<bool>("precompute_max_reward")),
       c_lazy_reward_computation(opts.get<bool>("lazy")),
+      c_sleep_set(opts.get<bool>("sleep_set")),
       m_open_list(parse_open_list<StateID>(opts.get_enum("open_list"))),
       m_pruning_method(opts.contains("pruning_method") ?
                        opts.get<SuccessorPruningMethod *>("pruning_method") : NULL)
 {
+    if (!c_lazy_reward_computation && !c_incremental_rpg) {
+        std::cerr << "!incremental_rpg requires lazy=true"  << std::endl;
+        exit_with(EXIT_CRITICAL_ERROR);
+    }
     m_g_limit = std::numeric_limits<int>::max();
     m_max_reward = MAX_REWARD;
 
@@ -94,7 +101,25 @@ void BestFirstSearch::initialize()
 
     m_open_list->push(node.get_info(), init.get_id());
 
+    if (c_sleep_set) {
+        std::vector<int> ranges(g_outer_operators.size(), 2);
+        m_sleep_packer = new IntPacker(ranges);
+        node.get_sleep() = new IntPacker::Bin[m_sleep_packer->get_num_bins()];
+        for (size_t i = 0; i < g_outer_operators.size(); i++) {
+            m_sleep_packer->set(node.get_sleep(), i, 0);
+        }
+    }
+
     std::cout << "Maximal possible reward is: " << m_max_reward << std::endl;
+}
+
+IntPacker::Bin *BestFirstSearch::create_sleep_set_copy(IntPacker::Bin *x)
+{
+    IntPacker::Bin *sleep = new IntPacker::Bin[m_sleep_packer->get_num_bins()];
+    for (int i = 0; i < m_sleep_packer->get_num_bins(); i++) {
+        sleep[i] = x[i];
+    }
+    return sleep;
 }
 
 void BestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
@@ -230,24 +255,26 @@ bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
     return op1->get_name() < op2->get_name();
 }
 
-string BestFirstSearch::fix_state_to_string(const GlobalState &state) {
-	string res = "";
-	for (size_t i = 0; i < g_outer_variable_domain.size(); i++) {
-		res += to_string(state[i]);
-	}
-	return res;
+string BestFirstSearch::fix_state_to_string(const GlobalState &state)
+{
+    string res = "";
+    for (size_t i = 0; i < g_outer_variable_domain.size(); i++) {
+        res += to_string(state[i]);
+    }
+    return res;
 }
 
-string BestFirstSearch::ops_to_string(vector<const GlobalOperator *> &ops) {
-	sort(ops.begin(), ops.end(), op_ptr_name_comp);
-	string res = "";
-	for (size_t i = 0; i < ops.size(); i++) {
-		if(i > 0) {
-			res += " ";
-		}
-		res += ops[i]->get_name();
-	}
-	return res;
+string BestFirstSearch::ops_to_string(vector<const GlobalOperator *> &ops)
+{
+    sort(ops.begin(), ops.end(), op_ptr_name_comp);
+    string res = "";
+    for (size_t i = 0; i < ops.size(); i++) {
+        if (i > 0) {
+            res += " ";
+        }
+        res += ops[i]->get_name();
+    }
+    return res;
 }
 
 SearchStatus BestFirstSearch::step()
@@ -328,11 +355,21 @@ SearchStatus BestFirstSearch::step()
         g_plan.clear();
     }
 
-    cerr << fix_state_to_string(state) << ": " << ops_to_string(m_applicable_operators) << endl;
+    cerr << fix_state_to_string(state) << ": " << ops_to_string(
+             m_applicable_operators) << endl;
 
     m_stat_pruned_successors -= m_applicable_operators.size();
     m_stat_generated += m_applicable_operators.size();
     for (unsigned i = 0; i < m_applicable_operators.size(); i++) {
+        if (c_sleep_set) {
+            if (m_sleep_packer->get(node.get_sleep(),
+                                    m_applicable_operators[i]->get_op_id())) {
+                continue;
+            }
+            m_sleep_packer->set(node.get_sleep(),
+                                m_applicable_operators[i]->get_op_id(),
+                                1);
+        }
         int succ_g = node.get_g() + get_adjusted_cost(*m_applicable_operators[i]);
         if (succ_g > m_g_limit) {
             continue;
@@ -350,6 +387,9 @@ SearchStatus BestFirstSearch::step()
                 compute_and_set_reward(node, *m_applicable_operators[i], succ_node);
             } else {
                 succ_node.set_reward(node.get_reward());
+            }
+            if (c_sleep_set) {
+                succ_node.get_sleep() = create_sleep_set_copy(node.get_sleep());
             }
         }
 
@@ -370,6 +410,11 @@ SearchStatus BestFirstSearch::step()
         delete (node.get_counter());
         node.get_counter() = NULL;
         assert(node.get_counter() == NULL);
+    }
+
+    if (c_sleep_set) {
+        delete (node.get_sleep());
+        node.get_sleep() = NULL;
     }
 
     return IN_PROGRESS;
@@ -526,6 +571,7 @@ void BestFirstSearch::add_options_to_parser(OptionParser &parser)
     parser.add_option<bool>("precompute_max_reward", "", "true");
     parser.add_option<bool>("silent", "", "false");
     parser.add_option<bool>("lazy", "", "false");
+    parser.add_option<bool>("sleep_set", "", "true");
 
     SecondOrderTaskSearch::add_options_to_parser(parser);
 }

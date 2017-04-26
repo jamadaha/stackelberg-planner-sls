@@ -51,6 +51,9 @@ public:
 
     IntPacker::Bin *&get_counter();
     const IntPacker::Bin *get_counter() const;
+
+    IntPacker::Bin *&get_sleep();
+    const IntPacker::Bin *get_sleep() const;
 };
 
 class SearchSpace

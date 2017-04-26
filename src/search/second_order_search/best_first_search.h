@@ -14,6 +14,8 @@
 
 #include "../timer.h"
 
+#include "../int_packer.h"
+
 #include <map>
 #include <vector>
 #include <functional>
@@ -57,6 +59,9 @@ protected:
     const bool c_silent;
     const bool c_precompute_max_reward;
     const bool c_lazy_reward_computation;
+    const bool c_sleep_set;
+
+    IntPacker *m_sleep_packer;
 
     int m_g_limit;
     int m_max_reward;
@@ -68,6 +73,8 @@ protected:
     SuccessorPruningMethod *m_pruning_method;
 
     std::vector <const GlobalOperator *> m_applicable_operators;
+
+    IntPacker::Bin *create_sleep_set_copy(IntPacker::Bin *x);
 
     int compute_max_reward();
     void compute_and_set_reward(const SearchNode &parent,
