@@ -1168,7 +1168,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
 
     vector<int> dummy;
 
-    cerr << fix_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
+    // cerr << fix_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
 
     iterate_applicable_ops(applicable_ops_after_pruning, state,
                            parent_attack_plan_applicable ? parent_attack_plan : attack_plan,
@@ -1194,6 +1194,9 @@ void FixActionsSearch::iterate_applicable_ops(const
      applicable_ops[op_no]->dump();
      }*/
     bool at_least_one_recursion = false;
+
+    //vector<const GlobalOperator *> actually_recursed_ops;
+
     for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
         const GlobalOperator *op = applicable_ops[op_no];
         if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(),
@@ -1220,6 +1223,9 @@ void FixActionsSearch::iterate_applicable_ops(const
             fix_ops_sequence.pop_back();
             continue;
         }
+
+        //actually_recursed_ops.push_back(op);
+
         // Add all ops before op_no in applicable_ops to sleep set if they are commutative
         int op_id = op->get_op_id();
         for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
@@ -1252,6 +1258,9 @@ void FixActionsSearch::iterate_applicable_ops(const
     if (!at_least_one_recursion) {
         num_fix_op_paths++;
     }
+    /* if(recurse && at_least_one_recursion) {
+        cerr << fix_state_to_string(state) << ": " << ops_to_string(actually_recursed_ops) << endl;
+    } */
 }
 
 bool pareto_node_comp_func(const
