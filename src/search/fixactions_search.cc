@@ -1136,7 +1136,7 @@ void FixActionsSearch::dump_pareto_frontier () {
 SearchStatus FixActionsSearch::step() {
 	cout << "Starting fix-actions IDS..." << endl;
 
-	curr_fix_actions_budget = max_fix_action_cost;
+	curr_fix_actions_budget = max(2, max_fix_action_cost);
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 
 	while (true) {
