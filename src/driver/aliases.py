@@ -10,8 +10,12 @@ PORTFOLIO_DIR = os.path.join(DRIVER_DIR, "portfolios")
 
 ALIASES = {}
 
+ALIASES["mititnp"] = [
+    '--search', 'fixsearch(search_engine=delrax, attack_op_dom_pruning=false, check_parent_attack_plan_applicable=false, partial_order_reduction=false)'
+]
+
 ALIASES["mitit"] = [
-    '--search', 'fixsearch(search_engine=delrax, attack_op_dom_pruning=false)'
+    '--search', 'fixsearch(search_engine=delrax, attack_op_dom_pruning=false, check_parent_attack_plan_applicable=false)'
 ]
 
 ALIASES["seq-sat-fd-autotune-1"] = [
