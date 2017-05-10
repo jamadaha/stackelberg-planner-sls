@@ -8,7 +8,7 @@
 
 #include "../state_id.h"
 
-#define MAX_REWARD std::numeric_limits<int>::max()
+#define MAX_REWARD 0 //std::numeric_limits<int>::max()
 
 #include <map>
 
@@ -94,6 +94,7 @@ protected:
                            std::vector<std::vector<const GlobalOperator *> > &paths) = 0;
     int compute_max_reward();
     void set_inner_plan(IntPacker::Bin *counter);
+    bool in_pareto_frontier(const StateID &state) const;
 public:
     SecondOrderTaskSearch(const Options &opts);
     IntPacker *get_counter_packer() const

@@ -24,6 +24,7 @@
 #include <string>
 #include <iostream>
 #include <cstdio>
+#include <algorithm>
 
 #include <sstream>
 #include <fstream>
@@ -47,8 +48,12 @@ namespace second_order_search
 
 DepthFirstSearch::DepthFirstSearch(const Options &opts)
     : SecondOrderTaskSearch(opts),
-      m_state_rewards(std::pair<int, int>(std::numeric_limits<int>::min(), -1)),
-      m_max_reward(std::numeric_limits<int>::max()),
+      m_state_rewards(StateInfo(std::numeric_limits<int>::min(), -1
+#if STORE_POLICY_IN_INFO
+                                , NULL, StateID::no_state
+#endif
+                               )),
+      m_max_reward(MAX_REWARD),
       m_cutoff(std::numeric_limits<int>::max()),
       m_pruning_method(opts.contains("pruning_method") ?
                        opts.get<SuccessorPruningMethod *>("pruning_method") : NULL)
@@ -56,6 +61,7 @@ DepthFirstSearch::DepthFirstSearch(const Options &opts)
     m_stat_expanded = 0;
     m_stat_updated = 0;
     m_stat_evaluated = 1;
+    m_stat_generated = 1;
     m_stat_last_printed = 0;
 }
 
@@ -69,39 +75,63 @@ void DepthFirstSearch::initialize()
 }
 
 bool DepthFirstSearch::_insert_into_pareto_frontier(
-    const std::pair<int, int> &val,
+    const StateInfo &val,
     const StateID &state)
 {
-    if (insert_into_pareto_frontier(val.first, val.second, state)) {
+    if (insert_into_pareto_frontier(val.r, val.g, state)) {
+#if !STORE_POLICY_IN_INFO
         std::vector<const GlobalOperator *> &path = m_paths[state];
         path.clear();
         path.insert(path.end(), m_current_path.begin(), m_current_path.end());
+#endif
         return true;
     }
     return false;
 }
 
-bool DepthFirstSearch::update_g_values(const GlobalState &state, int newg)
+bool DepthFirstSearch::update_g_values(const GlobalState &state,
+#if STORE_POLICY_IN_INFO
+                                       const StateID &p,
+                                       const GlobalOperator *op,
+#endif
+                                       int newg)
 {
-    std::pair<int, int> &val = m_state_rewards[state];
-    if (newg >= val.second) {
+    StateInfo &val = m_state_rewards[state];
+    if (newg >= val.g) {
         return false;
     }
-    val.second = newg;
+
     m_stat_updated++;
+
+    val.g = newg;
+#if STORE_POLICY_IN_INFO
+    val.p = p;
+    val.p_op = op;
+#endif
+
     if (_insert_into_pareto_frontier(val, state.get_id())
-            && val.first == m_max_reward) {
-        m_cutoff = val.second;
+            && val.r == m_max_reward) {
+        m_cutoff = val.g;
         return true;
     }
+
     std::vector<const GlobalOperator *> aops;
     g_outer_successor_generator->generate_applicable_ops(state, aops);
     for (size_t i = 0; i < aops.size(); i++) {
+#if !STORE_POLICY_IN_INFO
         m_current_path.push_back(aops[i]);
+#endif
         GlobalState succ = g_outer_state_registry->get_successor_state(state, *aops[i]);
-        update_g_values(succ, newg + get_adjusted_cost(*aops[i]));
+        update_g_values(succ,
+#if STORE_POLICY_IN_INFO
+                        state.get_id(), aops[i],
+#endif
+                        newg + get_adjusted_cost(*aops[i]));
+#if !STORE_POLICY_IN_INFO
         m_current_path.pop_back();
+#endif
     }
+
     return true;
 }
 
@@ -111,7 +141,7 @@ void DepthFirstSearch::expand(const GlobalState &state,
 {
     m_stat_expanded++;
     // m_state_rewards[state] has been set
-    const std::pair<int, int> &stats = m_state_rewards[state];
+    const StateInfo &stats = m_state_rewards[state];
     std::vector<const GlobalOperator *> aops;
     g_outer_successor_generator->generate_applicable_ops(state, aops);
     if (m_pruning_method != NULL) {
@@ -124,40 +154,53 @@ void DepthFirstSearch::expand(const GlobalState &state,
         if (sleep[id]++) {
             continue;
         }
+        m_stat_generated++;
         GlobalState succ = g_outer_state_registry->get_successor_state(state, *aops[i]);
-        std::pair<int, int> &succ_stats = m_state_rewards[succ];
-        if (succ_stats.second == -1) {
+        StateInfo &succ_stats = m_state_rewards[succ];
+        if (succ_stats.g == -1) {
             // is new
-            succ_stats.second = stats.second + get_adjusted_cost(*aops[i]);
-            if (succ_stats.second <= m_cutoff) {
+            succ_stats.g = stats.g + get_adjusted_cost(*aops[i]);
+#if STORE_POLICY_IN_INFO
+            succ_stats.p = state.get_id();
+            succ_stats.p_op = aops[i];
+#endif
+            if (succ_stats.g <= m_cutoff) {
                 m_stat_evaluated++;
                 IntPacker::Bin *succ_counter;
 #ifndef NDEBUG
-                succ_stats.first = stats.first
-                                   - compute_reward_difference(
-                                       succ,
-                                       counter,
+                succ_stats.r = stats.r
+                               - compute_reward_difference(
+                                   succ,
+                                   counter,
+                                   *aops[i],
+                                   succ_counter);
+#else
+                succ_stats.r = stats.r
+                               - compute_reward_difference(counter,
                                        *aops[i],
                                        succ_counter);
-#else
-                succ_stats.first = stats.first
-                                   - compute_reward_difference(counter,
-                                           *aops[i],
-                                           succ_counter);
 #endif
+#if !STORE_POLICY_IN_INFO
                 m_current_path.push_back(aops[i]);
+#endif
                 if (_insert_into_pareto_frontier(succ_stats,
                                                  succ.get_id())
-                        && succ_stats.first == m_max_reward) {
-                    m_cutoff = succ_stats.second;
+                        && succ_stats.r == m_max_reward) {
+                    m_cutoff = succ_stats.g;
                 } else {
                     expand(succ, succ_counter, sleep);
                 }
+#if !STORE_POLICY_IN_INFO
                 m_current_path.pop_back();
+#endif
                 delete[](succ_counter);
             }
         } else {
-            update_g_values(succ, stats.second + get_adjusted_cost(*aops[i]));
+            update_g_values(succ,
+#if STORE_POLICY_IN_INFO
+                            state.get_id(), aops[i],
+#endif
+                            stats.g + get_adjusted_cost(*aops[i]));
         }
     }
     for (size_t i = 0; i < aops.size(); i++) {
@@ -170,9 +213,10 @@ SearchStatus DepthFirstSearch::step()
 {
     GlobalState init = g_outer_initial_state();
     IntPacker::Bin *counter;
-    int r = get_initial_state_reward(counter);
-    m_state_rewards[init] = std::pair<int, int>(r, 0);
-    _insert_into_pareto_frontier(std::pair<int, int>(r, 0), init.get_id());
+    StateInfo &info = m_state_rewards[init];
+    info.r = get_initial_state_reward(counter);
+    info.g = 0;
+    _insert_into_pareto_frontier(info, init.get_id());
     if (m_cutoff > 0) {
         std::vector<size_t> sleep(g_outer_operators.size(), 0);
         expand(init, counter, sleep);
@@ -201,8 +245,21 @@ void DepthFirstSearch::print_statistic_line()
 void DepthFirstSearch::get_paths(const StateID &state,
                                  std::vector<std::vector<const GlobalOperator *> > &paths)
 {
+#if STORE_POLICY_IN_INFO
+    paths.emplace_back();
+    std::vector<const GlobalOperator *> &path = paths.back();
+    StateID s = state;
+    while (s != StateID::no_state) {
+        const StateInfo &info = m_state_rewards[s];
+        path.push_back(info.p_op);
+        s = info.p;
+    }
+    path.pop_back();
+    std::reverse(path.begin(), path.end());
+#else
     assert(m_paths.count(state));
     paths.push_back(m_paths[state]);
+#endif
 }
 
 void DepthFirstSearch::add_options_to_parser(OptionParser &parser)
@@ -210,6 +267,15 @@ void DepthFirstSearch::add_options_to_parser(OptionParser &parser)
     parser.add_option<SuccessorPruningMethod *>("pruning_method", "", "",
             OptionFlags(false));
     SecondOrderTaskSearch::add_options_to_parser(parser);
+}
+
+void DepthFirstSearch::statistics() const
+{
+    std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
+              std::endl;
+    std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
+    std::cout << "(2OT) evaluated state(s): " << m_stat_evaluated << std::endl;
+    std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
 }
 
 }

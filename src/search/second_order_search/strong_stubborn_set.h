@@ -7,6 +7,7 @@
 #include "successor_pruning_method.h"
 
 #include <vector>
+#include <deque>
 
 namespace second_order_search
 {
@@ -15,6 +16,8 @@ class StrongStubbornSet : public SuccessorPruningMethod
 {
     std::vector<std::vector<unsigned> > m_operator_negated_by;
     std::vector<bool> m_is_relevant;
+    std::vector<std::vector<unsigned> > m_pre_achiever;
+    std::deque<unsigned> m_q;
 public:
     virtual void initialize() override;
     virtual void prune_successors(const GlobalState &state,

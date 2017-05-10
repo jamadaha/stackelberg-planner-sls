@@ -5,6 +5,7 @@
 #include "../option_parser.h"
 #include "../globals.h"
 
+#include "../state_registry.h"
 #include "../successor_generator.h"
 
 #include "../utilities.h"
@@ -18,8 +19,13 @@
 #include <deque>
 #include <cstdio>
 #include <fstream>
+#include <unordered_set>
 
 #include <cstring>
+
+// #ifndef NDEBUG
+// #define PRINT_STATE_SPACE
+// #endif
 
 // Assumptions for incremental rpg:
 // 1) all attacker actions have at most one precondition on attacker variables
@@ -614,6 +620,70 @@ void SecondOrderTaskSearch::save_plan_if_necessary()
     out.open("pareto_frontier.json");
     out << json.str();
     out.close();
+
+
+#ifdef PRINT_STATE_SPACE
+    std::ofstream of;
+    of.open("state_space.dot");
+    of << "digraph {" << std::endl;
+
+    std::vector<const GlobalOperator *> aops;
+    std::unordered_set<StateID> closed;
+    std::deque<StateID> open;
+    GlobalState init = g_outer_initial_state();
+    of << "  state" << init.get_id().hash()
+       << " [shape=ellipse, label=\"#" << init.get_id().hash() << "\", peripheries=2];"
+       << std::endl;
+    open.push_back(init.get_id());
+    closed.insert(open.back());
+    size_t slimit = g_outer_state_registry->size();
+    size_t ec = 0;
+    while (!open.empty()) {
+        StateID sid = open.front();
+        open.pop_front();
+        GlobalState s = g_outer_state_registry->lookup_state(sid);
+        g_outer_successor_generator->generate_applicable_ops(s, aops);
+        for (size_t i = 0; i < aops.size(); i++) {
+            GlobalState succ = g_outer_state_registry->get_successor_state(s, *aops[i]);
+            if (succ.get_id().hash() < slimit) {
+                if (!closed.count(succ.get_id())) {
+                    of << "  state" << succ.get_id().hash() << " [shape=ellipse, label=\"#" <<
+                       succ.get_id().hash()
+                       << "\"";
+                    if (in_pareto_frontier(succ.get_id())) {
+                        of << ", peripheries=2";
+                    }
+                    of << "];" << std::endl;
+                    closed.insert(succ.get_id());
+                    open.push_back(succ.get_id());
+                }
+                of << "  edge" << ec << " [shape=rectangle, label=\""
+                   << aops[i]->get_name() << "\"];" << std::endl;
+                of << "  state" << sid.hash() << " -> edge" << ec << ";" << std::endl;
+                of << "  edge" << ec << " -> state" << succ.get_id().hash()
+                   << ";" << std::endl;
+                ++ec;
+            }
+        }
+        aops.clear();
+    }
+
+    of << "}" << std::endl;
+    of.close();
+#endif
+}
+
+bool SecondOrderTaskSearch::in_pareto_frontier(const StateID &state) const
+{
+    for (auto it = m_pareto_frontier.begin(); it != m_pareto_frontier.end(); it++) {
+        for (auto init = it->second.second.begin(); init != it->second.second.end();
+                init++) {
+            if (state == *init) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 

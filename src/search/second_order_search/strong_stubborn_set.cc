@@ -59,6 +59,28 @@ void StrongStubbornSet::initialize()
             }
         }
     }
+
+    std::vector<std::vector<std::vector<unsigned> > > fact_added_by(
+        g_outer_variable_domain.size());
+    for (size_t var = 0; var < fact_added_by.size(); var++) {
+        fact_added_by[var].resize(g_outer_variable_domain[var]);
+    }
+    for (size_t i = 0; i < g_outer_operators.size(); i++) {
+        for (const auto &e : g_outer_operators[i].get_effects()) {
+            fact_added_by[e.var][e.val].push_back(i);
+        }
+    }
+    m_pre_achiever.resize(g_outer_operators.size());
+    for (size_t i = 0; i < g_outer_operators.size(); i++) {
+        for (const auto &p : g_outer_operators[i].get_preconditions()) {
+            for (const unsigned &op : fact_added_by[p.var][p.val])  {
+                m_pre_achiever[i].push_back(op);
+            }
+        }
+        std::sort(m_pre_achiever[i].begin(), m_pre_achiever[i].end());
+        m_pre_achiever[i].erase(std::unique(m_pre_achiever[i].begin(),
+                                            m_pre_achiever[i].end()), m_pre_achiever[i].end());
+    }
 }
 
 void StrongStubbornSet::prune_successors(const GlobalState &,
@@ -68,9 +90,23 @@ void StrongStubbornSet::prune_successors(const GlobalState &,
     std::fill(m_is_relevant.begin(), m_is_relevant.end(), false);
     for (const GlobalOperator *op : inner_plan) {
         for (unsigned x : m_operator_negated_by[op->get_op_id()]) {
-            m_is_relevant[x] = true;
+            if (!m_is_relevant[x]) {
+                m_is_relevant[x] = true;
+                m_q.push_back(x);
+            }
         }
     }
+
+    while (!m_q.empty()) {
+        for (const unsigned &op : m_pre_achiever[m_q.front()]) {
+            if (!m_is_relevant[op]) {
+                m_is_relevant[op] = true;
+                m_q.push_back(op);
+            }
+        }
+        m_q.pop_front();
+    }
+
     unsigned j = 0;
     for (unsigned i = 0; i < aops.size(); i++) {
         if (m_is_relevant[aops[i]->get_op_id()]) {
