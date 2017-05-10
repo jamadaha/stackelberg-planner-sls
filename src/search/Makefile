@@ -5,7 +5,7 @@
 ## By default, build in 32-bit mode. Use DOWNWARD_BITWIDTH=64
 ## to build in 64-bit mode and DOWNWARD_BITWIDTH=native to use
 ## the native bitness of the OS.
-DOWNWARD_BITWIDTH ?= 32
+DOWNWARD_BITWIDTH ?= 64
 
 ## Set DOWNWARD_USE_LP to 1 to enable linear programming stuff.
 DOWNWARD_USE_LP ?= 0
@@ -168,13 +168,15 @@ HEADERS += sort_fixactions_by_attacker_reward.h
 HEADERS += second_order_search/open_list.h \
            second_order_search/best_first_open_list.h \
            second_order_search/open_list_factory.h \
+           second_order_search/per_state_storage.h \
            second_order_search/search_node_info.h \
            second_order_search/search_space.h \
            second_order_search/globals.h \
            second_order_search/successor_pruning_method.h \
            second_order_search/strong_stubborn_set.h \
 		   second_order_search/second_order_task_search.h \
-		   second_order_search/best_first_search.h
+		   second_order_search/best_first_search.h \
+		   second_order_search/depth_first_search.h
 
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
@@ -247,7 +249,7 @@ CXXFLAGS =
 CXXFLAGS += -g
 CXXFLAGS += $(BITWIDTHOPT)
 # Note: we write "-std=c++0x" rather than "-std=c++11" to support gcc 4.4.
-CXXFLAGS += -std=c++0x -Wall -Wextra -pedantic -Wno-deprecated -Werror
+CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic -Wno-deprecated -Werror
 
 CXXFLAGS += -Iext
 ifeq ($(DOWNWARD_OS), osx)

@@ -46,6 +46,17 @@ public:
 
 std::ostream &operator<<(std::ostream &os, StateID id);
 
+namespace std
+{
+template<>
+struct hash<StateID> {
+    size_t operator()(StateID id) const
+    {
+        return id.hash();
+    }
+};
+}
+
 namespace __gnu_cxx
 {
 template<>
