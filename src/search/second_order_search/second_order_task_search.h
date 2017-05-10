@@ -6,7 +6,11 @@
 #include "../timer.h"
 #include "../int_packer.h"
 
+#include "../state_id.h"
+
 #define MAX_REWARD std::numeric_limits<int>::max()
+
+#include <map>
 
 namespace delrax_search
 {
@@ -40,21 +44,26 @@ struct RandomAccessBin {
 
 class SecondOrderTaskSearch : public SearchEngine
 {
-protected:
-    const bool c_incremental_rpg;
-
-    delrax_search::DelRaxSearch *m_inner_search;
-
+private:
     std::vector <const GlobalOperator *> m_available_operators;
-
     std::vector<bool> m_closed;
 
-    IntPacker *m_counter_packer;
     std::vector<int> m_initial_state_counter;
     std::vector<std::vector<unsigned> > m_outer_to_inner_operator;
     std::vector<int> m_rewards;
     std::vector<std::vector<unsigned> > m_arcs;
     std::vector<std::vector<unsigned> > m_inv_arcs;
+protected:
+    typedef std::map<int, std::pair<int, std::vector<StateID> >, std::greater<int> >
+    ParetoFrontier;
+
+    const bool c_silent;
+    const bool c_incremental_rpg;
+
+    ParetoFrontier m_pareto_frontier;
+
+    delrax_search::DelRaxSearch *m_inner_search;
+    IntPacker *m_counter_packer;
 
     void rgraph_exploration(const GlobalState &state,
                             std::vector<int> &res);
@@ -62,9 +71,16 @@ protected:
     int get_reward(const std::vector<int> &counter) const;
     int get_reward(const IntPacker::Bin *const &counter) const;
     int get_initial_state_reward(IntPacker::Bin *&result) const;
+#ifndef NDEBUG
+    int compute_reward_difference(const GlobalState &state,
+                                  const IntPacker::Bin *const &parent,
+                                  const GlobalOperator &op,
+                                  IntPacker::Bin *&res);
+#else
     int compute_reward_difference(const IntPacker::Bin *const &parent,
                                   const GlobalOperator &op,
                                   IntPacker::Bin *&res);
+#endif
 
     void extract_inner_plan(const IntPacker::Bin *const &counter,
                             std::vector<const GlobalOperator *> &plan);
@@ -72,12 +88,19 @@ protected:
     int run_inner_search(const GlobalState &state);
 
     virtual void initialize() override;
+
+    bool insert_into_pareto_frontier(int reward, int g, const StateID &state);
+    virtual void get_paths(const StateID &state,
+                           std::vector<std::vector<const GlobalOperator *> > &paths) = 0;
+    int compute_max_reward();
+    void set_inner_plan(IntPacker::Bin *counter);
 public:
     SecondOrderTaskSearch(const Options &opts);
     IntPacker *get_counter_packer() const
     {
         return m_counter_packer;
     }
+    virtual void save_plan_if_necessary() override;
     static void add_options_to_parser(OptionParser &parser);
 };
 

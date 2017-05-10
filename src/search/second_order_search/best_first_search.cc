@@ -38,7 +38,6 @@ namespace second_order_search
 
 BestFirstSearch::BestFirstSearch(const Options &opts)
     : SecondOrderTaskSearch(opts),
-      c_silent(opts.get<bool>("silent")),
       c_precompute_max_reward(opts.get<bool>("precompute_max_reward")),
       c_lazy_reward_computation(opts.get<bool>("lazy")),
       c_sleep_set(opts.get<bool>("sleep_set")),
@@ -127,36 +126,10 @@ IntPacker::Bin *BestFirstSearch::create_sleep_set_copy(IntPacker::Bin *x)
 
 void BestFirstSearch::insert_into_pareto_frontier(const SearchNode &node)
 {
-    typename ParetoFrontier::iterator it
-        = m_pareto_frontier.lower_bound(node.get_reward());
-
-    if ((it != m_pareto_frontier.end() && it->first == node.get_reward()
-            && it->second.first < node.get_g())
-            || (it != m_pareto_frontier.begin()
-                && ((--it)++)->second.first <= node.get_g())) {
-        return;
-    }
-
-    if (it != m_pareto_frontier.end() && it->first == node.get_reward()) {
-        if (it->second.first > node.get_g()) {
-            it->second.first = node.get_g();
-            it->second.second.clear();
-        }
-        it->second.second.push_back(node.get_state_id());
-    } else {
-        std::pair<int, std::vector<StateID> > &entry =
-            m_pareto_frontier[node.get_reward()];
-        entry.first = node.get_g();
-        entry.second.push_back(node.get_state_id());
-        it = m_pareto_frontier.lower_bound(node.get_reward());
-    }
-
-    assert(it != m_pareto_frontier.end());
-
-    it++;
-    while (it != m_pareto_frontier.end() && it->second.first >= node.get_g()) {
-        it = m_pareto_frontier.erase(it);
-    }
+    SecondOrderTaskSearch::insert_into_pareto_frontier(
+        node.get_reward(),
+        node.get_g(),
+        node.get_state_id());
 }
 
 void BestFirstSearch::compute_and_set_reward(const SearchNode &parent,
@@ -167,10 +140,19 @@ void BestFirstSearch::compute_and_set_reward(const SearchNode &parent,
     m_stat_time_inner_search.resume();
 
     if (c_incremental_rpg) {
+#ifndef NDEBUG
+        node.set_reward(parent.get_reward()
+                        - compute_reward_difference(
+                            g_outer_state_registry->lookup_state(node.get_state_id()),
+                            parent.get_counter(),
+                            op,
+                            node.get_counter()));
+#else
         node.set_reward(parent.get_reward()
                         - compute_reward_difference(parent.get_counter(),
                                 op,
                                 node.get_counter()));
+#endif
 
         // g_outer_inner_successor_generator->generate_applicable_ops(
         //     g_outer_state_registry->lookup_state(node.get_state_id()),
@@ -216,41 +198,6 @@ void BestFirstSearch::compute_and_set_reward(const SearchNode &parent,
     }
 
     m_stat_time_inner_search.stop();
-}
-
-void BestFirstSearch::set_inner_plan(SearchNode &node)
-{
-    m_stat_time_inner_search.resume();
-    if (c_incremental_rpg) {
-        extract_inner_plan(node.get_counter(), g_plan);
-    } else {
-        assert(m_inner_search->found_solution());
-        m_inner_search->save_plan_if_necessary();
-    }
-    m_stat_time_inner_search.stop();
-}
-
-int BestFirstSearch::compute_max_reward()
-{
-    int res;
-    IntPacker temp_packer(g_outer_variable_domain);
-    PackedStateBin *buffer = new PackedStateBin[temp_packer.get_num_bins()];
-    for (const auto &op : g_outer_operators) {
-        for (const auto &e : op.get_effects()) {
-            temp_packer.set(buffer, e.var, e.val);
-        }
-    }
-    GlobalState best_state(buffer, NULL, StateID(std::numeric_limits<int>::max()),
-                           &temp_packer);
-    if (c_incremental_rpg) {
-        std::vector<int> counter;
-        rgraph_exploration(best_state, counter);
-        res = get_reward(counter);
-    } else {
-        res = run_inner_search(best_state);
-    }
-    delete[] buffer;
-    return res;
 }
 
 bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
@@ -341,7 +288,7 @@ SearchStatus BestFirstSearch::step()
             m_applicable_operators);
     m_stat_pruned_successors += m_applicable_operators.size();
     if (m_pruning_method != NULL) {
-        set_inner_plan(node);
+        set_inner_plan(node.get_counter());
         // std::cout << "---plan#" << state.get_id().hash() << "---" << std::endl;
         // for (unsigned i = 0; i < g_plan.size(); i++) {
         //     std::cout << g_plan[i]->get_name() << std::endl;
@@ -359,7 +306,7 @@ SearchStatus BestFirstSearch::step()
     }
 
     //cerr << fix_state_to_string(state) << ": " << ops_to_string(
-      //       m_applicable_operators) << endl;
+    //       m_applicable_operators) << endl;
 
     m_stat_pruned_successors -= m_applicable_operators.size();
     m_stat_generated += m_applicable_operators.size();
@@ -423,113 +370,6 @@ SearchStatus BestFirstSearch::step()
     return IN_PROGRESS;
 }
 
-void BestFirstSearch::save_plan_if_necessary()
-{
-    std::cout << "(2OT) Pareto frontier consists of " << m_pareto_frontier.size() <<
-              " groups" << std::endl;
-    std::ostringstream json;
-    json << "[";
-    std::vector<std::vector<const GlobalOperator *> > paths;
-    size_t num_states = 0;
-
-
-    std::streambuf *old = NULL;
-    if (c_silent) {
-        old = std::cout.rdbuf(); // <-- save
-        std::stringstream ss;
-        std::cout.rdbuf(ss.rdbuf());        // <-- redirect
-    }
-
-    std::cout << "---begin-pareto-frontier---" << std::endl;
-    unsigned num = 1;
-    for (typename ParetoFrontier::reverse_iterator it = m_pareto_frontier.rbegin();
-            it != m_pareto_frontier.rend();
-            it++) {
-
-        if (it != m_pareto_frontier.rbegin()) {
-            json << ",\n";
-        }
-        json << "{"
-             << "\"reward\": " << it->first
-             << ", \"cost\": " << it->second.first
-             << ", \"sequences\": [";
-
-        std::cout << "    ---group-" << num << "--- {"
-                  << "reward: " << it->first
-                  << ", cost: " << it->second.first
-                  << "}" << std::endl;
-
-        size_t counter = 1;
-        for (unsigned i = 0; i < it->second.second.size(); i++) {
-#ifdef VERBOSE_DEBUGGING
-            std::cout << "        ---begin-state-" << i << "--- [" <<
-                      it->second.second[i].hash() << "]" << std::endl;
-            GlobalState state = g_outer_state_registry->lookup_state(it->second.second[i]);
-            for (unsigned var = 0; var < g_outer_variable_domain.size(); var++) {
-                std::cout << "        " << g_outer_fact_names[var][state[var]] << std::endl;
-            }
-            std::cout << "        ---end-state---" << std::endl;
-#endif
-
-            m_search_space.backtrace(it->second.second[i], paths);
-            for (const std::vector<const GlobalOperator *> &seq : paths) {
-                if (counter > 1)  {
-                    json << ",\n";
-                }
-                json << "  [";
-
-                std::cout << "        " << "---sequence-" << counter << "---" << std::endl;
-                if (seq.empty()) {
-                    std::cout << "            <empty-sequence>" << std::endl;
-                } else {
-                    for (unsigned i = 0; i < seq.size(); i++) {
-                        json << (i > 0 ? ", " : "")
-                             << "\"" << seq[i]->get_name() << "\"";
-
-                        std::cout << "            " << seq[i]->get_name() << std::endl;
-                    }
-                }
-
-                counter++;
-
-                json << "]";
-            }
-            paths.clear();
-            num_states++;
-        }
-        num++;
-
-        json << "]}";
-    }
-    std::cout << "---end-pareto-frontier---" << std::endl;
-
-    if (c_silent) {
-        std::cout.rdbuf(old);
-    }
-
-    std::cout << "(2OT) state(s) in Pareto frontier: " << num_states << std::endl;
-    std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
-              std::endl;
-    std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
-    std::cout << "(2OT) evaluated state(s): " << m_stat_evaluated << std::endl;
-    std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
-    std::cout << "(2OT) pruned successor(s): " << m_stat_pruned_successors <<
-              std::endl;
-    std::cout << "(2OT) state(s) in open list: " << m_stat_open << std::endl;
-    std::cout << "(2OT) state(s) expanded until last f-layer: " <<
-              m_stat_expanded_last_f_layer << std::endl;
-    std::cout << "(2OT) inner searches: " << m_stat_inner_searches << std::endl;
-    printf("(2OT) inner search time: %.4fs\n", m_stat_time_inner_search());
-
-
-    json << "]";
-
-    std::ofstream out;
-    out.open("pareto_frontier.json");
-    out << json.str();
-    out.close();
-}
-
 void BestFirstSearch::print_statistic_line()
 {
     if (m_stat_last_g != m_stat_current_g) {
@@ -562,6 +402,13 @@ void BestFirstSearch::force_print_statistic_line() const
     }
 }
 
+
+void BestFirstSearch::get_paths(const StateID &state,
+                                std::vector<std::vector<const GlobalOperator *> > &paths)
+{
+    m_search_space.backtrace(state, paths);
+}
+
 void BestFirstSearch::add_options_to_parser(OptionParser &parser)
 {
     std::vector<std::string> open_lists;
@@ -572,11 +419,26 @@ void BestFirstSearch::add_options_to_parser(OptionParser &parser)
             OptionFlags(false));
 
     parser.add_option<bool>("precompute_max_reward", "", "true");
-    parser.add_option<bool>("silent", "", "false");
     parser.add_option<bool>("lazy", "", "false");
     parser.add_option<bool>("sleep_set", "", "true");
 
     SecondOrderTaskSearch::add_options_to_parser(parser);
+}
+
+void BestFirstSearch::statistics() const
+{
+    std::cout << "(2OT) registered state(s): " << g_outer_state_registry->size() <<
+              std::endl;
+    std::cout << "(2OT) expanded state(s): " << m_stat_expanded << std::endl;
+    std::cout << "(2OT) evaluated state(s): " << m_stat_evaluated << std::endl;
+    std::cout << "(2OT) generated state(s): " << m_stat_generated << std::endl;
+    std::cout << "(2OT) pruned successor(s): " << m_stat_pruned_successors <<
+              std::endl;
+    std::cout << "(2OT) state(s) in open list: " << m_stat_open << std::endl;
+    std::cout << "(2OT) state(s) expanded until last f-layer: " <<
+              m_stat_expanded_last_f_layer << std::endl;
+    std::cout << "(2OT) inner searches: " << m_stat_inner_searches << std::endl;
+    printf("(2OT) inner search time: %.4fs\n", m_stat_time_inner_search());
 }
 
 }

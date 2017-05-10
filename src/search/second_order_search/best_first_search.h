@@ -16,7 +16,6 @@
 
 #include "../int_packer.h"
 
-#include <map>
 #include <vector>
 #include <functional>
 
@@ -29,9 +28,6 @@ namespace second_order_search
 
 class BestFirstSearch : public SecondOrderTaskSearch
 {
-    typedef std::map<int, std::pair<int, std::vector<StateID> >, std::greater<int> >
-    ParetoFrontier;
-
     size_t m_stat_last_printed_states;
     size_t m_stat_last_printed_pareto;
 
@@ -56,7 +52,6 @@ class BestFirstSearch : public SecondOrderTaskSearch
     std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
 
 protected:
-    const bool c_silent;
     const bool c_precompute_max_reward;
     const bool c_lazy_reward_computation;
     const bool c_sleep_set;
@@ -68,7 +63,6 @@ protected:
 
     SearchSpace m_search_space;
     OpenList<StateID> *m_open_list;
-    ParetoFrontier m_pareto_frontier;
 
     SuccessorPruningMethod *m_pruning_method;
 
@@ -76,18 +70,18 @@ protected:
 
     IntPacker::Bin *create_sleep_set_copy(IntPacker::Bin *x);
 
-    int compute_max_reward();
     void compute_and_set_reward(const SearchNode &parent,
                                 const GlobalOperator &op,
                                 SearchNode &node);
-    void set_inner_plan(SearchNode &node);
     void insert_into_pareto_frontier(const SearchNode &node);
 
     virtual void initialize() override;
     virtual SearchStatus step() override;
+    virtual void get_paths(const StateID &state,
+                           std::vector<std::vector<const GlobalOperator *> > &paths) override;
 public:
     BestFirstSearch(const Options &opts);
-    virtual void save_plan_if_necessary() override;
+    virtual void statistics() const override;
     static void add_options_to_parser(OptionParser &parser);
 };
 
