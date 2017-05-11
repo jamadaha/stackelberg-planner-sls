@@ -81,6 +81,51 @@ void StrongStubbornSet::initialize()
         m_pre_achiever[i].erase(std::unique(m_pre_achiever[i].begin(),
                                             m_pre_achiever[i].end()), m_pre_achiever[i].end());
     }
+
+    std::vector<int> pre(g_outer_variable_domain.size());
+    std::vector<int> post(g_outer_variable_domain.size());
+    m_interference.resize(g_outer_operators.size());
+    for (size_t i = 0; i < m_interference.size(); i++) {
+        const GlobalOperator &op1 = g_outer_operators[i];
+        std::fill(pre.begin(), pre.end(), -1);
+        std::fill(post.begin(), post.end(), -1);
+        for (const auto &p : op1.get_preconditions()) {
+            pre[p.var] = p.val;
+        }
+        for (const auto &e : op1.get_effects()) {
+            post[e.var] = e.val;
+        }
+        for (size_t j = 0; j < g_outer_operators.size(); j++) {
+            if (i == j) {
+                continue;
+            }
+            const GlobalOperator &op2 = g_outer_operators[j];
+            bool interfers = false;
+            bool mutex = false;
+            for (const auto &p : op2.get_preconditions()) {
+                if (pre[p.var] != -1 && pre[p.var] != p.val) {
+                    mutex = true;
+                    break;
+                } else if (post[p.var] != -1 && post[p.var] != p.val) {
+                    interfers = true;
+                }
+            }
+            if (!mutex) {
+                if (!interfers) {
+                    for (const auto &e : op2.get_effects()) {
+                        if ((pre[e.var] != -1 && pre[e.var] != e.val)
+                                || (post[e.var] != -1 && post[e.var] != e.val)) {
+                            interfers = true;
+                            break;
+                        }
+                    }
+                }
+                if (interfers) {
+                    m_interference[i].push_back(j);
+                }
+            }
+        }
+    }
 }
 
 void StrongStubbornSet::prune_successors(const GlobalState &,
@@ -99,6 +144,12 @@ void StrongStubbornSet::prune_successors(const GlobalState &,
 
     while (!m_q.empty()) {
         for (const unsigned &op : m_pre_achiever[m_q.front()]) {
+            if (!m_is_relevant[op]) {
+                m_is_relevant[op] = true;
+                m_q.push_back(op);
+            }
+        }
+        for (const unsigned &op : m_interference[m_q.front()]) {
             if (!m_is_relevant[op]) {
                 m_is_relevant[op] = true;
                 m_q.push_back(op);

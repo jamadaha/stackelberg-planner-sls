@@ -17,6 +17,7 @@ class StrongStubbornSet : public SuccessorPruningMethod
     std::vector<std::vector<unsigned> > m_operator_negated_by;
     std::vector<bool> m_is_relevant;
     std::vector<std::vector<unsigned> > m_pre_achiever;
+    std::vector<std::vector<unsigned> > m_interference;
     std::deque<unsigned> m_q;
 public:
     virtual void initialize() override;
