@@ -3,17 +3,11 @@
 
 #include "second_order_task_search.h"
 
-#include "per_state_storage.h"
 #include "../int_packer.h"
-
 #include "../state_id.h"
 
-#include <deque>
 #include <vector>
-#include <utility>
 #include <unordered_map>
-
-#define STORE_POLICY_IN_INFO 0
 
 namespace second_order_search
 {
@@ -23,68 +17,40 @@ class SuccessorPruningMethod;
 class DepthFirstSearch : public SecondOrderTaskSearch
 {
 protected:
-    struct StateInfo {
-        int r;
-        int g;
-#if STORE_POLICY_IN_INFO
-        const GlobalOperator *p_op;
-        StateID p;
-#endif
-        StateInfo(int r, int g
-#if STORE_POLICY_IN_INFO
-                  , const GlobalOperator *op, const StateID &s
-#endif
-                 )
-            : r(r),
-              g(g)
-#if STORE_POLICY_IN_INFO
-            , p_op(op),
-              p(s)
-#endif
-        {}
-    };
-    // struct CallStackElement {
-    //     StateID state_id;
-    //     std::vector<const GlobalOperator *> aops;
-    //     std::vector<bool> sleep;
-    //     size_t i;
-    //     IntPacker::Bin *counter;
-    //     CallStackElement(const GlobalState &state);
-    //     CallStackElement(const GlobalState &state,
-    //                      const std::vector<bool> &sleep,
-    //                      IntPacker::Bin *counter);
-    // };
+    // **** statistics ****
     size_t m_stat_expanded;
     size_t m_stat_updated;
     size_t m_stat_evaluated;
     size_t m_stat_generated;
 
     size_t m_stat_last_printed;
+    // **** end-statistics ****
 
-    PerStateStorage<StateInfo> m_state_rewards;
-    // std::deque<CallStackElement> m_stack;
-    int m_max_reward;
-    int m_cutoff;
+    const bool c_relevance_pruning;
 
     SuccessorPruningMethod *m_pruning_method;
 
-#if !STORE_POLICY_IN_INFO
+    int m_max_reward;
+    int m_cutoff;
+
+    std::vector<size_t> m_inner_reward_variables;
+    std::vector<std::vector<bool> > m_outer_op_relevance;
+
+    // std::vector<size_t> m_relevant_inner_variables; // ?????
+
     std::vector<const GlobalOperator *> m_current_path;
     std::unordered_map<StateID, std::vector<const GlobalOperator *> > m_paths;
-#endif
 
-    bool _insert_into_pareto_frontier(const StateInfo &val,
+    bool _insert_into_pareto_frontier(const int &rew,
+                                      const int &g,
                                       const StateID &state_id);
 
-    bool update_g_values(const GlobalState &state,
-#if STORE_POLICY_IN_INFO
-                         const StateID &p,
-                         const GlobalOperator *op,
-#endif
-                         int newg);
     void expand(const GlobalState &state,
                 IntPacker::Bin *counter,
-                std::vector<size_t> &sleep);
+                std::vector<size_t> &sleep,
+                std::vector<size_t> relevant,
+                int pr,
+                int pg);
 
     virtual void initialize();
     virtual SearchStatus step() override;

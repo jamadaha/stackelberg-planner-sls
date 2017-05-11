@@ -61,6 +61,7 @@ void SecondOrderTaskSearch::initialize()
               std::back_inserter(m_rewards));
 
     const std::vector<int> &pv = m_inner_search->get_positive_values();
+    std::copy(pv.begin(), pv.end(), std::back_inserter(m_positive_values));
 #ifndef NDEBUG
     for (size_t i = 0; i < pv.size(); i++) {
         assert(g_initial_state()[i] != pv[i]);
@@ -590,7 +591,11 @@ void SecondOrderTaskSearch::save_plan_if_necessary()
                         json << (i > 0 ? ", " : "")
                              << "\"" << seq[i]->get_name() << "\"";
 
-                        std::cout << "            " << seq[i]->get_name() << std::endl;
+                        std::cout << "            " << seq[i]->get_name();
+#ifndef NDEBUG
+                        std::cout << " (" << seq[i]->get_op_id() << ")";
+#endif
+                        std::cout << std::endl;
                     }
                 }
 

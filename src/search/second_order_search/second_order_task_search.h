@@ -53,6 +53,7 @@ private:
     std::vector<int> m_rewards;
     std::vector<std::vector<unsigned> > m_arcs;
     std::vector<std::vector<unsigned> > m_inv_arcs;
+    std::vector<int> m_positive_values;
 protected:
     typedef std::map<int, std::pair<int, std::vector<StateID> >, std::greater<int> >
     ParetoFrontier;
@@ -100,6 +101,14 @@ public:
     IntPacker *get_counter_packer() const
     {
         return m_counter_packer;
+    }
+    const std::vector<int> &get_inner_variable_rewards() const
+    {
+        return m_rewards;
+    }
+    const std::vector<int> &get_inner_positive_values() const
+    {
+        return m_positive_values;
     }
     virtual void save_plan_if_necessary() override;
     static void add_options_to_parser(OptionParser &parser);
