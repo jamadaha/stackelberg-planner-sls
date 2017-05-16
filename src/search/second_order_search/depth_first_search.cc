@@ -176,28 +176,17 @@ void DepthFirstSearch::expand(const GlobalState &state,
     size_t r_i;
     size_t r_j;
     if (c_relevance_pruning) {
-        bool flip = true;
-        while (true) {
-            r_j = 0;
-            for (r_i = 0; r_i < relevant.size(); r_i++) {
-                if (m_counter_packer->get(counter, relevant[r_i]) > 0) {
-                    if (r_i != r_j) {
-                        relevant[r_j] = relevant[r_i];
-                    }
-                    r_j++;
+        r_j = 0;
+        for (r_i = 0; r_i < relevant.size(); r_i++) {
+            if (m_counter_packer->get(counter, relevant[r_i]) > 0) {
+                if (r_i != r_j) {
+                    relevant[r_j] = relevant[r_i];
                 }
-            }
-            relevant.resize(r_j);
-
-            if (flip && relevant.empty()) {
-                flip = false;
-                relevant.insert(relevant.end(),
-                                m_inner_reward_variables.begin(),
-                                m_inner_reward_variables.end());
-            } else {
-                break;
+                r_j++;
             }
         }
+        relevant.resize(r_j);
+
         assert(!relevant.empty() || get_reward(counter) == MAX_REWARD);
     }
 
@@ -304,8 +293,7 @@ SearchStatus DepthFirstSearch::step()
     _insert_into_pareto_frontier(r, g, init.get_id());
     if (m_cutoff > 0) {
         std::vector<size_t> sleep(g_outer_operators.size(), 0);
-        std::vector<size_t> relevant;
-        expand(init, counter, sleep, relevant, r, g);
+        expand(init, counter, sleep, m_inner_reward_variables, r, g);
     }
     return SOLVED;
 }
