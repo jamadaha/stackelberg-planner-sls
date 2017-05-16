@@ -51,7 +51,11 @@ bool is_task_delete_free()
                 dummyval[e.var] = e.val == 0 ? 1 : 0;
             }
             if (dummyval[e.var] == e.val) {
-                std::cerr << "e1: op adds dummy value" << std::endl;
+                std::cerr << "e1: op "
+                          << op.get_name()
+                          << " adds dummy value "
+                          << g_fact_names[e.val][e.val]
+                          << std::endl;
                 return false;
             }
             ineff[e.var] = true;
@@ -62,7 +66,11 @@ bool is_task_delete_free()
                 if (dummyval[p.var] == -1) {
                     dummyval[p.var] = p.val == 0 ? 1 : 0;
                 } else if (dummyval[p.val] == p.val) {
-                    std::cerr << "e2: op has a dummy value in its precondition" << std::endl;
+                    std::cerr << "e2: op "
+                              << op.get_name()
+                              << " has a dummy value "
+                              << g_fact_names[p.var][p.val]
+                              << " in its precondition" << std::endl;
                     return false;
                 }
             }
