@@ -50,6 +50,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
 	check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
 	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
+	use_ids = opts.get<bool>("ids");
 }
 
 FixActionsSearch::~FixActionsSearch() {
@@ -1136,7 +1137,12 @@ void FixActionsSearch::dump_pareto_frontier () {
 SearchStatus FixActionsSearch::step() {
 	cout << "Starting fix-actions IDS..." << endl;
 
-	curr_fix_actions_budget = max(2, max_fix_action_cost);
+	if(use_ids) {
+		curr_fix_actions_budget = max(2, max_fix_action_cost);
+	} else {
+		curr_fix_actions_budget = UNLTD_BUDGET;
+	}
+
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 
 	while (true) {
@@ -1203,6 +1209,7 @@ SearchEngine * _parse(OptionParser & parser) {
 	parser.add_option<bool>("check_parent_attack_plan_applicable", "always check whether the attacker plan of the parent fix state is still applicable", "true");
 	parser.add_option<bool>("check_fix_state_already_known", "always check whether the current fix state is already known and spare search in attacker statespace", "true");
     parser.add_option<bool>("attack_op_dom_pruning", "use the attack operator dominance pruning", "true");
+    parser.add_option<bool>("ids", "use iterative deepening search", "true");
 	Options opts = parser.parse();
 	if (!parser.dry_run()) {
 		return new FixActionsSearch(opts);

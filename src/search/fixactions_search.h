@@ -83,6 +83,7 @@ private:
 
 	bool returned_somewhere_bc_of_budget = false;
 
+	bool use_ids = true;
 	double ids_fix_budget_factor = 1.5;
 
 	int max_fix_action_cost = 0; // The cost of the most expensive fix action
