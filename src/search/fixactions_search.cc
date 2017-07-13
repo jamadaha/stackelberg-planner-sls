@@ -37,13 +37,13 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	attack_budget_factor = opts.get<double>("attack_budget_factor");
 	fix_budget_factor = opts.get<double>("fix_budget_factor");
 	g_initial_budget = opts.get<int>("initial_attack_budget");
-	initial_fix_actions_budget = opts.get<int>("initial_fix_budget");
+	max_fix_actions_budget = opts.get<int>("initial_fix_budget");
 
 	if (g_initial_budget < UNLTD_BUDGET) {
 		g_initial_budget = (int) ((double) g_initial_budget) * attack_budget_factor;
 	}
-	if(initial_fix_actions_budget < UNLTD_BUDGET) {
-		initial_fix_actions_budget = (int) ((double) initial_fix_actions_budget) * fix_budget_factor;
+	if(max_fix_actions_budget < UNLTD_BUDGET) {
+		max_fix_actions_budget = (int) ((double) max_fix_actions_budget) * fix_budget_factor;
 	}
 
 	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
@@ -155,6 +155,10 @@ void FixActionsSearch::sort_operators() {
 			int invention_cost = stoi(invention_cost_string);
 			int id = stoi(id_string);
 			 */
+
+			if (g_operators[op_no].get_cost() > max_fix_action_cost) {
+				max_fix_action_cost = g_operators[op_no].get_cost();
+			}
 
 			g_operators[op_no].set_cost2(0);
 			g_operators[op_no].set_conds_variable_name(fix_variable_name);
@@ -962,9 +966,10 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		fix_ops_sequence.push_back(op);
 		int new_fix_actions_cost = calculate_fix_actions_plan_cost(fix_ops_sequence);
-		if(new_fix_actions_cost > initial_fix_actions_budget) {
+		if(new_fix_actions_cost > curr_fix_actions_budget) {
 			// Continue, if adding this op exceeds the budget
 			fix_ops_sequence.pop_back();
+			returned_somewhere_bc_of_budget = true;
 			continue;
 		}
 
@@ -1129,12 +1134,39 @@ void FixActionsSearch::dump_pareto_frontier () {
 }
 
 SearchStatus FixActionsSearch::step() {
-	cout << "Starting fix-actions search..." << endl;
-	vector<const GlobalOperator *> op_sequnce;
-	vector<int> parent_attack_plan;
-	vector<int> sleep(fix_operators.size(), 0);
+	cout << "Starting fix-actions IDS..." << endl;
+
+	curr_fix_actions_budget = max(2, max_fix_action_cost);
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep);
+
+	while (true) {
+		cout << "(Re)starting search with fix action budget: " << curr_fix_actions_budget << endl;
+		vector<const GlobalOperator *> op_sequnce;
+		vector<int> parent_attack_plan;
+		vector<int> sleep(fix_operators.size(), 0);
+		returned_somewhere_bc_of_budget = false;
+		expand_all_successors(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep);
+
+		if(get<1>(pareto_frontier[pareto_frontier.size() -1 ]) == numeric_limits<int>::max()) {
+			break;
+		}
+
+		if(!returned_somewhere_bc_of_budget) {
+			break;
+		}
+
+		if(curr_fix_actions_budget >= max_fix_actions_budget) {
+			break;
+		}
+
+		int new_fix_actions_budget = curr_fix_actions_budget * ids_fix_budget_factor;
+		if (new_fix_actions_budget < 0) {
+			new_fix_actions_budget = max_fix_actions_budget;
+		}
+
+		curr_fix_actions_budget = min(new_fix_actions_budget , max_fix_actions_budget);
+	}
+
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
     cout << "total time: " << g_timer << endl;

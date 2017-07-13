@@ -75,9 +75,17 @@ private:
 	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
 	PerFixStateInformation<FixSearchInfoAttackPlan> fix_search_node_infos_attack_plan;
 	PerStateInformation<FixSearchInfoFixSequence> fix_search_node_infos_fix_sequence;
-	int initial_fix_actions_budget = UNLTD_BUDGET;
+	int max_fix_actions_budget = UNLTD_BUDGET;
+	int curr_fix_actions_budget = UNLTD_BUDGET;
+
 	double attack_budget_factor;
 	double fix_budget_factor;
+
+	bool returned_somewhere_bc_of_budget = false;
+
+	double ids_fix_budget_factor = 1.5;
+
+	int max_fix_action_cost = 0; // The cost of the most expensive fix action
 
 	int num_recursive_calls = 0;
 	int num_attacker_searches = 0;

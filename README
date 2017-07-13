@@ -35,7 +35,7 @@ Command line arguments
 ======================
 
 The script what-if-analysis.py basically needs four input files given via the following cmd arguments
-    --nessus: A Nessus network scan result file in .xml format
+    --nessus: One or several Nessus network scan result files in .xml format
     --nvd: A .json file in our own format which basically contains important
            information (cvss-metrics) extracted from XML Vulnerability Feeds
            (Download: https://nvd.nist.gov/download.cfm). This repository provides 
