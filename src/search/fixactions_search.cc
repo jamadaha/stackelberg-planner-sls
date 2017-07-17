@@ -1147,6 +1147,9 @@ SearchStatus FixActionsSearch::step() {
 
 	while (true) {
 		cout << "(Re)starting search with fix action budget: " << curr_fix_actions_budget << endl;
+
+		pareto_frontier.clear();
+
 		vector<const GlobalOperator *> op_sequnce;
 		vector<int> parent_attack_plan;
 		vector<int> sleep(fix_operators.size(), 0);
