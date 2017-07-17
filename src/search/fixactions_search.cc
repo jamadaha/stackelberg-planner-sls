@@ -132,11 +132,11 @@ void FixActionsSearch::sort_operators() {
 		}
 
 		if (op_name.find("attack") == 0) {
-			string prob = everything_before_whitespace.substr(underscore + 1);
-			int success_prob_cost = parse_success_prob_cost(prob);
+			//string prob = everything_before_whitespace.substr(underscore + 1);
+			//int success_prob_cost = parse_success_prob_cost(prob);
 			// Note that cost and cost2 are swapped here on purpose!
-			g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
-			g_operators[op_no].set_cost(success_prob_cost);
+			//g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
+			//g_operators[op_no].set_cost(success_prob_cost);
 			g_operators[op_no].set_op_id(attack_action_op_id);
 			attack_action_op_id++;
 
@@ -1122,7 +1122,7 @@ void FixActionsSearch::dump_op_sequence_sequence(const vector<vector<const Globa
 }
 
 void FixActionsSearch::dump_pareto_frontier_node(triple<int, int, vector<vector<const GlobalOperator*>>> &node) {
-	cout << "\t fix ops costs: " << get<0>(node) << ", attack prob: " << setprecision(3) << prob_cost_to_prob(get<1>(node)) << ", sequences: " << endl;
+	cout << "\t fix ops costs: " << get<0>(node) << /* ", attack prob: " <<  setprecision(3) << prob_cost_to_prob(get<1>(node)) */ ", attack cost: " << get<1>(node) << ", sequences: " << endl;
 	dump_op_sequence_sequence(get<2>(node));
 }
 
