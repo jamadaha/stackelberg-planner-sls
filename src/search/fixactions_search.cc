@@ -881,7 +881,7 @@ void FixActionsSearch::expand_all_successors(const GlobalState &state, vector<co
 
 		if (search_engine->found_solution()) {
 			search_engine->save_plan_if_necessary();
-			attack_plan_cost = calculate_plan_cost();
+			attack_plan_cost = search_engine->calculate_plan_cost();
 #ifdef FIX_SEARCH_DEBUG
 			cout << "Attack attack_plan cost is " << attack_plan_cost << endl;
 #endif
