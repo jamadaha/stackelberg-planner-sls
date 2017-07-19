@@ -52,7 +52,7 @@ protected:
                 int pr,
                 int pg);
 
-    virtual void initialize();
+    virtual void initialize() override;
     virtual SearchStatus step() override;
     virtual void get_paths(const StateID &state,
                            std::vector<std::vector<const GlobalOperator *> > &paths) override;
