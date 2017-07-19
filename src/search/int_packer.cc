@@ -7,7 +7,8 @@ using namespace std;
 static const int BITS_PER_BIN = sizeof(IntPacker::Bin) * 8;
 
 
-static IntPacker::Bin get_bit_mask(int from, int to) {
+static IntPacker::Bin get_bit_mask(int from, int to)
+{
     // Return mask with all bits in the range [from, to) set to 1.
     assert(from >= 0 && to >= from && to <= BITS_PER_BIN);
     int length = to - from;
@@ -22,14 +23,17 @@ static IntPacker::Bin get_bit_mask(int from, int to) {
     }
 }
 
-static int get_bit_size_for_range(int range) {
+static int get_bit_size_for_range(int range)
+{
     int num_bits = 0;
-    while ((1U << num_bits) < static_cast<unsigned int>(range))
+    while ((1U << num_bits) < static_cast<unsigned int>(range)) {
         ++num_bits;
+    }
     return num_bits;
 }
 
-class IntPacker::VariableInfo {
+class IntPacker::VariableInfo
+{
     int range;
     int bin_index;
     int shift;
@@ -39,25 +43,30 @@ public:
     VariableInfo(int range_, int bin_index_, int shift_)
         : range(range_),
           bin_index(bin_index_),
-          shift(shift_) {
+          shift(shift_)
+    {
         int bit_size = get_bit_size_for_range(range);
         read_mask = get_bit_mask(shift, shift + bit_size);
         clear_mask = ~read_mask;
     }
 
     VariableInfo()
-        : bin_index(-1), shift(0), read_mask(0), clear_mask(0) {
+        : bin_index(-1), shift(0), read_mask(0), clear_mask(0)
+    {
         // Default constructor needed for resize() in pack_bins.
     }
 
-    ~VariableInfo() {
+    ~VariableInfo()
+    {
     }
 
-    int get(const Bin *buffer) const {
+    int get(const Bin *buffer) const
+    {
         return (buffer[bin_index] & read_mask) >> shift;
     }
 
-    void set(Bin *buffer, int value) const {
+    void set(Bin *buffer, int value) const
+    {
         assert(value >= 0 && value < range);
         Bin &bin = buffer[bin_index];
         bin = (bin & clear_mask) | (value << shift);
@@ -66,23 +75,34 @@ public:
 
 
 IntPacker::IntPacker(const vector<int> &ranges)
-    : num_bins(0) {
+    : num_bins(0)
+{
     pack_bins(ranges);
 }
 
-IntPacker::~IntPacker() {
+IntPacker::~IntPacker()
+{
 }
 
-int IntPacker::get(const Bin *buffer, int var) const {
+int IntPacker::get(const Bin *buffer, int var) const
+{
     return var_infos[var].get(buffer);
 }
 
-void IntPacker::set(Bin *buffer, int var, int value) const {
+void IntPacker::set(Bin *buffer, int var, int value) const
+{
     var_infos[var].set(buffer, value);
 }
 
-void IntPacker::pack_bins(const vector<int> &ranges) {
+void IntPacker::pack_bins(const vector<int> &ranges)
+{
     assert(var_infos.empty());
+
+#ifndef NDEBUG
+    for (size_t i = 0; i < ranges.size(); i++) {
+        assert(ranges[i] >= 2);
+    }
+#endif
 
     int num_vars = ranges.size();
     var_infos.resize(num_vars);
@@ -100,12 +120,14 @@ void IntPacker::pack_bins(const vector<int> &ranges) {
     }
 
     int packed_vars = 0;
-    while (packed_vars != num_vars)
+    while (packed_vars != num_vars) {
         packed_vars += pack_one_bin(ranges, bits_to_vars);
+    }
 }
 
 int IntPacker::pack_one_bin(const vector<int> &ranges,
-                            vector<vector<int> > &bits_to_vars) {
+                            vector<vector<int> > &bits_to_vars)
+{
     // Returns the number of variables added to the bin. We pack each
     // bin with a greedy strategy, always adding the largest variable
     // that still fits.
@@ -118,8 +140,9 @@ int IntPacker::pack_one_bin(const vector<int> &ranges,
     while (true) {
         // Determine size of largest variable that still fits into the bin.
         int bits = BITS_PER_BIN - used_bits;
-        while (bits > 0 && bits_to_vars[bits].empty())
+        while (bits > 0 && bits_to_vars[bits].empty()) {
             --bits;
+        }
 
         if (bits == 0) {
             // No more variables fit into the bin.
