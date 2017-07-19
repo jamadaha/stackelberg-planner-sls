@@ -6,17 +6,23 @@
 
 class GlobalOperator;
 class GlobalState;
+struct GlobalCondition;
 
-class SuccessorGenerator {
+class SuccessorGenerator
+{
 public:
     virtual ~SuccessorGenerator() {}
     virtual void generate_applicable_ops(const GlobalState &curr,
                                          std::vector<const GlobalOperator *> &ops) = 0;
-    void dump() {_dump("  "); }
+    void dump()
+    {
+        _dump("  ");
+    }
     virtual void _dump(std::string indent) = 0;
 };
 
-class SuccessorGeneratorSwitch : public SuccessorGenerator {
+class SuccessorGeneratorSwitch : public SuccessorGenerator
+{
 public:
     int switch_var;
     int var_range;
@@ -27,21 +33,29 @@ public:
     SuccessorGeneratorSwitch(int _switch_var, int _var_range);
     virtual ~SuccessorGeneratorSwitch();
     virtual void generate_applicable_ops(const GlobalState &curr,
-    		std::vector<const GlobalOperator *> &ops);
+                                         std::vector<const GlobalOperator *> &ops);
     virtual void _dump(std::string indent);
 };
 
-class SuccessorGeneratorGenerate : public SuccessorGenerator {
-	std::vector<const GlobalOperator *> op;
+class SuccessorGeneratorGenerate : public SuccessorGenerator
+{
+    std::vector<const GlobalOperator *> op;
 public:
     SuccessorGeneratorGenerate(std::istream &in);
     SuccessorGeneratorGenerate();
     virtual void generate_applicable_ops(const GlobalState &curr,
-    		std::vector<const GlobalOperator *> &ops);
+                                         std::vector<const GlobalOperator *> &ops);
     virtual void _dump(std::string indent);
-    void add_op(const GlobalOperator *new_op) { op.push_back(new_op); }
+    void add_op(const GlobalOperator *new_op)
+    {
+        op.push_back(new_op);
+    }
 };
 
 SuccessorGenerator *read_successor_generator(std::istream &in);
+SuccessorGenerator *create_successor_generator_from_vector(
+    const std::vector<int> &variable_domain,
+    const std::vector<GlobalOperator> &ops,
+    const std::vector<std::vector<GlobalCondition> > *preconditions = NULL);
 
 #endif
