@@ -957,11 +957,13 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
                     && fix_actions_cost > info_fix_sequence.fix_actions_cost
 					&& info_fix_sequence.already_in_frontier) {
 #ifdef FIX_SEARCH_DEBUG
-                cout << "Current fix action sequence is more or equally expensive than already known sequence... don't make further recursive calls. "
+                cout << "Current fix action sequence is more expensive than already known sequence... don't make further recursive calls. "
                      << endl;
 #endif
                 num_fix_op_paths++;
                 return attack_plan_cost;
+            } else {
+            	info_fix_sequence.fix_actions_cost = fix_actions_cost;
             }
         } else {
             attack_plan_cost = parent_attack_plan_cost;
