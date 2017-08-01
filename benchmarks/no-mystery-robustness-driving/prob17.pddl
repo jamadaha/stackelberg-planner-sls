@@ -11,7 +11,7 @@
       nichts weihnachtsbaum grobe-bratwurst kiste-bier aschenbecher
       doener-mit-scharf seitenbacher-muesli martinsgans radio fuel-0
       fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1
-      capacity-2 capacity-3)
+      capacity-2 capacity-3 truck-fix)
   (:init
     (at aschenbecher wollbach)
     (at auto gottenheim)
@@ -171,7 +171,9 @@
     (vehicle kuebelwagen)
     (vehicle motorroller)
     (vehicle pferdetransport)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix waldkirch))
   (:goal
     (and
       (at flasche-jaegermeister denzlingen))))

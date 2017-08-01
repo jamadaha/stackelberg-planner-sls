@@ -5,7 +5,7 @@
       daemonenrikscha kuechenmaschine halbgefrorenes gruenkohl
       faschiertes kapselheber kaesebaellchen wensleydale fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 capacity-0 capacity-1
-      capacity-2)
+      capacity-2 truck-fix)
   (:init
     (at daemonenrikscha muellheim)
     (at faschiertes denzlingen)
@@ -65,7 +65,9 @@
     (package kapselheber)
     (package kuechenmaschine)
     (package wensleydale)
-    (vehicle daemonenrikscha))
+    (vehicle daemonenrikscha)
+    (fix_vehicle truck-fix)
+    (at truck-fix muellheim))
   (:goal
     (and
       (at faschiertes boetzingen)

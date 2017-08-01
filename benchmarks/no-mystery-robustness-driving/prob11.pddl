@@ -5,7 +5,7 @@
       bad-bellingen betonmischer faschiertes apfel weihnachtsbaum
       kaesefondue gruenkohl leipziger-allerlei donnerkiesel twix
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1
-      capacity-2)
+      capacity-2 truck-fix)
   (:init
     (at apfel kandern)
     (at betonmischer wollbach)
@@ -77,7 +77,9 @@
     (package leipziger-allerlei)
     (package twix)
     (package weihnachtsbaum)
-    (vehicle betonmischer))
+    (vehicle betonmischer)
+    (fix_vehicle truck-fix)
+    (at truck-fix endingen))
   (:goal
     (and
       (at kaesefondue guendlingen)

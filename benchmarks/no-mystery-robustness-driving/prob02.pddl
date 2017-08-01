@@ -8,7 +8,7 @@
       wensleydale terrorist schlagobers gruenkohl radio tuete-pommes
       aschenbecher zamomin kaesefondue seitenbacher-muesli
       taschenrechner halbgefrorenes zuckerstange fuel-0 fuel-1 fuel-2
-      fuel-3 fuel-4 capacity-0 capacity-1 capacity-2 capacity-3)
+      fuel-3 fuel-4 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at aschenbecher bahlingen)
     (at faschiertes guendlingen)
@@ -111,7 +111,9 @@
     (vehicle feuerwehr)
     (vehicle kuebelwagen)
     (vehicle motorroller)
-    (vehicle pferdetransport))
+    (vehicle pferdetransport)
+    (fix_vehicle truck-fix)
+    (at truck-fix guendlingen))
   (:goal
     (and
       (at kaesefondue guendlingen)

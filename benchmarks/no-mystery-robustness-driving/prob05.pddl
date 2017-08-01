@@ -7,7 +7,7 @@
       leipziger-allerlei taschenrechner halber-hirsch feine-bratwurst
       terrorist radio kiste-bier kaesebaellchen zehn-nackte-friseusen
       snickers fuel-0 fuel-1 fuel-2 fuel-3 capacity-0 capacity-1
-      capacity-2 capacity-3)
+      capacity-2 capacity-3 truck-fix)
   (:init
     (at bollerwagen boetzingen)
     (at droschke waldkirch)
@@ -98,7 +98,9 @@
     (vehicle bollerwagen)
     (vehicle droschke)
     (vehicle krankenwagen)
-    (vehicle sulki))
+    (vehicle sulki)
+    (fix_vehicle truck-fix)
+    (at truck-fix waldhaus))
   (:goal
     (and
       (at osterei tumringen)

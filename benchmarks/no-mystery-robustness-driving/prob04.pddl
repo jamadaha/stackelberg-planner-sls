@@ -5,7 +5,7 @@
       brombach waldkirch lauchringen schopfheim fahrrad schlagobers
       broiler fernseher kuechenmaschine seitenbacher-muesli twix
       grobe-bratwurst fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 capacity-0
-      capacity-1)
+      capacity-1 truck-fix)
   (:init
     (at broiler sexau)
     (at fahrrad auggen)
@@ -83,7 +83,9 @@
     (package schlagobers)
     (package seitenbacher-muesli)
     (package twix)
-    (vehicle fahrrad))
+    (vehicle fahrrad)
+    (fix_vehicle truck-fix)
+    (at truck-fix haltingen))
   (:goal
     (and
       (at fernseher schopfheim))))

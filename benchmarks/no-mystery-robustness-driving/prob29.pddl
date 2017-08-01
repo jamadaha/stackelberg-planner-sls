@@ -6,7 +6,7 @@
       osterei zehn-nackte-friseusen neujahrsbrezel haehnchenbein
       kapselheber wensleydale saumagen zamomin fernseher fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 capacity-0
-      capacity-1 capacity-2 capacity-3)
+      capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at fernseher sexau)
     (at haehnchenbein emmendingen)
@@ -93,7 +93,9 @@
     (package zehn-nackte-friseusen)
     (package zuckerstange)
     (vehicle krankenwagen)
-    (vehicle segway))
+    (vehicle segway)
+    (fix_vehicle truck-fix)
+    (at truck-fix waldhaus))
   (:goal
     (and
       (at fernseher loerrach)

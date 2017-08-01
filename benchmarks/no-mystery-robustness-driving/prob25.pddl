@@ -3,7 +3,7 @@
   (:domain no-mystery-strips)
   (:objects wittlingen sexau muellheim schallstadt ICE droschke
       neujahrsbrezel tuete-pommes fuel-0 fuel-1 fuel-2 fuel-3 fuel-4
-      fuel-5 capacity-0 capacity-1 capacity-2 capacity-3)
+      fuel-5 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE sexau)
     (at droschke muellheim)
@@ -50,7 +50,9 @@
     (package neujahrsbrezel)
     (package tuete-pommes)
     (vehicle ICE)
-    (vehicle droschke))
+    (vehicle droschke)
+    (fix_vehicle truck-fix)
+    (at truck-fix wittlingen))
   (:goal
     (and
       (at neujahrsbrezel schallstadt))))

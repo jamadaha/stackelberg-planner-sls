@@ -12,7 +12,7 @@
       pfingstochse kiste-bier gimp broiler donnerkiesel neujahrsbrezel
       wensleydale fernseher leipziger-allerlei zamomin fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1 capacity-2
-      capacity-3)
+      capacity-3 truck-fix)
   (:init
     (at betonmischer tumringen)
     (at bollerwagen kleinkems)
@@ -221,7 +221,9 @@
     (vehicle pferdetransport)
     (vehicle segway)
     (vehicle sulki)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix waldkirch))
   (:goal
     (and
       (at kukuruz lauchringen))))

@@ -8,7 +8,7 @@
       muellabfuhr trollwagen elfenrad krankenwagen segway osterei
       aschenbecher fleisch grobe-bratwurst fuel-0 fuel-1 fuel-2 fuel-3
       fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 fuel-9 fuel-10 fuel-11
-      capacity-0 capacity-1 capacity-2 capacity-3)
+      capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE koendringen)
     (at aschenbecher kandern)
@@ -164,7 +164,9 @@
     (vehicle moped)
     (vehicle muellabfuhr)
     (vehicle segway)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix schallstadt))
   (:goal
     (and
       (at aschenbecher haltingen))))

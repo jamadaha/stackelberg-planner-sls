@@ -4,7 +4,7 @@
   (:objects waldhaus merdingen tumringen freiburg kleinkems
       guendlingen gottenheim hugstetten elfenrad ICE segway trollwagen
       feine-bratwurst leipziger-allerlei saumagen fuel-0 fuel-1 fuel-2
-      fuel-3 fuel-4 fuel-5 fuel-6 capacity-0 capacity-1 capacity-2)
+      fuel-3 fuel-4 fuel-5 fuel-6 capacity-0 capacity-1 capacity-2 truck-fix)
   (:init
     (at ICE tumringen)
     (at elfenrad waldhaus)
@@ -77,7 +77,9 @@
     (vehicle ICE)
     (vehicle elfenrad)
     (vehicle segway)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix waldhaus))
   (:goal
     (and
       (at saumagen freiburg))))

@@ -6,7 +6,7 @@
       trollwagen pferdetransport motorroller feuerwehr pinkel
       kiste-bier seitenbacher-muesli snickers kuechenmaschine gimp
       eisbein wensleydale fuel-0 fuel-1 fuel-2 fuel-3 fuel-4
-      capacity-0 capacity-1 capacity-2)
+      capacity-0 capacity-1 capacity-2 truck-fix)
   (:init
     (at eisbein schopfheim)
     (at feuerwehr lauchringen)
@@ -99,7 +99,9 @@
     (vehicle feuerwehr)
     (vehicle motorroller)
     (vehicle pferdetransport)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix gottenheim))
   (:goal
     (and
       (at eisbein breisach))))

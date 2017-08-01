@@ -10,7 +10,7 @@
       kuechenmaschine halbgefrorenes feinkost-bratling zuckerstange
       faschiertes kiste-bier doener-mit-scharf zamomin fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 fuel-9 fuel-10
-      capacity-0 capacity-1 capacity-2 capacity-3)
+      capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at betonmischer weil)
     (at bollerwagen kleinkems)
@@ -174,7 +174,9 @@
     (vehicle motorroller)
     (vehicle pferdetransport)
     (vehicle segway)
-    (vehicle sulki))
+    (vehicle sulki)
+    (fix_vehicle truck-fix)
+    (at truck-fix emmendingen))
   (:goal
     (and
       (at feinkost-bratling denzlingen))))

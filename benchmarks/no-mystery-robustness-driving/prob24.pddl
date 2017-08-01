@@ -13,7 +13,7 @@
       flasche-jaegermeister zuckerstange leipziger-allerlei
       feine-bratwurst grobe-bratwurst nichts terrorist fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 fuel-9
-      capacity-0 capacity-1 capacity-2 capacity-3)
+      capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE kandern)
     (at bananenkiste sexau)
@@ -191,7 +191,9 @@
     (package zuckerstange)
     (vehicle ICE)
     (vehicle pferdetransport)
-    (vehicle segway))
+    (vehicle segway)
+    (fix_vehicle truck-fix)
+    (at truck-fix kleinkems))
   (:goal
     (and
       (at saumagen emmendingen)

@@ -7,7 +7,7 @@
       bananenkiste karfiol taschenrechner weihnachtsbaum
       seitenbacher-muesli grobe-bratwurst donnerkiesel fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 capacity-0 capacity-1 capacity-2
-      capacity-3)
+      capacity-3 truck-fix)
   (:init
     (at bananenkiste hugstetten)
     (at donnerkiesel endingen)
@@ -90,7 +90,9 @@
     (vehicle fahrrad)
     (vehicle feuerwehr)
     (vehicle moped)
-    (vehicle muellabfuhr))
+    (vehicle muellabfuhr)
+    (fix_vehicle truck-fix)
+    (at truck-fix bad-bellingen))
   (:goal
     (and
       (at pfingstochse muellheim)

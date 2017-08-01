@@ -9,7 +9,7 @@
       leipziger-allerlei broiler pfingstochse terrorist fernseher
       doener-mit-scharf halber-hirsch seitenbacher-muesli faschiertes
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1
-      capacity-2 capacity-3)
+      capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE inzlingen)
     (at bananenkiste boetzingen)
@@ -148,7 +148,9 @@
     (vehicle motorroller)
     (vehicle muellabfuhr)
     (vehicle pferdetransport)
-    (vehicle sulki))
+    (vehicle sulki)
+    (fix_vehicle truck-fix)
+    (at truck-fix auggen))
   (:goal
     (and
       (at gimp loerrach))))

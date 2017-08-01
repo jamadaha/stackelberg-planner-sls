@@ -9,7 +9,7 @@
       pinkel strunkbolzen kaesebaellchen ochsencremesuppe faschiertes
       halber-hirsch snickers kuechenmaschine feinkost-bratling
       kiste-bier neujahrsbrezel radio fuel-0 fuel-1 fuel-2 fuel-3
-      fuel-4 fuel-5 capacity-0 capacity-1 capacity-2 capacity-3)
+      fuel-4 fuel-5 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at bollerwagen koendringen)
     (at faschiertes muellheim)
@@ -167,7 +167,9 @@
     (vehicle muellabfuhr)
     (vehicle segway)
     (vehicle sulki)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix bahlingen))
   (:goal
     (and
       (at faschiertes denzlingen))))

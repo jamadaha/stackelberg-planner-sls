@@ -5,7 +5,7 @@
       inzlingen kandern emmendingen gottenheim wittlingen breisach
       sexau krankenwagen sulki moped kutsche ICE fussball apfel
       martinsgans neujahrsbrezel fuel-0 fuel-1 fuel-2 fuel-3 fuel-4
-      fuel-5 capacity-0 capacity-1 capacity-2 capacity-3)
+      fuel-5 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE wittlingen)
     (at apfel inzlingen)
@@ -105,7 +105,9 @@
     (vehicle krankenwagen)
     (vehicle kutsche)
     (vehicle moped)
-    (vehicle sulki))
+    (vehicle sulki)
+    (fix_vehicle truck-fix)
+    (at truck-fix waldhaus))
   (:goal
     (and
       (at apfel riedlingen))))

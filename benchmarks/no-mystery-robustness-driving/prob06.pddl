@@ -9,7 +9,7 @@
       motorroller kutsche feuerwehr weihnachtsbaum karfiol pinkel
       wensleydale faschiertes zamomin martinsgans gimp bananenkiste
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 capacity-0
-      capacity-1 capacity-2 capacity-3)
+      capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE boetzingen)
     (at bananenkiste gottenheim)
@@ -167,7 +167,9 @@
     (vehicle motorroller)
     (vehicle muellabfuhr)
     (vehicle pferdetransport)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix bad-bellingen))
   (:goal
     (and
       (at faschiertes hugstetten)

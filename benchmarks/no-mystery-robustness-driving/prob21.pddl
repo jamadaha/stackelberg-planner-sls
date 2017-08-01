@@ -12,7 +12,7 @@
       kuechenmaschine saumagen radio haehnchenbein kapselheber
       feinkost-bratling apfel feine-bratwurst kiste-bier pinkel
       zehn-nackte-friseusen fussball fuel-0 fuel-1 fuel-2 capacity-0
-      capacity-1 capacity-2 capacity-3)
+      capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at apfel koendringen)
     (at aschenbecher waldkirch)
@@ -165,7 +165,9 @@
     (vehicle fahrrad)
     (vehicle krankenwagen)
     (vehicle moped)
-    (vehicle motorrad))
+    (vehicle motorrad)
+    (fix_vehicle truck-fix)
+    (at truck-fix bahlingen))
   (:goal
     (and
       (at faschiertes bahlingen))))

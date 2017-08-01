@@ -16,7 +16,7 @@
       zuckerstange karfiol weihnachtsbaum terrorist
       zehn-nackte-friseusen fussball broiler eisbein twix
       doener-mit-scharf fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5
-      capacity-0 capacity-1 capacity-2 capacity-3)
+      capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at ICE koendringen)
     (at auto inzlingen)
@@ -250,7 +250,9 @@
     (vehicle moped)
     (vehicle motorroller)
     (vehicle pferdetransport)
-    (vehicle sulki))
+    (vehicle sulki)
+    (fix_vehicle truck-fix)
+    (at truck-fix wittlingen))
   (:goal
     (and
       (at fussball inzlingen)

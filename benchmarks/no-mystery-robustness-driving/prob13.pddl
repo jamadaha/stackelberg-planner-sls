@@ -16,7 +16,7 @@
       zamomin terrorist karfiol osterei pinkel wensleydale
       tuete-pommes strunkbolzen halbgefrorenes leipziger-allerlei
       apfel aschenbecher kiste-bier halber-hirsch fuel-0 fuel-1 fuel-2
-      fuel-3 capacity-0 capacity-1 capacity-2 capacity-3)
+      fuel-3 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at apfel denzlingen)
     (at aschenbecher denzlingen)
@@ -238,7 +238,9 @@
     (vehicle krankenwagen)
     (vehicle kutsche)
     (vehicle moped)
-    (vehicle motorroller))
+    (vehicle motorroller)
+    (fix_vehicle truck-fix)
+    (at truck-fix endingen))
   (:goal
     (and
       (at aschenbecher brombach)

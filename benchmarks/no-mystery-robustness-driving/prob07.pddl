@@ -8,7 +8,7 @@
       feine-bratwurst strunkbolzen schlagobers gimp karfiol
       leipziger-allerlei haehnchenbein ochsencremesuppe donnerkiesel
       seitenbacher-muesli broiler eisbein kaesebaellchen fuel-0 fuel-1
-      fuel-2 fuel-3 capacity-0 capacity-1)
+      fuel-2 fuel-3 capacity-0 capacity-1 truck-fix)
   (:init
     (at apfel freiburg)
     (at broiler schopfheim)
@@ -121,7 +121,9 @@
     (package weihnachtsbaum)
     (package zehn-nackte-friseusen)
     (vehicle elfenrad)
-    (vehicle feuerwehr))
+    (vehicle feuerwehr)
+    (fix_vehicle truck-fix)
+    (at truck-fix endingen))
   (:goal
     (and
       (at apfel denzlingen))))

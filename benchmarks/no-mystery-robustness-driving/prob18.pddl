@@ -9,7 +9,7 @@
       daemonenrikscha neujahrsbrezel karfiol kiste-bier fernseher
       fussball haehnchenbein kuechenmaschine bananenkiste donnerkiesel
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7
-      capacity-0 capacity-1 capacity-2 capacity-3)
+      capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
     (at bananenkiste muellheim)
     (at daemonenrikscha wollbach)
@@ -169,7 +169,9 @@
     (vehicle moped)
     (vehicle motorrad)
     (vehicle pferdetransport)
-    (vehicle trollwagen))
+    (vehicle trollwagen)
+    (fix_vehicle truck-fix)
+    (at truck-fix haltingen))
   (:goal
     (and
       (at fussball kleinkems))))

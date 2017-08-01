@@ -16,7 +16,7 @@
       feine-bratwurst aschenbecher zamomin wensleydale
       flasche-jaegermeister snickers fleisch fuel-0 fuel-1 fuel-2
       fuel-3 fuel-4 fuel-5 capacity-0 capacity-1 capacity-2
-      capacity-3)
+      capacity-3 truck-fix)
   (:init
     (at apfel bad-bellingen)
     (at aschenbecher endingen)
@@ -226,7 +226,9 @@
     (vehicle moped)
     (vehicle motorroller)
     (vehicle pferdetransport)
-    (vehicle segway))
+    (vehicle segway)
+    (fix_vehicle truck-fix)
+    (at truck-fix loerrach))
   (:goal
     (and
       (at nichts loerrach))))
