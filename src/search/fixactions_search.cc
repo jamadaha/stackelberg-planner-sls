@@ -56,6 +56,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
 	use_ids = opts.get<bool>("ids");
 	sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
+	greedy_fix_search = opts.get<bool>("greedy");
 }
 
 FixActionsSearch::~FixActionsSearch()
@@ -1199,9 +1200,15 @@ void FixActionsSearch::iterate_applicable_ops(const
      }*/
     bool at_least_one_recursion = false;
 
-    //vector<const GlobalOperator *> actually_recursed_ops;
+    vector<const GlobalOperator *> actually_recursed_ops;
 
     for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
+
+    	if(sort_fix_ops_advanced && greedy_fix_search && recurse && at_least_one_recursion) {
+    		// Greedily break the loop here after the first actual recursion
+    		break;
+    	}
+
         const GlobalOperator *op = applicable_ops[op_no];
         if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(),
                  applicable_ops[op_no])
@@ -1229,7 +1236,7 @@ void FixActionsSearch::iterate_applicable_ops(const
             continue;
         }
 
-        //actually_recursed_ops.push_back(op);
+        actually_recursed_ops.push_back(op);
 
         // Add all ops before op_no in applicable_ops to sleep set if they are commutative
         int op_id = op->get_op_id();
@@ -1263,9 +1270,9 @@ void FixActionsSearch::iterate_applicable_ops(const
     if (!at_least_one_recursion) {
         num_fix_op_paths++;
     }
-    /* if(recurse && at_least_one_recursion) {
+     if(recurse && at_least_one_recursion) {
         cerr << fix_state_to_string(state) << ": " << ops_to_string(actually_recursed_ops) << endl;
-    } */
+    }
 }
 
 bool pareto_node_comp_func(const
@@ -1540,6 +1547,7 @@ SearchEngine *_parse(OptionParser &parser)
                             "When expanding fix state successors, first compute attacker cost in all successor states and then recurse in descending cost order.",
                             "true");
     parser.add_option<bool>("ids", "use iterative deepening search", "true");
+    parser.add_option<bool>("greedy", "Only makes sense in combination with sort_fix_ops=true. Basically only greedily recurse with best op w.r.t. to fix-op sorting and do not consider the others ", "false");
     Options opts = parser.parse();
     if (!parser.dry_run()) {
         return new FixActionsSearch(opts);

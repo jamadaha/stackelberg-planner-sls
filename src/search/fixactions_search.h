@@ -49,6 +49,7 @@ private:
 	bool do_attack_op_dom_pruning = true;
 	bool sort_fix_ops_stupid = false;
 	bool sort_fix_ops_advanced = true;
+	bool greedy_fix_search = false;
 
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
