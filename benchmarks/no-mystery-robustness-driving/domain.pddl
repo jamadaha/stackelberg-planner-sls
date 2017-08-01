@@ -4,6 +4,7 @@
        (capacity-number ?x)
        (location ?x)
        (vehicle ?x)
+       (fix_vehicle ?x)
        (package ?x)
        (connected ?n1 ?n2)
        (at ?v ?n)
@@ -13,7 +14,7 @@
        (fuel-predecessor ?i ?j)
        (capacity-predecessor ?i ?j))
 
-   (:action load
+   (:action attack_load
        :parameters (?c ?v ?n ?s1 ?s2)
        :precondition (and (package ?c)
 			  (vehicle ?v)
@@ -28,7 +29,7 @@
                     (in ?c ?v)
                     (not (capacity ?v ?s2))
                     (capacity ?v ?s1)))
-   (:action drive
+   (:action attack_drive
        :parameters (?v ?n1 ?n2 ?l1 ?l2)
        :precondition (and (at ?v ?n1)
 			  (location ?n1)
@@ -41,7 +42,7 @@
                     (at ?v ?n2)
                     (not (fuel ?n1 ?l2))
                     (fuel ?n1 ?l1)))
-   (:action unload
+   (:action attack_unload
        :parameters (?c ?v ?n ?s1 ?s2)
        :precondition (and (in ?c ?v)
 			  (package ?c)
@@ -53,4 +54,24 @@
        :effect (and (not (in ?c ?v))
                     (at ?c ?n)
                     (not (capacity ?v ?s1))
-                    (capacity ?v ?s2))))
+                    (capacity ?v ?s2)))
+
+   (:action fix_drive
+       :parameters (?v ?n1 ?n2)
+       :precondition (and (at ?v ?n1)
+        (location ?n1)
+        (fix_vehicle ?v)
+        (connected ?n1 ?n2)
+        (location ?n2))
+       :effect (and (not (at ?v ?n1))
+                    (at ?v ?n2))) 
+
+   (:action fix_remove_road
+       :parameters (?v ?n1 ?n2)
+       :precondition (and (at ?v ?n1)
+        (location ?n1)
+        (fix_vehicle ?v)
+        (connected ?n1 ?n2)
+        (location ?n2))
+       :effect (and (not (connected ?n1 ?n2))
+                    )))                                       
