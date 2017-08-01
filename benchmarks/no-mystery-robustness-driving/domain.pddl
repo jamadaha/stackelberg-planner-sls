@@ -1,6 +1,6 @@
 ;; Basically no-mystery domain with additional fix truck driving on the map which can remove a connection if it is in an adjacent location.
 ;; The cost for this truck to drive is currently 1 and for removing a segment, it is also 1.
-
+;; The intial location of the fix truck is the first location listed in the respective problem file
 (define (domain no-mystery-strips)
    (:predicates
        (fuel-number ?x)
