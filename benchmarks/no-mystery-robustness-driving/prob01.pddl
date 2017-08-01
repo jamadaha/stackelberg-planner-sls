@@ -4,7 +4,7 @@
   (:objects inzlingen bahlingen boetzingen sexau waldhaus schallstadt
       moped seitenbacher-muesli karfiol kapselheber fuel-0 fuel-1
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 capacity-0 capacity-1
-      capacity-2 capacity-3)
+      capacity-2 capacity-3 truck-fix)
   (:init
     (at kapselheber waldhaus)
     (at karfiol boetzingen)
@@ -59,7 +59,9 @@
     (package kapselheber)
     (package karfiol)
     (package seitenbacher-muesli)
-    (vehicle moped))
+    (vehicle moped)
+    (fix_vehicle truck-fix)
+    (at truck-fix inzlingen))
   (:goal
     (and
       (at kapselheber inzlingen))))
