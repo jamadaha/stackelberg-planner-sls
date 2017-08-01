@@ -1,5 +1,7 @@
 ;; Transport sequential
-;;
+;; Basically transport domain with additional fix truck driving on the map which can remove a road segment if it is in an adjacent city.
+;; The cost for this truck to drive is currently one and for removing a segment, it is the road-length
+;; THESE COSTS ARE PROBABLY NOT PERFECTLY CHOSEN
 
 (define (domain transport)
   (:requirements :typing :action-costs)
