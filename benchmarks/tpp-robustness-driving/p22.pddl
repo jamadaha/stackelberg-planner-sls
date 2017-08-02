@@ -3,6 +3,7 @@
 (:objects
 	goods1 goods2 goods3 goods4 goods5 goods6 goods7 goods8 goods9 goods10 goods11 goods12 - goods
 	truck1 truck2 truck3 truck4 truck5 truck6 - truck
+	truck-fix - fix_truck
 	market1 market2 market3 market4 market5 market6 - market
 	depot1 depot2 depot3 - depot
 	level0 level1 level2 level3 level4 level5 - level)
@@ -268,7 +269,8 @@
 	(at truck3 depot2)
 	(at truck4 depot2)
 	(at truck5 depot1)
-	(at truck6 depot1))
+	(at truck6 depot1)
+	(at truck-fix depot1))
 
 (:goal (and
 	(stored goods1 level3)
