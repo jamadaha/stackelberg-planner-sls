@@ -3,6 +3,7 @@
 	general - Lander
 	colour high_res low_res - Mode
 	rover0 rover1 rover2 rover3 - Rover
+	rover-fix - fix_rover
 	rover0store rover1store rover2store rover3store - Store
 	waypoint0 waypoint1 waypoint2 waypoint3 waypoint4 waypoint5 - Waypoint
 	camera0 camera1 camera2 camera3 - Camera
@@ -134,6 +135,8 @@
 	(visible_from objective2 waypoint0)
 	(visible_from objective2 waypoint1)
 	(visible_from objective2 waypoint2)
+	(at rover-fix waypoint0)
+	(available rover-fix)
 )
 
 (:goal (and
