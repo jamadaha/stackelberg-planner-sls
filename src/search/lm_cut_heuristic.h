@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <limits>
 
 // TODO: Fix duplication with the other relaxation heuristics.
 
@@ -80,7 +81,7 @@ struct RelaxedProposition {
     std::vector<RelaxedOperator *> effect_of;
 
     PropositionStatus status;
-    int h_max_cost;
+    int h_max_cost = std::numeric_limits<int>::max();
     /* TODO: Also add the rpg depth? The Python implementation used
        this for tie breaking, and it led to better landmark extraction
        than just using the cost. However, the Python implementation
