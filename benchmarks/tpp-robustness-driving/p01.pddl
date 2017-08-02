@@ -3,6 +3,7 @@
 (:objects
 	goods1 - goods
 	truck1 - truck
+	truck-fix - fix_truck
 	market1 - market
 	depot1 - depot
 	level0 level1 - level)
@@ -15,7 +16,8 @@
 	(connected depot1 market1)
 	(connected market1 depot1)
 	(on-sale goods1 market1 level1)
-	(at truck1 depot1))
+	(at truck1 depot1)
+	(at truck-fix depot1))
 
 (:goal (and
 	(stored goods1 level1)))
