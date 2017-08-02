@@ -1199,12 +1199,13 @@ void FixActionsSearch::iterate_applicable_ops(const
      applicable_ops[op_no]->dump();
      }*/
     bool at_least_one_recursion = false;
+    bool at_least_one_recursion_to_new_state = false;
 
-    vector<const GlobalOperator *> actually_recursed_ops;
+    //vector<const GlobalOperator *> actually_recursed_ops;
 
     for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
 
-    	if(sort_fix_ops_advanced && greedy_fix_search && recurse && at_least_one_recursion) {
+    	if(sort_fix_ops_advanced && greedy_fix_search && recurse && at_least_one_recursion_to_new_state) {
     		// Greedily break the loop here after the first actual recursion
     		break;
     	}
@@ -1236,7 +1237,7 @@ void FixActionsSearch::iterate_applicable_ops(const
             continue;
         }
 
-        actually_recursed_ops.push_back(op);
+        //actually_recursed_ops.push_back(op);
 
         // Add all ops before op_no in applicable_ops to sleep set if they are commutative
         int op_id = op->get_op_id();
@@ -1251,7 +1252,14 @@ void FixActionsSearch::iterate_applicable_ops(const
         if (attack_heuristic != NULL) {
             attack_heuristic->set_curr_attack_search_space(attack_heuristic_search_space);
         }
+
         at_least_one_recursion = true;
+
+        FixSearchInfoFixSequence &info_fix_sequence = fix_search_node_infos_fix_sequence[state];
+        if(info_fix_sequence.fix_actions_cost == -1){
+        	at_least_one_recursion_to_new_state = true;
+        }
+
         int attacker_cost = compute_pareto_frontier(next_state, fix_ops_sequence,
                             new_fix_actions_cost,
                             attack_plan, attack_plan_cost, sleep, recurse);
@@ -1270,9 +1278,9 @@ void FixActionsSearch::iterate_applicable_ops(const
     if (!at_least_one_recursion) {
         num_fix_op_paths++;
     }
-     if(recurse && at_least_one_recursion) {
+    /* if(recurse && at_least_one_recursion) {
         cerr << fix_state_to_string(state) << ": " << ops_to_string(actually_recursed_ops) << endl;
-    }
+    }*/
 }
 
 bool pareto_node_comp_func(const
