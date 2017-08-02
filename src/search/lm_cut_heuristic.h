@@ -80,7 +80,7 @@ struct RelaxedProposition {
     std::vector<RelaxedOperator *> precondition_of;
     std::vector<RelaxedOperator *> effect_of;
 
-    PropositionStatus status;
+    PropositionStatus status = UNREACHED;
     int h_max_cost = std::numeric_limits<int>::max();
     /* TODO: Also add the rpg depth? The Python implementation used
        this for tie breaking, and it led to better landmark extraction
