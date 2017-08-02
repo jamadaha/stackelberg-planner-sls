@@ -1,14 +1,19 @@
 ;; Basically rovers domain with additional fix rover driving on the map which can remove connection if it is in an adjacent waypoint.
+;; The fix rover can traverse a connection if a normal rover can traverse it
+;; With a single action, the fix rover can remove a connection for only one specific other rover 
 ;; The cost for this rover to drive is currently 1 and for removing a segment, it is also 1
 ;; The initial location of the fix truck always is waypoint0
 
 (define (domain Rover)
 (:requirements :typing)
-(:types rover waypoint store camera mode lander objective)
+(:types 
+        locatable waypoint store camera mode lander objective - object
+        rover - locatable 
+        fix_rover - locatable)
 
-(:predicates (at ?x - rover ?y - waypoint) 
+(:predicates (at ?x - locatable ?y - waypoint) 
              (at_lander ?x - lander ?y - waypoint)
-             (can_traverse ?r - rover ?x - waypoint ?y - waypoint)
+             (can_traverse ?r - locatable ?x - waypoint ?y - waypoint)
 	     (equipped_for_soil_analysis ?r - rover)
              (equipped_for_rock_analysis ?r - rover)
              (equipped_for_imaging ?r - rover)
@@ -35,7 +40,7 @@
 )
 
 	
-(:action navigate
+(:action attack_navigate
 :parameters (?x - rover ?y - waypoint ?z - waypoint) 
 :precondition (and (can_traverse ?x ?y ?z) (available ?x) (at ?x ?y) 
                 (visible ?y ?z)
@@ -44,7 +49,7 @@
 		)
 )
 
-(:action sample_soil
+(:action attack_sample_soil
 :parameters (?x - rover ?s - store ?p - waypoint)
 :precondition (and (at ?x ?p) (at_soil_sample ?p) (equipped_for_soil_analysis ?x) (store_of ?s ?x) (empty ?s)
 		)
@@ -52,7 +57,7 @@
 		)
 )
 
-(:action sample_rock
+(:action attack_sample_rock
 :parameters (?x - rover ?s - store ?p - waypoint)
 :precondition (and (at ?x ?p) (at_rock_sample ?p) (equipped_for_rock_analysis ?x) (store_of ?s ?x)(empty ?s)
 		)
@@ -60,7 +65,7 @@
 		)
 )
 
-(:action drop
+(:action attack_drop
 :parameters (?x - rover ?y - store)
 :precondition (and (store_of ?y ?x) (full ?y)
 		)
@@ -68,7 +73,7 @@
 	)
 )
 
-(:action calibrate
+(:action attack_calibrate
  :parameters (?r - rover ?i - camera ?t - objective ?w - waypoint)
  :precondition (and (equipped_for_imaging ?r) (calibration_target ?i ?t) (at ?r ?w) (visible_from ?t ?w)(on_board ?i ?r)
 		)
@@ -78,7 +83,7 @@
 
 
 
-(:action take_image
+(:action attack_take_image
  :parameters (?r - rover ?p - waypoint ?o - objective ?i - camera ?m - mode)
  :precondition (and (calibrated ?i ?r)
 			 (on_board ?i ?r)
@@ -92,7 +97,7 @@
 )
 
 
-(:action communicate_soil_data
+(:action attack_communicate_soil_data
  :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
  :precondition (and (at ?r ?x)(at_lander ?l ?y)(have_soil_analysis ?r ?p) 
                    (visible ?x ?y)(available ?r)(channel_free ?l)
@@ -102,7 +107,7 @@
 	)
 )
 
-(:action communicate_rock_data
+(:action attack_communicate_rock_data
  :parameters (?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
  :precondition (and (at ?r ?x)(at_lander ?l ?y)(have_rock_analysis ?r ?p)
                    (visible ?x ?y)(available ?r)(channel_free ?l)
@@ -112,12 +117,30 @@
 )
 
 
-(:action communicate_image_data
+(:action attack_communicate_image_data
  :parameters (?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
  :precondition (and (at ?r ?x)(at_lander ?l ?y)(have_image ?r ?o ?m)(visible ?x ?y)(available ?r)(channel_free ?l)
             )
  :effect (and (not (available ?r))(not (channel_free ?l))(channel_free ?l)(communicated_image_data ?o ?m)(available ?r)
           )
+)
+
+(:action fix_navigate
+:parameters (?x - fix_rover ?r - rover ?y - waypoint ?z - waypoint) 
+:precondition (and (can_traverse ?r ?y ?z) (available ?x) (at ?x ?y) 
+                (visible ?y ?z)
+      )
+:effect (and (not (at ?x ?y)) (at ?x ?z)
+    )
+)
+
+(:action fix_remove_connection
+:parameters (?x - fix_rover ?r - rover  ?y - waypoint ?z - waypoint) 
+:precondition (and (can_traverse ?r ?y ?z) (available ?x) (at ?x ?y) 
+                (visible ?y ?z)
+      )
+:effect (and (not (can_traverse ?r ?y ?z))
+    )
 )
 
 )
