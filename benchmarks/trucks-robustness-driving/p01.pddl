@@ -2,6 +2,7 @@
 (:domain Trucks)
 (:objects
 	truck1 - truck
+	truck-fix - fix_truck
 	package1 - package
 	package2 - package
 	package3 - package
@@ -59,7 +60,7 @@
 	(next t2 t3)
 	(next t3 t4)
 	(next t4 t5)
-	(next t5 t6))
+	(at truck-fix l1))
 
 (:goal (and 
 	(delivered package1 l3 t3)
