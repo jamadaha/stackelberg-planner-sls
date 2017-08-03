@@ -20,6 +20,7 @@
   city-loc-15 - location
   truck-1 - vehicle
   truck-2 - vehicle
+  truck-fix - fix_vehicle
   package-1 - package
   package-2 - package
   package-3 - package
@@ -246,6 +247,7 @@
   (capacity truck-1 capacity-3)
   (at truck-2 city-loc-5)
   (capacity truck-2 capacity-2)
+  (at truck-fix city-1-loc-1)
  )
  (:goal (and
   (at package-1 city-loc-13)
