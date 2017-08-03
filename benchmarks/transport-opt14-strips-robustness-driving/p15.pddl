@@ -435,7 +435,7 @@
   (capacity truck-1 capacity-4)
   (at truck-2 city-1-loc-11)
   (capacity truck-2 capacity-3)
-  (at truck-fix city-loc-1)
+  (at truck-fix city-1-loc-1)
  )
  (:goal (and
   (at package-1 city-1-loc-11)
