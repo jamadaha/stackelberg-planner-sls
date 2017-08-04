@@ -136,7 +136,7 @@ void FixActionsSearch::initialize()
     }
 
     /* FIXME Because of, REMOVED DIVIDING VARIABLES, we added this: */
-    attack_heuristic->reset();
+    //attack_heuristic->reset();
     g_operators.clear();
     for (size_t op_no = 0; op_no < attack_operators_with_all_preconds.size(); op_no++) {
         g_operators.push_back(attack_operators_with_all_preconds[op_no]);
