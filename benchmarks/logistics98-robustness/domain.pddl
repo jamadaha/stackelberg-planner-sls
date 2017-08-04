@@ -1,3 +1,6 @@
+;; Basically logistics98 domain with additional fix actions which remove connections between locations in the same city.
+;; The cost for removing a connection is 1
+
 (define (domain logistics-strips)
   (:requirements :strips) 
   (:predicates 	(OBJ ?obj)
@@ -8,11 +11,12 @@
                 (AIRPORT ?airport)
 		(at ?obj ?loc)
 		(in ?obj1 ?obj2)
-		(in-city ?obj ?city))
+		(in-city ?obj ?city)
+    (removed-connection ?loc1 ?loc2))
  
   ; (:types )		; default object
 
-(:action LOAD-TRUCK
+(:action attack_LOAD-TRUCK
   :parameters
    (?obj
     ?truck
@@ -23,7 +27,7 @@
   :effect
    (and (not (at ?obj ?loc)) (in ?obj ?truck)))
 
-(:action LOAD-AIRPLANE
+(:action attack_LOAD-AIRPLANE
   :parameters
    (?obj
     ?airplane
@@ -34,7 +38,7 @@
   :effect
    (and (not (at ?obj ?loc)) (in ?obj ?airplane)))
 
-(:action UNLOAD-TRUCK
+(:action attack_UNLOAD-TRUCK
   :parameters
    (?obj
     ?truck
@@ -45,7 +49,7 @@
   :effect
    (and (not (in ?obj ?truck)) (at ?obj ?loc)))
 
-(:action UNLOAD-AIRPLANE
+(:action attack_UNLOAD-AIRPLANE
   :parameters
    (?obj
     ?airplane
@@ -56,7 +60,7 @@
   :effect
    (and (not (in ?obj ?airplane)) (at ?obj ?loc)))
 
-(:action DRIVE-TRUCK
+(:action attack_DRIVE-TRUCK
   :parameters
    (?truck
     ?loc-from
@@ -66,11 +70,12 @@
    (and (TRUCK ?truck) (LOCATION ?loc-from) (LOCATION ?loc-to) (CITY ?city)
    (at ?truck ?loc-from)
    (in-city ?loc-from ?city)
-   (in-city ?loc-to ?city))
+   (in-city ?loc-to ?city)
+   (not (removed-connection ?loc-from ?loc-to)))
   :effect
    (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
 
-(:action FLY-AIRPLANE
+(:action attack_FLY-AIRPLANE
   :parameters
    (?airplane
     ?loc-from
@@ -80,4 +85,17 @@
 	(at ?airplane ?loc-from))
   :effect
    (and (not (at ?airplane ?loc-from)) (at ?airplane ?loc-to)))
+
+(:action fix_REMOVE-CONNECTION
+  :parameters
+   (?loc-from
+    ?loc-to
+    ?city)
+  :precondition
+   (and (LOCATION ?loc-from) (LOCATION ?loc-to) (CITY ?city)
+   (in-city ?loc-from ?city)
+   (in-city ?loc-to ?city)
+   (not (removed-connection ?loc-from ?loc-to)))
+  :effect
+   (and (removed-connection ?loc-from ?loc-to)))   
 )

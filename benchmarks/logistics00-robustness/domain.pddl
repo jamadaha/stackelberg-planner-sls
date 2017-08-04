@@ -1,5 +1,6 @@
 ;; logistics domain
-;;
+;; Basically logistics00 domain with additional fix actions which remove connections between locations in the same city.
+;; The cost for removing a connection is 1
 
 (define (domain logistics)
   (:requirements :strips) 
@@ -11,10 +12,11 @@
 		(in-city ?obj ?city)
                 (city ?city)
 		(at ?obj ?loc)
-		(in ?obj ?obj))
+		(in ?obj ?obj)
+    (removed-connection ?loc1 ?loc2))
 
  
-(:action load-truck
+(:action attack_load-truck
   :parameters
    (?obj
     ?truck
@@ -25,7 +27,7 @@
   :effect
    (and (not (at ?obj ?loc)) (in ?obj ?truck)))
 
-(:action load-airplane
+(:action attack_load-airplane
   :parameters
    (?obj
     ?airplane
@@ -36,7 +38,7 @@
   :effect
    (and (not (at ?obj ?loc)) (in ?obj ?airplane)))
 
-(:action unload-truck
+(:action attack_unload-truck
   :parameters
    (?obj
     ?truck
@@ -47,7 +49,7 @@
   :effect
    (and (not (in ?obj ?truck)) (at ?obj ?loc)))
 
-(:action unload-airplane
+(:action attack_unload-airplane
   :parameters
    (?obj
     ?airplane
@@ -58,7 +60,7 @@
   :effect
    (and (not (in ?obj ?airplane)) (at ?obj ?loc)))
 
-(:action drive-truck
+(:action attack_drive-truck
   :parameters
    (?truck
     ?loc-from
@@ -68,11 +70,12 @@
    (and (truck ?truck) (location ?loc-from) (location ?loc-to) (city ?city)
    (at ?truck ?loc-from)
    (in-city ?loc-from ?city)
-   (in-city ?loc-to ?city))
+   (in-city ?loc-to ?city)
+   (not (removed-connection ?loc-from ?loc-to)))
   :effect
    (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
 
-(:action fly-airplane
+(:action attack_fly-airplane
   :parameters
    (?airplane
     ?loc-from
@@ -82,4 +85,17 @@
 	(at ?airplane ?loc-from))
   :effect
    (and (not (at ?airplane ?loc-from)) (at ?airplane ?loc-to)))
+
+(:action fix_remove-connection
+  :parameters
+   (?loc-from
+    ?loc-to
+    ?city)
+  :precondition
+   (and (location ?loc-from) (location ?loc-to) (city ?city)
+   (in-city ?loc-from ?city)
+   (in-city ?loc-to ?city)
+   (not (removed-connection ?loc-from ?loc-to)))
+  :effect
+   (and (removed-connection ?loc-from ?loc-to)))      
 )
