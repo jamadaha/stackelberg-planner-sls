@@ -95,9 +95,11 @@ void FixActionsSearch::initialize()
     fix_operators_successor_generator = create_successor_generator(
                                             fix_variable_domain, fix_operators, fix_operators);
 
+    /* FIXME REMOVED DIVIDING VARIABLES
     attack_operators_for_fix_vars_successor_generator = create_successor_generator(
                 fix_variable_domain,
                 attack_operators_with_fix_vars_preconds, attack_operators);
+    */
 
     cout << "attack_operators.size() = " << attack_operators.size() << endl;
     cout << "fix_operators.size() = " << fix_operators.size() << endl;
@@ -115,10 +117,12 @@ void FixActionsSearch::initialize()
     g_all_attack_operators.insert(g_all_attack_operators.begin(),
                                   attack_operators.begin(), attack_operators.end());
 
+    /* FIXME REMOVED DIVIDING VARIABLES
     g_operators.clear();
     g_operators.insert(g_operators.begin(),
                        attack_operators.begin(), attack_operators.end());
     g_attack_op_included.resize(attack_operators.size(), true);
+    */
 
     if (sort_fix_ops_stupid && use_partial_order_reduction) {
         delrax_search::DelRaxSearch *delrax_search = (delrax_search::DelRaxSearch *)
@@ -129,6 +133,13 @@ void FixActionsSearch::initialize()
             delrax_search->get_reward(), fix_operators,
             attack_operators_with_fix_vars_preconds,
             deleting_fix_facts_ops);
+    }
+
+    /* FIXME Because of, REMOVED DIVIDING VARIABLES, we added this: */
+    attack_heuristic->reset();
+    g_operators.clear();
+    for (size_t op_no = 0; op_no < attack_operators_with_all_preconds.size(); op_no++) {
+        g_operators.push_back(attack_operators_with_all_preconds[op_no]);
     }
 
     chrono::high_resolution_clock::time_point t2 =
@@ -284,6 +295,8 @@ void FixActionsSearch::clean_attack_actions()
                                             op.get_cost(), op.get_cost2(), op.get_op_id(), fix_variable_name,
                                             g_variable_name);
         attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
+
+        attack_operators_with_all_preconds.push_back(op);
     }
 }
 
@@ -295,15 +308,19 @@ void FixActionsSearch::create_new_variable_indices()
     int curr_fix_var_index = 0;
 
     map_var_id_to_new_var_id.resize(num_vars);
+    map_fix_var_id_to_orig_var_id.resize(num_fix_vars);
+    map_attack_var_id_to_orig_var_id.resize(num_attack_vars);
 
     for (int var = 0; var < num_vars; var++) {
         if (attack_vars[var]) {
             // This is an attack var
             map_var_id_to_new_var_id[var] = curr_attack_var_index;
+            map_attack_var_id_to_orig_var_id[curr_attack_var_index] = var;
             curr_attack_var_index++;
         } else {
             // This is a fix var
             map_var_id_to_new_var_id[var] = curr_fix_var_index;
+            map_fix_var_id_to_orig_var_id[curr_fix_var_index] = var;
             curr_fix_var_index++;
         }
     }
@@ -326,12 +343,13 @@ void FixActionsSearch::create_new_variable_indices()
             fix_fact_names.push_back(g_fact_names[i]);
             fix_initial_state_data.push_back(g_initial_state_data[i]);
 
+            /* FIXME REMOVED DIVIDING VARIABLES, so we don't remove the fix actions from the global stuff
             // Erase it from vectors
             g_variable_domain.erase(g_variable_domain.begin() + i);
             g_variable_name.erase(g_variable_name.begin() + i);
             g_fact_names.erase(g_fact_names.begin() + i);
             g_initial_state_data.erase(g_initial_state_data.begin() + i);
-
+			*/
             // Decrement i and num_vars_temp, because an element was deleted.
             i--;
             num_vars_temp--;
@@ -348,17 +366,22 @@ void FixActionsSearch::create_new_variable_indices()
                  << endl;
             //exit(EXIT_INPUT_ERROR);
         }
+        /* FIXME REMOVED DIVIDING VARIABLES
         g_goal[i].first = map_var_id_to_new_var_id[g_goal[i].first];
+        */
     }
 
     // Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
     IntPacker *fix_vars_state_packer = new IntPacker(fix_variable_domain);
     fix_vars_state_registry = new StateRegistry(fix_vars_state_packer,
             fix_initial_state_data);
+
+    /* FIXME REMOVED DIVIDING VARIABLES
     delete g_state_packer;
     g_state_packer = new IntPacker(g_variable_domain);
     delete g_state_registry;
     g_state_registry = new StateRegistry(g_state_packer, g_initial_state_data);
+    */
 }
 
 bool cond_comp_func(GlobalCondition cond1, GlobalCondition cond2)
@@ -986,9 +1009,12 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         }
     } else {
         num_attacker_searches++;
+
+        /* FIXME REMOVED DIVIDING VARIABLES
         vector<const GlobalOperator *> applicable_attack_operators;
         attack_operators_for_fix_vars_successor_generator->generate_applicable_ops(
             state, applicable_attack_operators);
+
 
         if (do_attack_op_dom_pruning) {
             prune_dominated_ops(applicable_attack_operators, dominated_attack_op_ids);
@@ -1003,15 +1029,23 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
             //all_attack_operators[op_no]->dump();
         }
 
-        chrono::high_resolution_clock::time_point tt1 =
-            chrono::high_resolution_clock::now();
-
         delete g_successor_generator;
         g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
         //g_successor_generator->dump();
         //cout << "Attacker dump everything: " << endl;
         //dump_everything();
 
+        */
+
+        /* FIXME Because REMOVED DIVIDING VARIABLES, adjust attacker initial state w.r.t fix variables: */
+        for (size_t fix_var = 0; fix_var < fix_variable_domain.size(); fix_var++) {
+        	int orig_var_id = map_fix_var_id_to_orig_var_id[fix_var];
+        	g_initial_state_data[orig_var_id] = state[fix_var];
+        }
+        // TODO I think g_initial_state() does not return new initial state because of caching!!
+
+        chrono::high_resolution_clock::time_point tt1 =
+            chrono::high_resolution_clock::now();
         search_engine->reset();
         if (attack_heuristic != NULL) {
             attack_heuristic->reset();

@@ -53,10 +53,14 @@ private:
 
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
+	std::vector<GlobalOperator> attack_operators_with_all_preconds;
 	std::vector<GlobalOperator> attack_operators_with_fix_vars_preconds;
 
 	SuccessorGeneratorSwitch *fix_operators_successor_generator = NULL;
+
+	/* FIXME Because REMOVED DIVIDING VARIABLES
 	SuccessorGeneratorSwitch *attack_operators_for_fix_vars_successor_generator = NULL;
+	*/
 
 	std::vector<bool> attack_vars;
 	int num_vars = 0;
@@ -64,6 +68,8 @@ private:
 	int num_fix_vars = 0;
 
 	std::vector<int> map_var_id_to_new_var_id; // Vector indexed by old id, encloses new id
+	std::vector<int> map_fix_var_id_to_orig_var_id; // Vector indexed by fix var id, encloses original id
+	std::vector<int> map_attack_var_id_to_orig_var_id; // Vector indexed by attack var id, encloses original id
 	std::vector<int> fix_variable_domain;
 	std::vector<std::string> fix_variable_name;
 	std::vector<std::vector<std::string> > fix_fact_names;
