@@ -18,6 +18,8 @@
 class FFHeuristic : public AdditiveHeuristic {
     // Relaxed plans are represented as a set of operators implemented
     // as a bit vector.
+	bool reused = false;
+
     typedef std::vector<bool> RelaxedPlan;
     RelaxedPlan relaxed_plan;
     void mark_preferred_operators_and_relaxed_plan(

@@ -80,17 +80,14 @@ int FFHeuristic::compute_heuristic(const GlobalState &state) {
 
 void FFHeuristic::reset() {
 	//cout << "Reset FFHeuristic..." << endl;
-/*
+	propositions.clear();
+	goal_propositions.clear();
+	unary_operators.clear();
+
     if (reused) {
         initialize();
     }
     reused = true;
-    */
-
-	propositions.clear();
-	goal_propositions.clear();
-	unary_operators.clear();
-	initialize();
 }
 
 static Heuristic *_parse(OptionParser &parser) {
