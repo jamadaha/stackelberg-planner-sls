@@ -348,10 +348,11 @@ void FixActionsSearch::create_new_variable_indices()
             g_variable_name.erase(g_variable_name.begin() + i);
             g_fact_names.erase(g_fact_names.begin() + i);
             g_initial_state_data.erase(g_initial_state_data.begin() + i);
-			*/
+
             // Decrement i and num_vars_temp, because an element was deleted.
             i--;
             num_vars_temp--;
+            */
         }
         // Increment var which is the absolute old var id
         var++;
