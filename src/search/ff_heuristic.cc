@@ -78,6 +78,20 @@ int FFHeuristic::compute_heuristic(const GlobalState &state) {
     return h_ff;
 }
 
+void FFHeuristic::reset() {
+	//cout << "Reset FFHeuristic..." << endl;
+/*
+    if (reused) {
+        initialize();
+    }
+    reused = true;
+    */
+
+	propositions.clear();
+	goal_propositions.clear();
+	unary_operators.clear();
+	initialize();
+}
 
 static Heuristic *_parse(OptionParser &parser) {
     parser.document_synopsis("FF heuristic", "See also Synergy.");
