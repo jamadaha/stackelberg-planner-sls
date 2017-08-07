@@ -26,6 +26,10 @@ bool RelaxationHeuristic::dead_ends_are_reliable() const {
 // initialization
 void RelaxationHeuristic::initialize() {
     // Build propositions.
+	assert(propositions.size() == 0);
+	assert(goal_propositions.size() == 0);
+	assert(unary_operators.size() == 0);
+
     int prop_id = 0;
     propositions.resize(g_variable_domain.size());
     for (size_t var = 0; var < g_variable_domain.size(); ++var) {
