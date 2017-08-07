@@ -270,6 +270,17 @@ void CanonicalPDBsHeuristic::dump() const {
     }
 }
 
+void CanonicalPDBsHeuristic::reset() {
+	//cout << "Reset CanonicalPDBsHeuristic..." << endl;
+/*
+    if (reused) {
+        initialize();
+    }
+    reused = true;
+    */
+
+}
+
 static Heuristic *_parse(OptionParser &parser) {
     parser.document_synopsis(
         "Canonical PDB",

@@ -136,7 +136,6 @@ void FixActionsSearch::initialize()
     }
 
     /* FIXME Because of, REMOVED DIVIDING VARIABLES, we added this: */
-    //attack_heuristic->reset();
     g_operators.clear();
     for (size_t op_no = 0; op_no < attack_operators_with_all_preconds.size(); op_no++) {
         g_operators.push_back(attack_operators_with_all_preconds[op_no]);
@@ -1038,11 +1037,10 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         */
 
         /* FIXME Because REMOVED DIVIDING VARIABLES, adjust attacker initial state w.r.t fix variables: */
-        for (size_t fix_var = 0; fix_var < fix_variable_domain.size(); fix_var++) {
-        	int orig_var_id = map_fix_var_id_to_orig_var_id[fix_var];
-        	g_initial_state_data[orig_var_id] = state[fix_var];
-        }
-        // TODO I think g_initial_state() does not return new initial state because of caching!!
+		for (size_t fix_var = 0; fix_var < fix_variable_domain.size(); fix_var++) {
+			int orig_var_id = map_fix_var_id_to_orig_var_id[fix_var];
+			g_initial_state_data[orig_var_id] = state[fix_var];
+		}
 
         chrono::high_resolution_clock::time_point tt1 =
             chrono::high_resolution_clock::now();

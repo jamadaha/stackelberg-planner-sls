@@ -38,6 +38,8 @@ public:
     CanonicalPDBsHeuristic(const Options &opts);
     virtual ~CanonicalPDBsHeuristic();
 
+    virtual void reset();
+
     // add a new pattern to the collection and recomputes maximal cliques
     void add_pattern(const std::vector<int> &pattern);
 
