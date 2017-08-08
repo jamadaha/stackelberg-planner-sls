@@ -265,6 +265,15 @@ void FixActionsSearch::divide_variables()
     num_fix_vars = num_vars - num_attack_vars;
 }
 
+bool cond_comp_func(GlobalCondition cond1, GlobalCondition cond2)
+{
+    return cond1.var < cond2.var;
+}
+bool eff_comp_func(GlobalEffect eff1, GlobalEffect eff2)
+{
+    return eff1.var < eff2.var;
+}
+
 void FixActionsSearch::clean_attack_actions()
 {
     cout << "Begin clean_attack_actions()..." << endl;
@@ -297,7 +306,14 @@ void FixActionsSearch::clean_attack_actions()
                                             g_variable_name);
         attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 
+        /* FIXME Because of REMOVED DIVIDING VARIABLES, we added this: */
         attack_operators_with_all_preconds.push_back(op);
+        vector<GlobalCondition> &conditions2 = attack_operators_with_all_preconds[op_no].get_preconditions();
+        vector<GlobalEffect> &effects = attack_operators_with_all_preconds[op_no].get_effects();
+
+        // Sort the conditions and effects by their respective var id
+        sort(conditions2.begin(), conditions2.end(), cond_comp_func);
+        sort(effects.begin(), effects.end(), eff_comp_func);
     }
 }
 
@@ -386,14 +402,6 @@ void FixActionsSearch::create_new_variable_indices()
     */
 }
 
-bool cond_comp_func(GlobalCondition cond1, GlobalCondition cond2)
-{
-    return cond1.var < cond2.var;
-}
-bool eff_comp_func(GlobalEffect eff1, GlobalEffect eff2)
-{
-    return eff1.var < eff2.var;
-}
 void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops)
 {
     // Adjust indices in preconditions and effects of all operators in ops vector
