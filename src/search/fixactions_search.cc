@@ -1046,6 +1046,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         chrono::high_resolution_clock::time_point tt1 =
             chrono::high_resolution_clock::now();
         search_engine->reset();
+        g_state_registry->reset();
         if (attack_heuristic != NULL) {
             attack_heuristic->reset();
         }

@@ -174,6 +174,11 @@ public:
         return registered_states.size();
     }
 
+    void reset() {
+    		state_data_pool.resize(0, 0);
+    		registered_states.clear();
+    		cached_initial_state = 0;
+    }
     /*
       Remembers the given PerStateInformation. If this StateRegistry is
       destroyed, it notifies all subscribed PerStateInformation objects.
