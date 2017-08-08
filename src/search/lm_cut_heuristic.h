@@ -69,7 +69,8 @@ struct RelaxedOperator {
     RelaxedOperator(const std::vector<RelaxedProposition *> &pre,
                     const std::vector<RelaxedProposition *> &eff,
                     const GlobalOperator *the_op, int base)
-        : op(the_op), precondition(pre), effects(eff), base_cost(base) {
+        : op(the_op), precondition(pre), effects(eff), base_cost(base)
+    {
     }
 
     inline void update_h_max_supporter();
@@ -99,11 +100,13 @@ struct RelaxedProposition {
        without explicit depth tie-breaking, then decide.
     */
 
-    RelaxedProposition() {
+    RelaxedProposition() : status(UNREACHED), h_max_cost(-1)
+    {
     }
 };
 
-class LandmarkCutHeuristic : public Heuristic {
+class LandmarkCutHeuristic : public Heuristic
+{
     std::vector<RelaxedOperator> relaxed_operators;
     std::vector<std::vector<RelaxedProposition> > propositions;
     RelaxedProposition artificial_precondition;
@@ -123,10 +126,12 @@ class LandmarkCutHeuristic : public Heuristic {
     void setup_exploration_queue_state(const GlobalState &state);
     void first_exploration(const GlobalState &state);
     void first_exploration_incremental(std::vector<RelaxedOperator *> &cut);
-    void second_exploration(const GlobalState &state, std::vector<RelaxedProposition *> &queue,
+    void second_exploration(const GlobalState &state,
+                            std::vector<RelaxedProposition *> &queue,
                             std::vector<RelaxedOperator *> &cut);
 
-    void enqueue_if_necessary(RelaxedProposition *prop, int cost) {
+    void enqueue_if_necessary(RelaxedProposition *prop, int cost)
+    {
         assert(cost >= 0);
         if (prop->status == UNREACHED || prop->h_max_cost > cost) {
             prop->status = REACHED;
@@ -143,11 +148,13 @@ public:
     virtual ~LandmarkCutHeuristic();
 };
 
-inline void RelaxedOperator::update_h_max_supporter() {
+inline void RelaxedOperator::update_h_max_supporter()
+{
     assert(!unsatisfied_preconditions);
     for (size_t i = 0; i < precondition.size(); ++i)
-        if (precondition[i]->h_max_cost > h_max_supporter->h_max_cost)
+        if (precondition[i]->h_max_cost > h_max_supporter->h_max_cost) {
             h_max_supporter = precondition[i];
+        }
     h_max_supporter_cost = h_max_supporter->h_max_cost;
 }
 
