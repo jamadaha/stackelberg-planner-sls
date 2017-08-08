@@ -180,7 +180,6 @@ void FixActionsSearch::sort_operators()
 			//g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
 			//g_operators[op_no].set_cost(success_prob_cost);
 			g_operators[op_no].set_op_id(attack_action_op_id);
-			g_operators[op_no].is_fix_op = false;
 			attack_action_op_id++;
 
 			attack_operators.push_back(g_operators[op_no]);
@@ -209,7 +208,6 @@ void FixActionsSearch::sort_operators()
 			g_operators[op_no].set_effs_variable_name(fix_variable_name);
 			g_operators[op_no].set_scheme_id(0);
 			g_operators[op_no].set_op_id(fix_action_op_id);
-			g_operators[op_no].is_fix_op = true;
 			fix_action_op_id++;
 
 			fix_operators.push_back(g_operators[op_no]);
