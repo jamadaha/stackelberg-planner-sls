@@ -53,8 +53,6 @@ GlobalState StateRegistry::lookup_state(StateID id) const
 
 const GlobalState &StateRegistry::get_initial_state()
 {
-	/* FIXME Because REMOVED DIVIDING VARIABLES, do not cache initial state */
-	//cached_initial_state = 0;
     if (cached_initial_state == 0) {
         PackedStateBin *buffer = new PackedStateBin[state_packer->get_num_bins()];
         for (size_t i = 0; i < initial_state_data.size(); ++i) {
