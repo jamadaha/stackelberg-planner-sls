@@ -1248,10 +1248,10 @@ void FixActionsSearch::iterate_applicable_ops(const
 
     for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
 
-    	if(sort_fix_ops_advanced && greedy_fix_search && recurse && at_least_one_recursion_to_new_state) {
-    		// Greedily break the loop here after the first actual recursion
-    		break;
-    	}
+    		if(sort_fix_ops_advanced && greedy_fix_search && recurse && at_least_one_recursion_to_new_state) {
+    			// Greedily break the loop here after the first actual recursion
+    			break;
+    		}
 
         const GlobalOperator *op = applicable_ops[op_no];
         if (find(fix_ops_sequence.begin(), fix_ops_sequence.end(),
@@ -1300,7 +1300,7 @@ void FixActionsSearch::iterate_applicable_ops(const
 
         FixSearchInfoFixSequence &info_fix_sequence = fix_search_node_infos_fix_sequence[state];
         if(info_fix_sequence.fix_actions_cost == -1){
-        	at_least_one_recursion_to_new_state = true;
+        		at_least_one_recursion_to_new_state = true;
         }
 
         int attacker_cost = compute_pareto_frontier(next_state, fix_ops_sequence,
