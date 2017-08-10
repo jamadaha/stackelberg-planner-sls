@@ -57,6 +57,11 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	use_ids = opts.get<bool>("ids");
 	sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
 	greedy_fix_search = opts.get<bool>("greedy");
+
+	if(greedy_fix_search && use_ids) {
+		cout << "greedy fix search and IDS makes no sense!!!! Deactivating IDS!" << endl;
+		use_ids = false;
+	}
 }
 
 FixActionsSearch::~FixActionsSearch()
@@ -1299,8 +1304,8 @@ void FixActionsSearch::iterate_applicable_ops(const
 
         at_least_one_recursion = true;
 
-        FixSearchInfoFixSequence &info_fix_sequence = fix_search_node_infos_fix_sequence[state];
-        if(info_fix_sequence.fix_actions_cost == -1){
+        FixSearchInfoFixSequence &info_fix_sequence = fix_search_node_infos_fix_sequence[next_state];
+        if(!info_fix_sequence.already_in_frontier){
         		at_least_one_recursion_to_new_state = true;
         }
 
@@ -1493,7 +1498,7 @@ SearchStatus FixActionsSearch::step() {
 	if(use_ids) {
 		curr_fix_actions_budget = max(2, max_fix_action_cost);
 	} else {
-		curr_fix_actions_budget = UNLTD_BUDGET;
+		curr_fix_actions_budget = max_fix_actions_budget;
 	}
 
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
