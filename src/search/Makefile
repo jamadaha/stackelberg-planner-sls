@@ -176,7 +176,17 @@ HEADERS += second_order_search/open_list.h \
            second_order_search/strong_stubborn_set.h \
 		   second_order_search/second_order_task_search.h \
 		   second_order_search/best_first_search.h \
-		   second_order_search/depth_first_search.h
+		   second_order_search/depth_first_search.h \
+
+HEADERS += pdbs/dead_end_pdb_heuristic.h \
+	   pdbs/match_tree.h \
+	   pdbs/pattern_collection_generator_ordered_systematic.h \
+	   pdbs/pattern_collection_generator_systematic.h \
+	   pdbs/pattern_collection_information.h \
+	   pdbs/pattern_database.h \
+	   pdbs/pattern_generator.h \
+	   pdbs/types.h \
+	   pdbs/validation.h
 
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
