@@ -2,10 +2,10 @@
 
 #include "pattern_collection_generator_systematic.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "../option_parser.h"
+#include "../plugin.h"
 
-#include "../../globals.h"
+#include "../globals.h"
 
 #include <algorithm>
 #include <cassert>
@@ -61,19 +61,17 @@ void PatternCollectionGeneratorOrderedSystematic::add_options_to_parser(
 }
 
 
-//static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser)
-//{
-//    Options opts = parser.parse();
-//    if (parser.dry_run()) {
-//        return nullptr;
-//    }
-//
-//    return make_shared<PatternCollectionGeneratorOrderedSystematic>(opts);
-//}
-//
-//static PluginShared<PatternCollectionGenerator> _plugin("ordered_systematic",
-//        _parse);
+static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser)
+{
+    Options opts = parser.parse();
+    if (parser.dry_run()) {
+        return nullptr;
+    }
+
+    return make_shared<PatternCollectionGeneratorOrderedSystematic>(opts);
 }
 
-static Plugin<pdbs::PatternCollectionGenerator> _plugin("ordered_systematic",
-        option_parser::parse<pdbs::PatternCollectionGenerator, pdbs::PatternCollectionGeneratorOrderedSystematic>);
+static Plugin<PatternCollectionGenerator> _plugin("ordered_systematic",
+        _parse);
+}
+

@@ -2,7 +2,7 @@
 #define PDBS_PATTERN_COLLECTION_GENERATOR_ORDERED_SYSTEMATIC_H
 
 #include "pattern_generator.h"
-#include "../../option_parser.h"
+#include "../option_parser.h"
 
 namespace pdbs
 {

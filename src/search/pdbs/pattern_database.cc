@@ -1,15 +1,15 @@
 #include "pattern_database.h"
 #include "match_tree.h"
 
-#include "../../globals.h"
-#include "../../operator.h"
-#include "../../state.h"
+#include "../globals.h"
+#include "../global_operator.h"
+#include "../global_state.h"
 
-#include "../../utils/priority_queue.h"
+#include "../priority_queue.h"
 
-#include "../../utils/collections.h"
-#include "../../utils/math.h"
-#include "../../utils/timer.h"
+#include "../utils/collections.h"
+#include "../utils/math.h"
+#include "../utils/timer.h"
 
 #include <algorithm>
 #include <cassert>
@@ -124,7 +124,7 @@ PatternDatabase::PatternDatabase(
         } else {
             cerr << "Given pattern is too large! (Overflow occured): " << endl;
             cerr << pattern << endl;
-            exit_with(EXIT_CRITICAL_ERROR);
+            exit(EXIT_CRITICAL_ERROR);
         }
     }
     create_pdb(operator_costs, compute_reachability);
@@ -301,7 +301,7 @@ bool PatternDatabase::is_goal_state(
     return true;
 }
 
-size_t PatternDatabase::hash_index(const State &state) const
+size_t PatternDatabase::hash_index(const GlobalState &state) const
 {
     size_t index = 0;
     for (size_t i = 0; i < pattern.size(); ++i) {
@@ -310,7 +310,7 @@ size_t PatternDatabase::hash_index(const State &state) const
     return index;
 }
 
-int PatternDatabase::get_value(const State &state) const
+int PatternDatabase::get_value(const GlobalState &state) const
 {
     return distances[hash_index(state)];
 }

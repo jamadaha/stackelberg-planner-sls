@@ -2,10 +2,10 @@
 
 #include "validation.h"
 
-#include "../../globals.h"
-#include "../../causal_graph.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "../globals.h"
+#include "../causal_graph.h"
+#include "../option_parser.h"
+#include "../plugin.h"
 
 #include <algorithm>
 #include <cassert>
@@ -337,29 +337,27 @@ void PatternCollectionGeneratorSystematic::add_options_to_parser(
         "true");
 }
 
-// static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser)
-// {
-//     parser.add_option<int>(
-//         "pattern_max_size",
-//         "max number of variables per pattern",
-//         "1",
-//         Bounds("1", "infinity"));
-//     parser.add_option<bool>(
-//         "only_interesting_patterns",
-//         "Only consider the union of two disjoint patterns if the union has "
-//         "more information than the individual patterns.",
-//         "true");
-//
-//     Options opts = parser.parse();
-//     if (parser.dry_run()) {
-//         return nullptr;
-//     }
-//
-//     return make_shared<PatternCollectionGeneratorSystematic>(opts);
-// }
-//
-// static PluginShared<PatternCollectionGenerator> _plugin("systematic", _parse);
+ static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser)
+ {
+     parser.add_option<int>(
+         "pattern_max_size",
+         "max number of variables per pattern",
+         "1" /*,
+         Bounds("1", "infinity")*/);
+     parser.add_option<bool>(
+         "only_interesting_patterns",
+         "Only consider the union of two disjoint patterns if the union has "
+         "more information than the individual patterns.",
+         "true");
+
+     Options opts = parser.parse();
+     if (parser.dry_run()) {
+         return nullptr;
+     }
+
+     return make_shared<PatternCollectionGeneratorSystematic>(opts);
+ }
+
+ static Plugin<PatternCollectionGenerator> _plugin("systematic", _parse);
 }
 
-static Plugin<pdbs::PatternCollectionGenerator> _plugin("systematic",
-        option_parser::parse<pdbs::PatternCollectionGenerator, pdbs::PatternCollectionGeneratorSystematic>);

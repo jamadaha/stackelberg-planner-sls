@@ -3,31 +3,17 @@
 #include "pattern_database.h"
 #include "pattern_generator.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "../option_parser.h"
+#include "../plugin.h"
 
-#include "../../globals.h"
-#include "../../state.h"
+#include "../globals.h"
+#include "../global_state.h"
 
 #include <memory>
 #include <algorithm>
 
 using namespace std;
 
-namespace std
-{
-template<typename T>
-ostream &operator<<(ostream &out, const std::vector<T> &x)
-{
-    out << "[";
-    for (unsigned i = 0; i < x.size(); i++) {
-        out << (i > 0 ? ", " : "")
-            << x[i];
-    }
-    out << "]";
-    return out;
-}
-}
 
 namespace pdbs
 {
@@ -39,7 +25,7 @@ public:
                      int index = 0) = 0;
     virtual bool contains(const std::vector<std::pair<int, int> > &partial_state,
                           int index = 0) = 0;
-    virtual bool contains(const State &state) = 0;
+    virtual bool contains(const GlobalState &state) = 0;
 };
 
 class DeadEndTreeLeafNode : public DeadEndTreeNode
@@ -58,7 +44,7 @@ public:
         return true;
     }
 
-    virtual bool contains(const State & /*state*/) override
+    virtual bool contains(const GlobalState & /*state*/) override
     {
         return true;
     }
@@ -141,7 +127,7 @@ public:
         return false;
     }
 
-    virtual bool contains(const State &state) override
+    virtual bool contains(const GlobalState &state) override
     {
         DeadEndTreeNode *value_successor = value_successors[state[var_id]];
         if (value_successor && value_successor->contains(state)) {
@@ -182,7 +168,7 @@ const
     return root && root->contains(partial_state);
 }
 
-bool DeadEndCollection::recognizes(const State &state) const
+bool DeadEndCollection::recognizes(const GlobalState &state) const
 {
     if (root) {
         return root->contains(state);
@@ -198,7 +184,7 @@ PDBDeadEndDetectionHeuristic::PDBDeadEndDetectionHeuristic(
     PatternCollectionGenerator *pattern_generator =
         opts.get<PatternCollectionGenerator *>("patterns");
     utils::CountdownTimer timer(opts.get<double>("max_time"));
-    State initial_state = g_initial_state();
+    GlobalState initial_state = g_initial_state();
     pattern_generator->generate([&](const Pattern & pattern) {
         return add_pattern_dead_ends(pattern, initial_state, timer);
     });
@@ -208,7 +194,7 @@ PDBDeadEndDetectionHeuristic::PDBDeadEndDetectionHeuristic(
 
 bool PDBDeadEndDetectionHeuristic::add_pattern_dead_ends(
     const Pattern &pattern,
-    const State &initial_state,
+    const GlobalState &initial_state,
     const utils::CountdownTimer &timer)
 {
     PatternDatabase pdb(pattern, false, true);
@@ -227,7 +213,7 @@ bool PDBDeadEndDetectionHeuristic::add_pattern_dead_ends(
     return memory_exhausted || initial_state_recognized || timer.is_expired();
 }
 
-int PDBDeadEndDetectionHeuristic::compute_heuristic(const State &state)
+int PDBDeadEndDetectionHeuristic::compute_heuristic(const GlobalState &state)
 {
     if (dead_end_collection.recognizes(state)) {
         return DEAD_END;
@@ -236,7 +222,7 @@ int PDBDeadEndDetectionHeuristic::compute_heuristic(const State &state)
     }
 }
 
-void PDBDeadEndDetectionHeuristic::add_options_to_parser(OptionParser &parser)
+static Heuristic *_parse(OptionParser &parser)
 {
     parser.add_option<PatternCollectionGenerator *>(
         "patterns",
@@ -254,8 +240,14 @@ void PDBDeadEndDetectionHeuristic::add_options_to_parser(OptionParser &parser)
         "900");
 
     Heuristic::add_options_to_parser(parser);
+    Options opts = parser.parse();
+    if (parser.dry_run())
+        return 0;
+    else
+        return new PDBDeadEndDetectionHeuristic(opts);
 }
+static Plugin<Heuristic> _plugin("deadpdbs", _parse);
 }
 
-static Plugin<Heuristic> _plugin("deadpdbs",
-                                 option_parser::parse<Heuristic, pdbs::PDBDeadEndDetectionHeuristic>);
+
+

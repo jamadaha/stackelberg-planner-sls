@@ -1,7 +1,7 @@
 #include "validation.h"
 
-#include "../../utilities.h"
-#include "../../globals.h"
+#include "../utilities.h"
+#include "../globals.h"
 
 #include <algorithm>
 #include <iostream>

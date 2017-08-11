@@ -3,8 +3,8 @@
 
 #include "pattern_generator.h"
 #include "types.h"
-#include "../../utils/hash.h"
-#include "../../option_parser.h"
+#include "../utils/hash.h"
+#include "../option_parser.h"
 
 #include <cstdlib>
 #include <memory>

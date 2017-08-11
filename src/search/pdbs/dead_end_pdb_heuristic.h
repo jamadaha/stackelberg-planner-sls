@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "../../heuristic.h"
-#include "../../utils/countdown_timer.h"
+#include "../heuristic.h"
+#include "../utils/countdown_timer.h"
 
 namespace pdbs
 {
@@ -21,7 +21,7 @@ public:
     void add(const std::vector<std::pair<int, int> > &dead);
 
     bool recognizes(const std::vector<std::pair<int, int> > &partial_state) const;
-    bool recognizes(const State &state) const;
+    bool recognizes(const GlobalState &state) const;
 
     int size()
     {
@@ -33,11 +33,11 @@ class PDBDeadEndDetectionHeuristic : public Heuristic
 {
     size_t max_dead_ends;
     bool add_pattern_dead_ends(const Pattern &pattern,
-                               const State &initial_state,
+                               const GlobalState &initial_state,
                                const utils::CountdownTimer &timer);
     DeadEndCollection dead_end_collection;
 protected:
-    virtual int compute_heuristic(const State &state) override;
+    virtual int compute_heuristic(const GlobalState &state) override;
 public:
     explicit PDBDeadEndDetectionHeuristic(const Options &opts);
     virtual ~PDBDeadEndDetectionHeuristic() = default;
