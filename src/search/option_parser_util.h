@@ -32,6 +32,11 @@ namespace second_order_search
 class SuccessorPruningMethod;
 }
 
+namespace pdbs
+{
+class PatternCollectionGenerator;
+}
+
 struct ParseNode {
     ParseNode()
         : value(""),
@@ -313,6 +318,14 @@ struct TypeNamer<ShrinkStrategy *> {
     static std::string name()
     {
         return "ShrinkStrategy";
+    }
+};
+
+template <>
+struct TypeNamer<pdbs::PatternCollectionGenerator *> {
+    static std::string name()
+    {
+        return "pdbs::PatternCollectionGenerator";
     }
 };
 

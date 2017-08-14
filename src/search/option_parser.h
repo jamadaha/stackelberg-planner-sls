@@ -54,6 +54,11 @@ namespace second_order_search
 class SuccessorPruningMethod;
 }
 
+namespace pdbs
+{
+class PatternCollectionGenerator;
+}
+
 /*
 The TokenParser<T> wraps functions to parse supported types T.
  */
@@ -155,6 +160,13 @@ class TokenParser<MergeStrategy *>
 {
 public:
     static inline MergeStrategy *parse(OptionParser &p);
+};
+
+template <>
+class TokenParser<pdbs::PatternCollectionGenerator *>
+{
+public:
+    static inline pdbs::PatternCollectionGenerator *parse(OptionParser &p);
 };
 
 template <>
@@ -472,6 +484,11 @@ second_order_search::SuccessorPruningMethod
 ShrinkStrategy *TokenParser<ShrinkStrategy *>::parse(OptionParser &p)
 {
     return lookup_in_registry<ShrinkStrategy>(p);
+}
+
+pdbs::PatternCollectionGenerator *TokenParser<pdbs::PatternCollectionGenerator *>::parse(OptionParser &p)
+{
+    return lookup_in_registry<pdbs::PatternCollectionGenerator>(p);
 }
 
 
