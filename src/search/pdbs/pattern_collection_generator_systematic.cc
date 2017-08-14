@@ -337,7 +337,7 @@ void PatternCollectionGeneratorSystematic::add_options_to_parser(
         "true");
 }
 
- static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser)
+ static PatternCollectionGenerator *_parse(OptionParser &parser)
  {
      parser.add_option<int>(
          "pattern_max_size",
@@ -355,7 +355,7 @@ void PatternCollectionGeneratorSystematic::add_options_to_parser(
          return nullptr;
      }
 
-     return make_shared<PatternCollectionGeneratorSystematic>(opts);
+     return new PatternCollectionGeneratorSystematic(opts);
  }
 
  static Plugin<PatternCollectionGenerator> _plugin("systematic", _parse);

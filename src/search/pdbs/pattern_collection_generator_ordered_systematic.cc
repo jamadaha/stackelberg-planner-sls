@@ -61,14 +61,14 @@ void PatternCollectionGeneratorOrderedSystematic::add_options_to_parser(
 }
 
 
-static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser)
+static PatternCollectionGenerator *_parse(OptionParser &parser)
 {
     Options opts = parser.parse();
     if (parser.dry_run()) {
         return nullptr;
     }
 
-    return make_shared<PatternCollectionGeneratorOrderedSystematic>(opts);
+    return new PatternCollectionGeneratorOrderedSystematic(opts);
 }
 
 static Plugin<PatternCollectionGenerator> _plugin("ordered_systematic",
