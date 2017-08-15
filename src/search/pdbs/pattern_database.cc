@@ -1,5 +1,5 @@
 #include "pattern_database.h"
-#include "match_tree.h"
+#include "match_tree2.h"
 
 #include "../globals.h"
 #include "../global_operator.h"
@@ -158,7 +158,7 @@ void PatternDatabase::multiply_out(
 }
 
 void PatternDatabase::build_abstract_operators(
-    const Operator &op, int cost,
+    const GlobalOperator &op, int cost,
     const std::vector<int> &variable_to_index,
     vector<AbstractOperator> &operators)
 {
@@ -171,21 +171,37 @@ void PatternDatabase::build_abstract_operators(
     // All variable value pairs that are a precondition (value = -1)
     vector<pair<int, int>> effects_without_pre;
 
-    for (const auto &pre : op.get_prevail()) {
-        int pattern_var_id = variable_to_index[pre.var];
+    vector<int> is_precond(g_variable_domain.size(), -1);
+    vector<bool> is_eff(g_variable_domain.size(), false);
+
+    for (const auto &pre : op.get_preconditions()) {
+    		int var = pre.var;
+    		is_precond[var] = pre.val;
+    }
+    for (const auto &eff : op.get_effects()) {
+    		int var = eff.var;
+    		is_eff[var] = true;
+    }
+
+    for (const auto &pre : op.get_preconditions()) {
+    		int var = pre.var;
+        int pattern_var_id = variable_to_index[var];
         if (pattern_var_id != -1) {
-            prev_pairs.push_back(make_pair(pattern_var_id, pre.prev));
+        		if(!is_eff[var]) {
+        			prev_pairs.push_back(make_pair(pattern_var_id, pre.val));
+        		}
         }
     }
 
-    for (const auto &eff : op.get_pre_post()) {
-        int pattern_var_id = variable_to_index[eff.var];
+    for (const auto &eff : op.get_effects()) {
+    		int var = eff.var;
+        int pattern_var_id = variable_to_index[var];
         if (pattern_var_id != -1) {
-            if (eff.pre != -1) {
-                pre_pairs.push_back(make_pair(pattern_var_id, eff.pre));
-                eff_pairs.push_back(make_pair(pattern_var_id, eff.post));
+            if (is_precond[var] != -1) {
+                pre_pairs.push_back(make_pair(pattern_var_id, is_precond[var]));
+                eff_pairs.push_back(make_pair(pattern_var_id, eff.val));
             } else {
-                effects_without_pre.push_back(make_pair(pattern_var_id, eff.post));
+                effects_without_pre.push_back(make_pair(pattern_var_id, eff.val));
             }
         }
     }
@@ -204,18 +220,18 @@ void PatternDatabase::create_pdb(const std::vector<int> &operator_costs,
 
     // compute all abstract operators
     vector<AbstractOperator> operators;
-    for (const Operator &op : g_operators) {
+    for (const GlobalOperator &op : g_operators) {
         int op_cost;
         if (operator_costs.empty()) {
             op_cost = op.get_cost();
         } else {
-            op_cost = operator_costs[op.get_id()];
+            op_cost = operator_costs[op.get_op_id()];
         }
         build_abstract_operators(op, op_cost, variable_to_index, operators);
     }
 
     // build regression match tree
-    MatchTree regression_match_tree(pattern, hash_multipliers);
+    MatchTree2 regression_match_tree(pattern, hash_multipliers);
     for (const AbstractOperator &op : operators) {
         regression_match_tree.insert(op, op.get_regression_preconditions());
     }
@@ -317,9 +333,9 @@ double PatternDatabase::compute_mean_finite_h() const
     }
 }
 
-bool PatternDatabase::is_operator_relevant(const Operator &op) const
+bool PatternDatabase::is_operator_relevant(const GlobalOperator &op) const
 {
-    for (const auto &effect : op.get_pre_post()) {
+    for (const auto &effect : op.get_effects()) {
         if (binary_search(pattern.begin(), pattern.end(), effect.var)) {
             return true;
         }
@@ -355,7 +371,7 @@ void PatternDatabase::compute_reachable_states(const vector<AbstractOperator>
         &operators)
 {
     // build progression match tree
-    MatchTree progression_match_tree(pattern, hash_multipliers);
+    MatchTree2 progression_match_tree(pattern, hash_multipliers);
     for (const AbstractOperator &op : operators) {
         progression_match_tree.insert(op, op.get_progression_preconditions());
     }

@@ -178,8 +178,11 @@ HEADERS += second_order_search/open_list.h \
 		   second_order_search/best_first_search.h \
 		   second_order_search/depth_first_search.h \
 
-HEADERS += pdbs/dead_end_pdb_heuristic.h \
-	   pdbs/match_tree.h \
+HEADERS += utils/countdown_timer.h \
+	   utils/timer.h \
+	   utils/math.h \
+	   pdbs/dead_end_pdb_heuristic.h \
+	   pdbs/match_tree2.h \
 	   pdbs/pattern_collection_generator_ordered_systematic.h \
 	   pdbs/pattern_collection_generator_systematic.h \
 	   pdbs/pattern_collection_information.h \

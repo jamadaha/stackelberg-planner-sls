@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-class Operator;
+class GlobalOperator;
 class GlobalState;
 
 namespace pdbs
@@ -133,7 +133,7 @@ class PatternDatabase
       variables in the task to their index in the pattern or -1.
     */
     void build_abstract_operators(
-        const Operator &op, int cost,
+        const GlobalOperator &op, int cost,
         const std::vector<int> &variable_to_index,
         std::vector<AbstractOperator> &operators);
 
@@ -219,7 +219,7 @@ public:
     double compute_mean_finite_h() const;
 
     // Returns true iff op has an effect on a variable in the pattern.
-    bool is_operator_relevant(const Operator &op) const;
+    bool is_operator_relevant(const GlobalOperator &op) const;
 
     std::vector<std::vector<std::pair<int, int> >> get_dead_ends() const;
 };
