@@ -21,21 +21,6 @@
 
 using namespace std;
 
-namespace std
-{
-template<typename T>
-ostream &operator<<(ostream &out, const std::vector<T> &x)
-{
-    out << "[";
-    for (unsigned i = 0; i < x.size(); i++) {
-        out << (i > 0 ? ", " : "")
-            << x[i];
-    }
-    out << "]";
-    return out;
-}
-}
-
 namespace pdbs
 {
 AbstractOperator::AbstractOperator(const vector<pair<int, int>> &prev_pairs,
