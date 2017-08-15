@@ -63,6 +63,8 @@ void PatternCollectionGeneratorOrderedSystematic::add_options_to_parser(
 
 static PatternCollectionGenerator *_parse(OptionParser &parser)
 {
+	PatternCollectionGeneratorOrderedSystematic::add_options_to_parser(parser);
+
     Options opts = parser.parse();
     if (parser.dry_run()) {
         return nullptr;
