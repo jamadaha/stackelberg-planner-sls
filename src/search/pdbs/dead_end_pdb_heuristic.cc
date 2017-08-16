@@ -237,7 +237,7 @@ static Heuristic *_parse(OptionParser &parser)
     parser.add_option<double>(
         "max_time",
         "",
-        "900");
+        "60");
 
     Heuristic::add_options_to_parser(parser);
     Options opts = parser.parse();
