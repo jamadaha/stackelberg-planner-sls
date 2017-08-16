@@ -204,7 +204,7 @@ bool PDBDeadEndDetectionHeuristic::add_pattern_dead_ends(
             dead_end_collection.add(dead);
         }
     }
-    bool memory_exhausted = ((int) max_dead_ends <= dead_end_collection.size());
+    bool memory_exhausted = (max_dead_ends <= (size_t) dead_end_collection.size());
     bool initial_state_recognized = pdb.get_value(initial_state) ==
                                     numeric_limits<int>::max();
     if (initial_state_recognized) {
