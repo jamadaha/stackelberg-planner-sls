@@ -3,6 +3,7 @@ import sys
 import random
 import argparse
 import os
+from shutil import copyfile
 
 def modify_problem_file(problem_file_name, new_problem_file_name):
     problem_file = open(problem_file_name, "r")
@@ -22,7 +23,7 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     for i, loc1 in enumerate(locations):
         for loc2 in locations[i + 1:]:
             city1 = loc1[0:loc1.find('-')]
-            city2 = loc2[0:loc1.find('-')]
+            city2 = loc2[0:loc2.find('-')]
             if city1 == city2:
                 connections.append((loc1, loc2))
 
@@ -71,7 +72,9 @@ os.makedirs(new_dir)
 for file in files_in_dir:
     if file.find("domain") == -1:
         modify_problem_file(os.path.join(dir, file), os.path.join(new_dir, file))
-        break
+    else:
+        copyfile(os.path.join(dir, file), os.path.join(new_dir, file))
+
 
 
 
