@@ -5,6 +5,10 @@ import argparse
 import os
 from shutil import copyfile
 
+
+domain_location_regex_dic = {"logistics-strips": "city\d+-\d+"}
+
+
 def parse_domain_specific_connections(domain_name, locations, connections, content):
     if domain_name == "logistics-strips":
         for i, loc1 in enumerate(locations):
@@ -28,7 +32,7 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     objects = re.search(objects_regex, content).group()
     print objects
 
-    locations = re.findall(location_regex, objects)
+    locations = re.findall(domain_location_regex_dic[domain_name], objects)
     locations.sort()
     print locations
 
@@ -72,7 +76,6 @@ random.seed(random_seed)
 con_percent = int(args.con_percent)
 
 objects_regex = "\(:objects [^)]*\)"
-location_regex = "city\d+-\d+"
 
 print dir
 new_dir = dir + "-rs" + str(random_seed) + "-pc" + str(con_percent)
