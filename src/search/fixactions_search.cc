@@ -299,6 +299,15 @@ void FixActionsSearch::clean_attack_actions()
             }
         }
 
+        /* FIXME Because of REMOVED DIVIDING VARIABLES, we added this: */
+        attack_operators_with_all_preconds.push_back(op);
+        vector<GlobalCondition> &conditions2 = attack_operators_with_all_preconds[op_no].get_preconditions();
+        vector<GlobalEffect> &effects = attack_operators_with_all_preconds[op_no].get_effects();
+        // Sort the conditions and effects by their respective var id
+        sort(conditions2.begin(), conditions2.end(), cond_comp_func);
+        sort(effects.begin(), effects.end(), eff_comp_func);
+
+
         GlobalOperator op_with_attack_preconds(op.is_axiom(), attack_preconditions,
                                                op.get_effects(), op.get_name(),
                                                op.get_cost(), op.get_cost2(), op.get_op_id(), g_variable_name,
@@ -311,14 +320,7 @@ void FixActionsSearch::clean_attack_actions()
                                             g_variable_name);
         attack_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
 
-        /* FIXME Because of REMOVED DIVIDING VARIABLES, we added this: */
-        attack_operators_with_all_preconds.push_back(op);
-        vector<GlobalCondition> &conditions2 = attack_operators_with_all_preconds[op_no].get_preconditions();
-        vector<GlobalEffect> &effects = attack_operators_with_all_preconds[op_no].get_effects();
 
-        // Sort the conditions and effects by their respective var id
-        sort(conditions2.begin(), conditions2.end(), cond_comp_func);
-        sort(effects.begin(), effects.end(), eff_comp_func);
     }
 }
 
