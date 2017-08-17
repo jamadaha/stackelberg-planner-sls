@@ -5,10 +5,25 @@ import argparse
 import os
 from shutil import copyfile
 
+def parse_domain_specific_connections(domain_name, locations, connections, content):
+    if domain_name == "logistics-strips":
+        for i, loc1 in enumerate(locations):
+            for loc2 in locations[i + 1:]:
+                city1 = loc1[0:loc1.find('-')]
+                city2 = loc2[0:loc2.find('-')]
+                if city1 == city2:
+                    connections.append((loc1, loc2))
+
+
 def modify_problem_file(problem_file_name, new_problem_file_name):
     problem_file = open(problem_file_name, "r")
     content = problem_file.read()
     problem_file.close()
+
+    # Assuming here that there is exactly this line in the domain file:
+    # (:domain domain_name)
+    domain_name = re.search(":domain .*\)", content).group()[8:-1]
+    print domain_name
 
     objects = re.search(objects_regex, content).group()
     print objects
@@ -20,13 +35,7 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     # connections is a list of tuples of locations, where a tuple (a,b) represents that there is a road between a and b in both directions.
     # The locations are sorted, s.t. there is never tuple (b,a) iff a < b
     connections = []
-    for i, loc1 in enumerate(locations):
-        for loc2 in locations[i + 1:]:
-            city1 = loc1[0:loc1.find('-')]
-            city2 = loc2[0:loc2.find('-')]
-            if city1 == city2:
-                connections.append((loc1, loc2))
-
+    parse_domain_specific_connections(domain_name, locations, connections, content)
     print connections
 
     number_of_connections = (len(connections) * con_percent) / 100
