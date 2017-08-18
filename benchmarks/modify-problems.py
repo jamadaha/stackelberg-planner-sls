@@ -9,13 +9,15 @@ from shutil import copyfile
 domain_location_regex_dic = {"logistics-strips": "city\d+-\d+",
                              "Rover": "waypoint\d+",
                              "TPP-Propositional": "market\d+|depot\d+",
-                             "transport": "city-?\d*-loc-\d+"}
+                             "transport": "city-?\d*-loc-\d+",
+                             "grid-visit-all": "loc-x\d+-y\d+"}
 connection_predicate_regex = {"no-mystery-strips": "connected",
                               "TPP-Propositional": "connected",
-                              "transport": "road"}
+                              "transport": "road",
+                              "grid-visit-all": "connected"}
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport":
+    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -32,7 +34,7 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                 city2 = loc2[0:loc2.find('-')]
                 if city1 == city2:
                     connections.append((loc1, loc2))
-    elif domain_name == "no-mystery-strips" or domain_name == "TPP-Propositional" or domain_name == "transport":
+    elif domain_name == "no-mystery-strips" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all":
         for i, loc1 in enumerate(locations):
             for loc2 in locations[i + 1:]:
                 if content.find("(" + connection_predicate_regex[domain_name] + " " + loc1 + " " + loc2 + ")") != -1 :
