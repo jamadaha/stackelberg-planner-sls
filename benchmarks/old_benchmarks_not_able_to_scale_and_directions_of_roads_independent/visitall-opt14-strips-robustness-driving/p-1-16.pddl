@@ -1223,6 +1223,7 @@
  	(connected loc-x15-y14 loc-x15-y15)
  	(connected loc-x15-y15 loc-x14-y15)
  	(connected loc-x15-y15 loc-x15-y14)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

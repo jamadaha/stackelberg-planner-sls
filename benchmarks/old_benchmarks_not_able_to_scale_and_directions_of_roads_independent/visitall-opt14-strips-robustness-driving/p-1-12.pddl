@@ -679,6 +679,7 @@
  	(connected loc-x11-y10 loc-x11-y11)
  	(connected loc-x11-y11 loc-x10-y11)
  	(connected loc-x11-y11 loc-x11-y10)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

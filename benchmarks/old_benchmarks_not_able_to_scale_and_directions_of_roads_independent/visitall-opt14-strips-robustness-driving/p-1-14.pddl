@@ -931,6 +931,7 @@
  	(connected loc-x13-y12 loc-x13-y13)
  	(connected loc-x13-y13 loc-x12-y13)
  	(connected loc-x13-y13 loc-x13-y12)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

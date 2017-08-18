@@ -800,6 +800,7 @@
  	(connected loc-x12-y11 loc-x12-y12)
  	(connected loc-x12-y12 loc-x11-y12)
  	(connected loc-x12-y12 loc-x12-y11)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

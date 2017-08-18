@@ -1555,6 +1555,7 @@
  	(connected loc-x17-y16 loc-x17-y17)
  	(connected loc-x17-y17 loc-x16-y17)
  	(connected loc-x17-y17 loc-x17-y16)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

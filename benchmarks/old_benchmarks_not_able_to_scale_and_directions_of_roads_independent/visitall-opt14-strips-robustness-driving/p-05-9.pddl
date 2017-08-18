@@ -376,6 +376,7 @@
  	(connected loc-x8-y7 loc-x8-y8)
  	(connected loc-x8-y8 loc-x7-y8)
  	(connected loc-x8-y8 loc-x8-y7)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal
