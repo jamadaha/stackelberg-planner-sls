@@ -8,6 +8,10 @@ from shutil import copyfile
 
 domain_location_regex_dic = {"logistics-strips": "city\d+-\d+"}
 
+def parse_domain_specific_locations(domain_name, locations, objects, content):
+    if domain_name == "logistics-strips":
+        for x in re.findall(domain_location_regex_dic[domain_name], objects):
+            locations.append(x)
 
 def parse_domain_specific_connections(domain_name, locations, connections, content):
     if domain_name == "logistics-strips":
@@ -32,8 +36,10 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     objects = re.search(objects_regex, content).group()
     print objects
 
-    locations = re.findall(domain_location_regex_dic[domain_name], objects)
+    locations = []
+    parse_domain_specific_locations(domain_name, locations, objects, content)
     locations.sort()
+    print "locations:"
     print locations
 
     # connections is a list of tuples of locations, where a tuple (a,b) represents that there is a road between a and b in both directions.
@@ -84,7 +90,8 @@ objects_regex = "\(:objects [^)]*\)"
 
 print dir
 new_dir = dir + "-rs" + str(random_seed) + ("-tc" + str(con_total) if con_total is not None else "-pc" + str(con_percent))
-os.makedirs(new_dir)
+if not os.path.exists(new_dir):
+    os.makedirs(new_dir)
 
 for file in files_in_dir:
     if file.find("domain") == -1:
