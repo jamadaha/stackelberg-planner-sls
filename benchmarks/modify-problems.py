@@ -12,6 +12,11 @@ def parse_domain_specific_locations(domain_name, locations, objects, content):
     if domain_name == "logistics-strips":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
+    elif domain_name == "no-mystery-strips":
+        for loc in objects.split():
+            loc.replace(")", "")
+            if content.find("(location " + loc + ")") != -1 :
+                locations.append(loc)
 
 def parse_domain_specific_connections(domain_name, locations, connections, content):
     if domain_name == "logistics-strips":
@@ -21,6 +26,15 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                 city2 = loc2[0:loc2.find('-')]
                 if city1 == city2:
                     connections.append((loc1, loc2))
+    elif domain_name == "no-mystery-strips":
+        for i, loc1 in enumerate(locations):
+            for loc2 in locations[i + 1:]:
+                if content.find("(connected " + loc1 + " " + loc2 + ")") != -1 :
+                    if content.find("(connected " + loc2 + " " + loc1 + ")") != -1:
+                        connections.append((loc1, loc2))
+                    else:
+                        print "We assumed here that all roads in no-mystery are bi-directional which seems not to be the case... Abort!"
+                        exit()
 
 
 def modify_problem_file(problem_file_name, new_problem_file_name):
