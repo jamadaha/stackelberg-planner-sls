@@ -6,10 +6,11 @@ import os
 from shutil import copyfile
 
 
-domain_location_regex_dic = {"logistics-strips": "city\d+-\d+"}
+domain_location_regex_dic = {"logistics-strips": "city\d+-\d+",
+                             "Rover": "waypoint\d+"}
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics-strips":
+    if domain_name == "logistics-strips" or domain_name == "Rover":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -33,11 +34,22 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                     if content.find("(connected " + loc2 + " " + loc1 + ")") != -1:
                         connections.append((loc1, loc2))
                     else:
-                        print "We assumed here that all roads in no-mystery are bi-directional which seems not to be the case... Abort!"
+                        print "We assumed here that all roads in no-mystery are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!"
+                        exit()
+    elif domain_name == "Rover":
+        for i, loc1 in enumerate(locations):
+            for loc2 in locations[i + 1:]:
+                if re.search("\(can_traverse rover\d+ " + loc1 + " " + loc2 + "\)", content) is not None:
+                    if re.search("\(can_traverse rover\d+ " + loc2 + " " + loc1 + "\)", content) is not None:
+                        connections.append((loc1, loc2))
+                    else:
+                        print "We assumed here that all roads in Rovers are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!"
                         exit()
 
 
 def modify_problem_file(problem_file_name, new_problem_file_name):
+    print problem_file_name
+
     problem_file = open(problem_file_name, "r")
     content = problem_file.read()
     problem_file.close()
@@ -76,8 +88,8 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
         predicates_to_insert += "\n" + predicate.format(con[0], con[1])
     print predicates_to_insert
 
-    i = content.find("))")
-    new_content = content[0:i + 1] + predicates_to_insert + content[i + 1:]
+    i = content.find("(:init")
+    new_content = content[0:i + 6] + predicates_to_insert + content[i + 6:]
     new_problem_file = open(new_problem_file_name, "w")
     new_problem_file.write(new_content)
     new_problem_file.close()
@@ -100,7 +112,7 @@ random.seed(random_seed)
 con_percent = int(args.con_percent)
 con_total = None if args.con_total is None else int(args.con_total)
 
-objects_regex = "\(:objects [^)]*\)"
+objects_regex = "\(:objects[^)]*\)"
 
 print dir
 new_dir = dir + "-rs" + str(random_seed) + ("-tc" + str(con_total) if con_total is not None else "-pc" + str(con_percent))
