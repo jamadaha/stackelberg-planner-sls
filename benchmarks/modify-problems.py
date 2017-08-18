@@ -42,7 +42,10 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     parse_domain_specific_connections(domain_name, locations, connections, content)
     print connections
 
-    number_of_connections = (len(connections) * con_percent) / 100
+    if con_total is not None:
+        number_of_connections = min(con_total, len(connections))
+    else:
+        number_of_connections = (len(connections) * con_percent) / 100
 
     connections_subset = [connections[i] for i in sorted(random.sample(xrange(len(connections)), number_of_connections))]
     print connections_subset
@@ -64,6 +67,7 @@ p = argparse.ArgumentParser(description="")
 p.add_argument("--dir", type=str, help="The director in which the problem files should be modified", default=None)
 p.add_argument("--seed", type=int, help="Seed for random generator", default=42)
 p.add_argument("--con-percent", type=int, help="Percentage of connections which should be included", default=100)
+p.add_argument("--con-total", type=int, help="total number of connections which should be included", default=None)
 args = p.parse_args(sys.argv[1:])
 
 dir = str(args.dir)
@@ -74,11 +78,12 @@ random_seed = int(args.seed)
 random.seed(random_seed)
 
 con_percent = int(args.con_percent)
+con_total = None if args.con_total is None else int(args.con_total)
 
 objects_regex = "\(:objects [^)]*\)"
 
 print dir
-new_dir = dir + "-rs" + str(random_seed) + "-pc" + str(con_percent)
+new_dir = dir + "-rs" + str(random_seed) + ("-tc" + str(con_total) if con_total is not None else "-pc" + str(con_percent))
 os.makedirs(new_dir)
 
 for file in files_in_dir:
