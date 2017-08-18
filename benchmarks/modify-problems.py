@@ -16,6 +16,8 @@ connection_predicate_regex = {"no-mystery-strips": "connected",
                               "transport": "road",
                               "grid-visit-all": "connected"}
 
+makes_sense_to_increase_number_of_connections = False
+
 def parse_domain_specific_locations(domain_name, locations, objects, content):
     if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
@@ -55,6 +57,7 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
 
 
 def modify_problem_file(problem_file_name, new_problem_file_name):
+    global makes_sense_to_increase_number_of_connections
     print problem_file_name
 
     problem_file = open(problem_file_name, "r")
@@ -83,6 +86,11 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
 
     if con_total is not None:
         number_of_connections = min(con_total, len(connections))
+        if number_of_connections < len(connections):
+            makes_sense_to_increase_number_of_connections = True
+        else:
+            if len(connections) <= at_least_con:
+                return
     else:
         number_of_connections = (len(connections) * con_percent) / 100
 
@@ -107,6 +115,7 @@ p.add_argument("--dir", type=str, help="The director in which the problem files 
 p.add_argument("--seed", type=int, help="Seed for random generator", default=42)
 p.add_argument("--con-percent", type=int, help="Percentage of connections which should be included", default=100)
 p.add_argument("--con-total", type=int, help="total number of connections which should be included", default=None)
+p.add_argument("--at-least-con", type=int, help="Only generate new problems if there are actually more connections then given here ", default=0)
 args = p.parse_args(sys.argv[1:])
 
 dir = str(args.dir)
@@ -118,6 +127,7 @@ random.seed(random_seed)
 
 con_percent = int(args.con_percent)
 con_total = None if args.con_total is None else int(args.con_total)
+at_least_con = int(args.at_least_con)
 
 objects_regex = "\(:objects[^)]*\)"
 
@@ -132,6 +142,8 @@ for file in files_in_dir:
     else:
         copyfile(os.path.join(dir, file), os.path.join(new_dir, file))
 
+if makes_sense_to_increase_number_of_connections is False:
+    print "Increasing total number of connections makes no sense for this domain!"
 
 
 
