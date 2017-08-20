@@ -74,12 +74,12 @@
              city11-17 city10-17 city9-17 city8-17 city7-17 city6-17
              city5-17 city4-17 city3-17 city2-17 city1-17)
    (:init
-(allowed_to_remove city10-12 city10-8)
-(allowed_to_remove city13-14 city13-7)
-(allowed_to_remove city13-17 city13-5)
-(allowed_to_remove city3-12 city3-3)
-(allowed_to_remove city7-10 city7-5)
-(allowed_to_remove city8-1 city8-8) (obj package42)
+(allowed_to_remove city1-13 city1-8)
+(allowed_to_remove city13-13 city13-3)
+(allowed_to_remove city14-13 city14-8)
+(allowed_to_remove city20-17 city20-9)
+(allowed_to_remove city3-14 city3-17)
+(allowed_to_remove city4-16 city4-9) (obj package42)
           (obj package41)
           (obj package40)
           (obj package39)

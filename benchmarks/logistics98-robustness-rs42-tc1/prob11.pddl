@@ -8,7 +8,7 @@
              plane1 city3-2 city3-1 city2-2 city2-1 city1-2 city1-1
              city3-3 city2-3 city1-3)
    (:init
-(allowed_to_remove city1-1 city1-3) (obj package8)
+(allowed_to_remove city2-2 city2-3) (obj package8)
           (obj package7)
           (obj package6)
           (obj package5)

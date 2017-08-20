@@ -261,10 +261,10 @@
         
 )
 (:init
-(allowed_to_remove loc-x10-y6 loc-x9-y6)
-(allowed_to_remove loc-x13-y10 loc-x13-y11)
-(allowed_to_remove loc-x13-y10 loc-x14-y10)
-(allowed_to_remove loc-x3-y7 loc-x3-y8)
+(allowed_to_remove loc-x0-y13 loc-x1-y13)
+(allowed_to_remove loc-x10-y9 loc-x11-y9)
+(allowed_to_remove loc-x11-y5 loc-x12-y5)
+(allowed_to_remove loc-x3-y7 loc-x4-y7)
 	(at-robot loc-x8-y8)
 	(visited loc-x8-y8)
 	(connected loc-x0-y0 loc-x1-y0)

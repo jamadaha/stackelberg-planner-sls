@@ -7,7 +7,7 @@
       grobe-bratwurst fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 capacity-0
       capacity-1 truck-fix)
   (:init
-(allowed_to_remove brombach waldkirch)
+(allowed_to_remove lauchringen loerrach)
     (at broiler sexau)
     (at fahrrad auggen)
     (at fernseher loerrach)

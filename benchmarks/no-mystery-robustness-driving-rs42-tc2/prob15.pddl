@@ -12,8 +12,8 @@
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 fuel-9 fuel-10
       capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove emmendingen hugstetten)
-(allowed_to_remove guendlingen weil)
+(allowed_to_remove auggen bad-bellingen)
+(allowed_to_remove freiburg schallstadt)
     (at betonmischer weil)
     (at bollerwagen kleinkems)
     (at daemonenrikscha schopfheim)

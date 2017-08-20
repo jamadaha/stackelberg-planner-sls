@@ -10,10 +10,10 @@
 	objective0 objective1 - Objective
 	)
 (:init
+(allowed_to_remove waypoint0 waypoint1)
 (allowed_to_remove waypoint0 waypoint2)
 (allowed_to_remove waypoint0 waypoint3)
-(allowed_to_remove waypoint0 waypoint4)
-(allowed_to_remove waypoint2 waypoint5)
+(allowed_to_remove waypoint2 waypoint3)
 	(visible waypoint0 waypoint3)
 	(visible waypoint3 waypoint0)
 	(visible waypoint0 waypoint5)

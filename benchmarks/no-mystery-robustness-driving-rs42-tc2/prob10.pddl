@@ -19,7 +19,7 @@
       capacity-3 truck-fix)
   (:init
 (allowed_to_remove bad-bellingen emmendingen)
-(allowed_to_remove kleinkems wollbach)
+(allowed_to_remove guendlingen koendringen)
     (at apfel bad-bellingen)
     (at aschenbecher endingen)
     (at betonmischer wittlingen)

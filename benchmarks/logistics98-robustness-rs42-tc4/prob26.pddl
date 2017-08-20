@@ -41,10 +41,10 @@
              city9-2 city8-2 city7-2 city6-2 city5-2 city4-2 city3-2
              city2-2 city1-2)
    (:init
+(allowed_to_remove city10-1 city10-2)
+(allowed_to_remove city19-1 city19-2)
 (allowed_to_remove city20-1 city20-2)
-(allowed_to_remove city32-1 city32-2)
-(allowed_to_remove city39-1 city39-2)
-(allowed_to_remove city4-1 city4-2) (obj package33)
+(allowed_to_remove city37-1 city37-2) (obj package33)
           (obj package32)
           (obj package31)
           (obj package30)

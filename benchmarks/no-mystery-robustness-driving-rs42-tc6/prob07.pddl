@@ -11,11 +11,11 @@
       fuel-2 fuel-3 capacity-0 capacity-1 truck-fix)
   (:init
 (allowed_to_remove breisach schopfheim)
+(allowed_to_remove brombach endingen)
+(allowed_to_remove brombach weil)
 (allowed_to_remove denzlingen freiburg)
 (allowed_to_remove denzlingen schopfheim)
 (allowed_to_remove freiburg schopfheim)
-(allowed_to_remove inzlingen schopfheim)
-(allowed_to_remove inzlingen weil)
     (at apfel freiburg)
     (at broiler schopfheim)
     (at donnerkiesel schopfheim)

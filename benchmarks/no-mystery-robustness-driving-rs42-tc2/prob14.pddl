@@ -18,8 +18,8 @@
       doener-mit-scharf fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5
       capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove auggen gottenheim)
-(allowed_to_remove merdingen schopfheim)
+(allowed_to_remove auggen boetzingen)
+(allowed_to_remove kleinkems koendringen)
     (at ICE koendringen)
     (at auto inzlingen)
     (at bananenkiste boetzingen)

@@ -6,8 +6,8 @@
       feine-bratwurst leipziger-allerlei saumagen fuel-0 fuel-1 fuel-2
       fuel-3 fuel-4 fuel-5 fuel-6 capacity-0 capacity-1 capacity-2 truck-fix)
   (:init
-(allowed_to_remove freiburg kleinkems)
-(allowed_to_remove gottenheim hugstetten)
+(allowed_to_remove freiburg guendlingen)
+(allowed_to_remove hugstetten tumringen)
     (at ICE tumringen)
     (at elfenrad waldhaus)
     (at feine-bratwurst kleinkems)

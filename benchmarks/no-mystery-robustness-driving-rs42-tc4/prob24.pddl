@@ -15,10 +15,10 @@
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 fuel-9
       capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove bahlingen haltingen)
-(allowed_to_remove emmendingen guendlingen)
-(allowed_to_remove endingen koendringen)
-(allowed_to_remove merdingen waldhaus)
+(allowed_to_remove bahlingen endingen)
+(allowed_to_remove breisach endingen)
+(allowed_to_remove brombach haltingen)
+(allowed_to_remove kandern merdingen)
     (at ICE kandern)
     (at bananenkiste sexau)
     (at broiler bahlingen)

@@ -16,7 +16,7 @@
 (allowed_to_remove bad-bellingen riedlingen)
 (allowed_to_remove brombach wollbach)
 (allowed_to_remove denzlingen guendlingen)
-(allowed_to_remove lauchringen riedlingen)
+(allowed_to_remove hugstetten kandern)
     (at aschenbecher wollbach)
     (at auto gottenheim)
     (at bananenkiste freiburg)

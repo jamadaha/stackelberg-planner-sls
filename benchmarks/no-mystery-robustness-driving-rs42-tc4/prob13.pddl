@@ -18,9 +18,9 @@
       apfel aschenbecher kiste-bier halber-hirsch fuel-0 fuel-1 fuel-2
       fuel-3 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
+(allowed_to_remove bahlingen gottenheim)
 (allowed_to_remove brombach riedlingen)
 (allowed_to_remove denzlingen schallstadt)
-(allowed_to_remove emmendingen gottenheim)
 (allowed_to_remove hugstetten sexau)
     (at apfel denzlingen)
     (at aschenbecher denzlingen)

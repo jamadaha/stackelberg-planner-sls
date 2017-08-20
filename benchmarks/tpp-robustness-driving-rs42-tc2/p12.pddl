@@ -9,7 +9,7 @@
 	level0 level1 level2 level3 - level)
 
 (:init
-(allowed_to_remove depot2 market2)
+(allowed_to_remove depot1 market2)
 (allowed_to_remove market1 market3)
 	(next level1 level0)
 	(next level2 level1)

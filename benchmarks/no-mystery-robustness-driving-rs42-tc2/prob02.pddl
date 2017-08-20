@@ -10,8 +10,8 @@
       taschenrechner halbgefrorenes zuckerstange fuel-0 fuel-1 fuel-2
       fuel-3 fuel-4 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove denzlingen guendlingen)
-(allowed_to_remove merdingen sexau)
+(allowed_to_remove bahlingen haltingen)
+(allowed_to_remove guendlingen loerrach)
     (at aschenbecher bahlingen)
     (at faschiertes guendlingen)
     (at feinkost-bratling guendlingen)

@@ -18,12 +18,12 @@
       apfel aschenbecher kiste-bier halber-hirsch fuel-0 fuel-1 fuel-2
       fuel-3 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove denzlingen weil)
-(allowed_to_remove emmendingen freiburg)
-(allowed_to_remove emmendingen gottenheim)
+(allowed_to_remove bahlingen gottenheim)
+(allowed_to_remove brombach lauchringen)
+(allowed_to_remove denzlingen schallstadt)
+(allowed_to_remove guendlingen haltingen)
 (allowed_to_remove hugstetten sexau)
-(allowed_to_remove lauchringen schopfheim)
-(allowed_to_remove muellheim schallstadt)
+(allowed_to_remove weil wollbach)
     (at apfel denzlingen)
     (at aschenbecher denzlingen)
     (at bananenkiste haltingen)

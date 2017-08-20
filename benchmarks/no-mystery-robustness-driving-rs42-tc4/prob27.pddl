@@ -9,9 +9,9 @@
       capacity-3 truck-fix)
   (:init
 (allowed_to_remove auggen breisach)
-(allowed_to_remove auggen hugstetten)
-(allowed_to_remove bahlingen breisach)
+(allowed_to_remove auggen guendlingen)
 (allowed_to_remove breisach brombach)
+(allowed_to_remove breisach hugstetten)
     (at bananenkiste guendlingen)
     (at fernseher guendlingen)
     (at feuerwehr brombach)

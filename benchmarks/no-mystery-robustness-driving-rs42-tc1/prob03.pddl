@@ -8,7 +8,7 @@
       eisbein wensleydale fuel-0 fuel-1 fuel-2 fuel-3 fuel-4
       capacity-0 capacity-1 capacity-2 truck-fix)
   (:init
-(allowed_to_remove denzlingen schopfheim)
+(allowed_to_remove gottenheim kandern)
     (at eisbein schopfheim)
     (at feuerwehr lauchringen)
     (at gimp denzlingen)

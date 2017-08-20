@@ -10,7 +10,7 @@
       seitenbacher-muesli broiler eisbein kaesebaellchen fuel-0 fuel-1
       fuel-2 fuel-3 capacity-0 capacity-1 truck-fix)
   (:init
-(allowed_to_remove tumringen weil)
+(allowed_to_remove freiburg schopfheim)
     (at apfel freiburg)
     (at broiler schopfheim)
     (at donnerkiesel schopfheim)

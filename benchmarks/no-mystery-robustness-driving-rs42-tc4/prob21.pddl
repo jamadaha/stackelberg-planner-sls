@@ -14,10 +14,10 @@
       zehn-nackte-friseusen fussball fuel-0 fuel-1 fuel-2 capacity-0
       capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
+(allowed_to_remove auggen endingen)
+(allowed_to_remove bahlingen gottenheim)
 (allowed_to_remove bahlingen guendlingen)
-(allowed_to_remove bahlingen inzlingen)
-(allowed_to_remove brombach waldkirch)
-(allowed_to_remove inzlingen koendringen)
+(allowed_to_remove endingen inzlingen)
     (at apfel koendringen)
     (at aschenbecher waldkirch)
     (at auto bahlingen)

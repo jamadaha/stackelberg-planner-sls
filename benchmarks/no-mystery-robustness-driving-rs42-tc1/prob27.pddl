@@ -8,7 +8,7 @@
       fuel-10 fuel-11 fuel-12 capacity-0 capacity-1 capacity-2
       capacity-3 truck-fix)
   (:init
-(allowed_to_remove auggen breisach)
+(allowed_to_remove breisach brombach)
     (at bananenkiste guendlingen)
     (at fernseher guendlingen)
     (at feuerwehr brombach)

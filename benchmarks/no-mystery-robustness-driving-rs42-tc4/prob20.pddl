@@ -10,10 +10,10 @@
       fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 fuel-9 fuel-10 fuel-11
       capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
+(allowed_to_remove auggen merdingen)
 (allowed_to_remove brombach guendlingen)
 (allowed_to_remove brombach koendringen)
-(allowed_to_remove freiburg koendringen)
-(allowed_to_remove freiburg wittlingen)
+(allowed_to_remove haltingen hugstetten)
     (at ICE koendringen)
     (at aschenbecher kandern)
     (at auto guendlingen)

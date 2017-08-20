@@ -18,8 +18,8 @@
              city1-1 city11-6 city10-6 city9-6 city8-6 city7-6 city6-6
              city5-6 city4-6 city3-6 city2-6 city1-6)
    (:init
-(allowed_to_remove city11-2 city11-4)
-(allowed_to_remove city5-2 city5-5) (obj package12)
+(allowed_to_remove city1-1 city1-6)
+(allowed_to_remove city6-1 city6-2) (obj package12)
           (obj package11)
           (obj package10)
           (obj package9)

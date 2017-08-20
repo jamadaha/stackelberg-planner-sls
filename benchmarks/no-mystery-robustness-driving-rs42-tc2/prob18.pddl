@@ -11,8 +11,8 @@
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7
       capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove emmendingen wollbach)
-(allowed_to_remove kleinkems koendringen)
+(allowed_to_remove bad-bellingen muellheim)
+(allowed_to_remove gottenheim inzlingen)
     (at bananenkiste muellheim)
     (at daemonenrikscha wollbach)
     (at donnerkiesel wollbach)

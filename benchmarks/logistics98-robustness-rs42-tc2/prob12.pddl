@@ -29,8 +29,8 @@
              city14-4 city13-4 city12-4 city11-4 city10-4 city9-4 city8-4
              city7-4 city6-4 city5-4 city4-4 city3-4 city2-4 city1-4)
    (:init
-(allowed_to_remove city13-1 city13-3)
-(allowed_to_remove city18-1 city18-3) (obj package5)
+(allowed_to_remove city1-2 city1-4)
+(allowed_to_remove city25-1 city25-3) (obj package5)
           (obj package4)
           (obj package3)
           (obj package2)

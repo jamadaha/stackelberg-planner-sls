@@ -7,7 +7,7 @@
       martinsgans neujahrsbrezel fuel-0 fuel-1 fuel-2 fuel-3 fuel-4
       fuel-5 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove gottenheim kandern)
+(allowed_to_remove inzlingen sexau)
     (at ICE wittlingen)
     (at apfel inzlingen)
     (at fussball schopfheim)

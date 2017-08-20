@@ -30,8 +30,8 @@
         
 )
 (:init
-(allowed_to_remove loc-x0-y4 loc-x1-y4)
-(allowed_to_remove loc-x1-y1 loc-x1-y2)
+(allowed_to_remove loc-x0-y0 loc-x1-y0)
+(allowed_to_remove loc-x2-y3 loc-x3-y3)
 	(at-robot loc-x2-y2)
 	(visited loc-x2-y2)
 	(connected loc-x0-y0 loc-x1-y0)

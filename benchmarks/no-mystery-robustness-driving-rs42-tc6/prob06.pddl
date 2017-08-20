@@ -11,12 +11,12 @@
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 capacity-0
       capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove gottenheim haltingen)
-(allowed_to_remove haltingen hugstetten)
-(allowed_to_remove haltingen inzlingen)
-(allowed_to_remove koendringen lauchringen)
-(allowed_to_remove riedlingen weil)
-(allowed_to_remove riedlingen wollbach)
+(allowed_to_remove bad-bellingen denzlingen)
+(allowed_to_remove bahlingen sexau)
+(allowed_to_remove boetzingen weil)
+(allowed_to_remove hugstetten koendringen)
+(allowed_to_remove hugstetten wittlingen)
+(allowed_to_remove inzlingen waldhaus)
     (at ICE boetzingen)
     (at bananenkiste gottenheim)
     (at bollerwagen bad-bellingen)

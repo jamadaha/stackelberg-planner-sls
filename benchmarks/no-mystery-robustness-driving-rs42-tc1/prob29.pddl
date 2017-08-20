@@ -8,7 +8,7 @@
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 fuel-8 capacity-0
       capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove sexau weil)
+(allowed_to_remove schopfheim sexau)
     (at fernseher sexau)
     (at haehnchenbein emmendingen)
     (at kapselheber loerrach)

@@ -9,9 +9,9 @@
              city2-2 city1-2)
    (:init
 (allowed_to_remove city1-1 city1-2)
-(allowed_to_remove city6-1 city6-2)
-(allowed_to_remove city7-1 city7-2)
-(allowed_to_remove city9-1 city9-2) (obj package5)
+(allowed_to_remove city10-1 city10-2)
+(allowed_to_remove city2-1 city2-2)
+(allowed_to_remove city6-1 city6-2) (obj package5)
           (obj package4)
           (obj package3)
           (obj package2)

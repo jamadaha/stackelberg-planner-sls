@@ -10,8 +10,8 @@
   (:init
 (allowed_to_remove breisach kandern)
 (allowed_to_remove denzlingen lauchringen)
-(allowed_to_remove freiburg merdingen)
-(allowed_to_remove riedlingen waldkirch)
+(allowed_to_remove denzlingen schopfheim)
+(allowed_to_remove gottenheim kandern)
     (at eisbein schopfheim)
     (at feuerwehr lauchringen)
     (at gimp denzlingen)

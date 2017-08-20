@@ -7,7 +7,7 @@
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1
       capacity-2 truck-fix)
   (:init
-(allowed_to_remove bad-bellingen weil)
+(allowed_to_remove guendlingen weil)
     (at apfel kandern)
     (at betonmischer wollbach)
     (at donnerkiesel sexau)

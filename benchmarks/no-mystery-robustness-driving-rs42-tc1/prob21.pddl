@@ -14,7 +14,7 @@
       zehn-nackte-friseusen fussball fuel-0 fuel-1 fuel-2 capacity-0
       capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove koendringen wittlingen)
+(allowed_to_remove endingen inzlingen)
     (at apfel koendringen)
     (at aschenbecher waldkirch)
     (at auto bahlingen)

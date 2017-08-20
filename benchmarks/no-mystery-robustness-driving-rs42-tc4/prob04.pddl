@@ -9,8 +9,8 @@
   (:init
 (allowed_to_remove auggen hugstetten)
 (allowed_to_remove brombach schopfheim)
-(allowed_to_remove haltingen sexau)
-(allowed_to_remove haltingen wollbach)
+(allowed_to_remove brombach waldkirch)
+(allowed_to_remove lauchringen loerrach)
     (at broiler sexau)
     (at fahrrad auggen)
     (at fernseher loerrach)

@@ -11,12 +11,12 @@
       kiste-bier neujahrsbrezel radio fuel-0 fuel-1 fuel-2 fuel-3
       fuel-4 fuel-5 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove bad-bellingen tumringen)
-(allowed_to_remove denzlingen tumringen)
+(allowed_to_remove bad-bellingen schallstadt)
+(allowed_to_remove breisach koendringen)
+(allowed_to_remove breisach muellheim)
+(allowed_to_remove freiburg koendringen)
 (allowed_to_remove guendlingen loerrach)
-(allowed_to_remove schallstadt weil)
-(allowed_to_remove tumringen waldhaus)
-(allowed_to_remove waldkirch weil)
+(allowed_to_remove haltingen kleinkems)
     (at bollerwagen koendringen)
     (at faschiertes muellheim)
     (at feinkost-bratling denzlingen)

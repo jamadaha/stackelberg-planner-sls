@@ -174,8 +174,8 @@
         
 )
 (:init
-(allowed_to_remove loc-x0-y1 loc-x0-y2)
-(allowed_to_remove loc-x7-y1 loc-x7-y2)
+(allowed_to_remove loc-x0-y11 loc-x0-y12)
+(allowed_to_remove loc-x4-y9 loc-x5-y9)
 	(at-robot loc-x6-y6)
 	(visited loc-x6-y6)
 	(connected loc-x0-y0 loc-x1-y0)

@@ -36,7 +36,7 @@
   capacity-4 - capacity-number
  )
  (:init
-(allowed_to_remove city-1-loc-1 city-1-loc-4)
+(allowed_to_remove city-1-loc-1 city-1-loc-2)
 (allowed_to_remove city-1-loc-2 city-1-loc-5)
 (allowed_to_remove city-1-loc-2 city-1-loc-7)
 (allowed_to_remove city-2-loc-1 city-2-loc-3)

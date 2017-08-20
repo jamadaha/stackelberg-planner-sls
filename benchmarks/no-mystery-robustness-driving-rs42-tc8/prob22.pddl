@@ -14,14 +14,14 @@
       fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1 capacity-2
       capacity-3 truck-fix)
   (:init
-(allowed_to_remove boetzingen sexau)
+(allowed_to_remove boetzingen freiburg)
 (allowed_to_remove breisach gottenheim)
-(allowed_to_remove breisach weil)
 (allowed_to_remove brombach endingen)
-(allowed_to_remove brombach gottenheim)
+(allowed_to_remove brombach riedlingen)
 (allowed_to_remove gottenheim weil)
+(allowed_to_remove haltingen loerrach)
 (allowed_to_remove kandern riedlingen)
-(allowed_to_remove koendringen tumringen)
+(allowed_to_remove sexau tumringen)
     (at betonmischer tumringen)
     (at bollerwagen kleinkems)
     (at broiler haltingen)

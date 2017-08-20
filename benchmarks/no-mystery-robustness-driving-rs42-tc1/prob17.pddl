@@ -13,7 +13,7 @@
       fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1
       capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove brombach wollbach)
+(allowed_to_remove hugstetten kandern)
     (at aschenbecher wollbach)
     (at auto gottenheim)
     (at bananenkiste freiburg)

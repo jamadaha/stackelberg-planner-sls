@@ -9,8 +9,8 @@
       fuel-0 fuel-1 fuel-2 fuel-3 fuel-4 fuel-5 capacity-0 capacity-1
       capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove emmendingen merdingen)
-(allowed_to_remove kandern schallstadt)
+(allowed_to_remove auggen merdingen)
+(allowed_to_remove gottenheim riedlingen)
     (at apfel freiburg)
     (at auto merdingen)
     (at daemonenrikscha riedlingen)

@@ -11,9 +11,9 @@
 	)
 (:init
 (allowed_to_remove waypoint0 waypoint1)
-(allowed_to_remove waypoint1 waypoint7)
+(allowed_to_remove waypoint0 waypoint6)
+(allowed_to_remove waypoint0 waypoint7)
 (allowed_to_remove waypoint2 waypoint7)
-(allowed_to_remove waypoint4 waypoint6)
 	(visible waypoint0 waypoint4)
 	(visible waypoint4 waypoint0)
 	(visible waypoint0 waypoint7)

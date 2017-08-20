@@ -18,12 +18,12 @@
       fuel-3 fuel-4 fuel-5 capacity-0 capacity-1 capacity-2
       capacity-3 truck-fix)
   (:init
-(allowed_to_remove bahlingen kleinkems)
-(allowed_to_remove breisach emmendingen)
+(allowed_to_remove bad-bellingen emmendingen)
+(allowed_to_remove bahlingen muellheim)
+(allowed_to_remove boetzingen schopfheim)
+(allowed_to_remove freiburg guendlingen)
 (allowed_to_remove guendlingen kandern)
 (allowed_to_remove guendlingen koendringen)
-(allowed_to_remove loerrach riedlingen)
-(allowed_to_remove muellheim wittlingen)
     (at apfel bad-bellingen)
     (at aschenbecher endingen)
     (at betonmischer wittlingen)

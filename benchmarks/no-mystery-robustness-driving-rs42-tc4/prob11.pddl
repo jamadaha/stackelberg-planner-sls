@@ -10,7 +10,7 @@
 (allowed_to_remove bad-bellingen freiburg)
 (allowed_to_remove bad-bellingen guendlingen)
 (allowed_to_remove bad-bellingen weil)
-(allowed_to_remove kandern wollbach)
+(allowed_to_remove guendlingen weil)
     (at apfel kandern)
     (at betonmischer wollbach)
     (at donnerkiesel sexau)

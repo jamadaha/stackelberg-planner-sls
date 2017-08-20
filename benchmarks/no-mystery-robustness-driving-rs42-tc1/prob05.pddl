@@ -9,7 +9,7 @@
       snickers fuel-0 fuel-1 fuel-2 fuel-3 capacity-0 capacity-1
       capacity-2 capacity-3 truck-fix)
   (:init
-(allowed_to_remove muellheim waldkirch)
+(allowed_to_remove muellheim waldhaus)
     (at bollerwagen boetzingen)
     (at droschke waldkirch)
     (at faschiertes waldhaus)

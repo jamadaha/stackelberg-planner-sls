@@ -11,9 +11,9 @@
       fuel-3 fuel-4 capacity-0 capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
 (allowed_to_remove bahlingen haltingen)
+(allowed_to_remove bahlingen loerrach)
+(allowed_to_remove denzlingen guendlingen)
 (allowed_to_remove guendlingen loerrach)
-(allowed_to_remove haltingen merdingen)
-(allowed_to_remove merdingen sexau)
     (at aschenbecher bahlingen)
     (at faschiertes guendlingen)
     (at feinkost-bratling guendlingen)

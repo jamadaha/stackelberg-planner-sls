@@ -10,7 +10,7 @@
 	objective0 objective1 objective2 objective3 objective4 objective5 objective6 objective7 objective8 objective9 objective10 - Objective
 	)
 (:init
-(allowed_to_remove waypoint61 waypoint67)
+(allowed_to_remove waypoint32 waypoint46)
 	(visible waypoint0 waypoint25)
 	(visible waypoint25 waypoint0)
 	(visible waypoint0 waypoint31)

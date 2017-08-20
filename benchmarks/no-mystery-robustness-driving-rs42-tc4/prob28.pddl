@@ -7,10 +7,10 @@
       fuel-2 fuel-3 fuel-4 fuel-5 fuel-6 fuel-7 capacity-0 capacity-1
       capacity-2 truck-fix)
   (:init
+(allowed_to_remove boetzingen brombach)
 (allowed_to_remove boetzingen merdingen)
 (allowed_to_remove brombach muellheim)
 (allowed_to_remove denzlingen merdingen)
-(allowed_to_remove denzlingen muellheim)
     (at daemonenrikscha muellheim)
     (at faschiertes denzlingen)
     (at gruenkohl brombach)

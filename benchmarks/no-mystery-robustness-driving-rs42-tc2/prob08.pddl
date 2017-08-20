@@ -10,7 +10,7 @@
       fuel-1 fuel-2 fuel-3 fuel-4 capacity-0 capacity-1 capacity-2
       capacity-3 truck-fix)
   (:init
-(allowed_to_remove denzlingen lauchringen)
+(allowed_to_remove auggen bahlingen)
 (allowed_to_remove endingen kandern)
     (at bollerwagen denzlingen)
     (at droschke auggen)

@@ -31,11 +31,11 @@
  )
  (:init
 (allowed_to_remove city-loc-1 city-loc-3)
+(allowed_to_remove city-loc-1 city-loc-4)
 (allowed_to_remove city-loc-1 city-loc-5)
 (allowed_to_remove city-loc-1 city-loc-7)
 (allowed_to_remove city-loc-1 city-loc-8)
-(allowed_to_remove city-loc-10 city-loc-7)
-(allowed_to_remove city-loc-11 city-loc-12)
+(allowed_to_remove city-loc-1 city-loc-9)
 (allowed_to_remove city-loc-11 city-loc-3)
 (allowed_to_remove city-loc-11 city-loc-6)
 (allowed_to_remove city-loc-12 city-loc-3)

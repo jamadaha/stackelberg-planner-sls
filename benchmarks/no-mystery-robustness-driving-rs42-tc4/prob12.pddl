@@ -9,7 +9,7 @@
 (allowed_to_remove freiburg guendlingen)
 (allowed_to_remove freiburg kleinkems)
 (allowed_to_remove gottenheim guendlingen)
-(allowed_to_remove merdingen waldhaus)
+(allowed_to_remove hugstetten tumringen)
     (at ICE tumringen)
     (at elfenrad waldhaus)
     (at feine-bratwurst kleinkems)

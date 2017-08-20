@@ -10,7 +10,7 @@
       capacity-2 capacity-3 truck-fix)
   (:init
 (allowed_to_remove boetzingen loerrach)
-(allowed_to_remove emmendingen tumringen)
+(allowed_to_remove muellheim waldhaus)
     (at bollerwagen boetzingen)
     (at droschke waldkirch)
     (at faschiertes waldhaus)

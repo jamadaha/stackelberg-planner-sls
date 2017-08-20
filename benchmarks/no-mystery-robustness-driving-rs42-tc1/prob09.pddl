@@ -9,7 +9,7 @@
       fuel-2 fuel-3 fuel-4 capacity-0 capacity-1 capacity-2
       capacity-3 truck-fix)
   (:init
-(allowed_to_remove boetzingen tumringen)
+(allowed_to_remove emmendingen tumringen)
     (at bananenkiste hugstetten)
     (at donnerkiesel endingen)
     (at fahrrad boetzingen)

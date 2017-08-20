@@ -68,10 +68,10 @@
              city11-13 city10-13 city9-13 city8-13 city7-13 city6-13
              city5-13 city4-13 city3-13 city2-13 city1-13)
    (:init
-(allowed_to_remove city1-11 city1-13)
-(allowed_to_remove city22-10 city22-9)
-(allowed_to_remove city6-10 city6-5)
-(allowed_to_remove city9-10 city9-4) (obj package18)
+(allowed_to_remove city1-2 city1-5)
+(allowed_to_remove city15-1 city15-12)
+(allowed_to_remove city16-12 city16-13)
+(allowed_to_remove city25-10 city25-7) (obj package18)
           (obj package17)
           (obj package16)
           (obj package15)

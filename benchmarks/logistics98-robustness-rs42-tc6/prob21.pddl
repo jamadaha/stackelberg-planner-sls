@@ -30,12 +30,12 @@
              city10-9 city9-9 city8-9 city7-9 city6-9 city5-9 city4-9
              city3-9 city2-9 city1-9)
    (:init
-(allowed_to_remove city1-1 city1-2)
-(allowed_to_remove city13-3 city13-8)
-(allowed_to_remove city3-3 city3-4)
-(allowed_to_remove city3-3 city3-8)
-(allowed_to_remove city6-4 city6-8)
-(allowed_to_remove city6-6 city6-9) (obj package11)
+(allowed_to_remove city1-2 city1-7)
+(allowed_to_remove city12-1 city12-6)
+(allowed_to_remove city12-6 city12-7)
+(allowed_to_remove city4-7 city4-9)
+(allowed_to_remove city5-3 city5-6)
+(allowed_to_remove city6-2 city6-6) (obj package11)
           (obj package10)
           (obj package9)
           (obj package8)

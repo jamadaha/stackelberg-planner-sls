@@ -74,7 +74,7 @@
   capacity-4 - capacity-number
  )
  (:init
-(allowed_to_remove city-1-loc-14 city-1-loc-7)
+(allowed_to_remove city-2-loc-18 city-2-loc-3)
   (= (total-cost) 0)
   (capacity-predecessor capacity-0 capacity-1)
   (capacity-predecessor capacity-1 capacity-2)

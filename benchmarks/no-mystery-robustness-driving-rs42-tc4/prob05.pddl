@@ -11,8 +11,8 @@
   (:init
 (allowed_to_remove boetzingen loerrach)
 (allowed_to_remove boetzingen tumringen)
-(allowed_to_remove muellheim tumringen)
 (allowed_to_remove muellheim waldhaus)
+(allowed_to_remove muellheim waldkirch)
     (at bollerwagen boetzingen)
     (at droschke waldkirch)
     (at faschiertes waldhaus)

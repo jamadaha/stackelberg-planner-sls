@@ -17,7 +17,7 @@
 (allowed_to_remove city4-1 city4-2)
 (allowed_to_remove city4-1 city4-3)
 (allowed_to_remove city4-2 city4-3)
-(allowed_to_remove city5-1 city5-2)
+(allowed_to_remove city5-1 city5-3)
 (allowed_to_remove city5-2 city5-3) (obj package6)
           (obj package5)
           (obj package4)

@@ -15,7 +15,7 @@
       capacity-1 capacity-2 capacity-3 truck-fix)
   (:init
 (allowed_to_remove auggen endingen)
-(allowed_to_remove bahlingen guendlingen)
+(allowed_to_remove endingen inzlingen)
     (at apfel koendringen)
     (at aschenbecher waldkirch)
     (at auto bahlingen)

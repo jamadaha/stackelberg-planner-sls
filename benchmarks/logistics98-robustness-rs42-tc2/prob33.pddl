@@ -5,8 +5,8 @@
              truck4 truck3 truck2 truck1 plane1 city3-1 city2-1 city1-1
              city3-2 city2-2 city1-2)
    (:init
-(allowed_to_remove city2-1 city2-2)
-(allowed_to_remove city3-1 city3-2) (obj package7)
+(allowed_to_remove city1-1 city1-2)
+(allowed_to_remove city2-1 city2-2) (obj package7)
           (obj package6)
           (obj package5)
           (obj package4)
