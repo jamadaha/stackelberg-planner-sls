@@ -56,6 +56,16 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                         exit()
 
 
+def generate_random_connection_sublist (connection_list, new_size):
+    indizes = list(range(len(connection_list)))
+    selected_indizes = []
+    while len(selected_indizes < new_size):
+        x = random.randint(0, len(indizes)-1)
+        selected_indizes.append(indizes[x])
+        del indizes[x]
+
+    return [connection_list[i] for i in sorted(selected_indizes)]
+
 def modify_problem_file(problem_file_name, new_problem_file_name):
     global makes_sense_to_increase_number_of_connections
     print problem_file_name
@@ -94,7 +104,9 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     else:
         number_of_connections = (len(connections) * con_percent) / 100
 
+    random.seed(random_seed)
     connections_subset = [connections[i] for i in sorted(random.sample(xrange(len(connections)), number_of_connections))]
+    #connections_subset = generate_random_connection_sublist(connections, number_of_connections)
     print connections_subset
 
     predicate = "(allowed_to_remove {0} {1})"
@@ -123,7 +135,6 @@ files_in_dir = os.listdir(dir)
 print files_in_dir
 
 random_seed = int(args.seed)
-random.seed(random_seed)
 
 con_percent = int(args.con_percent)
 con_total = None if args.con_total is None else int(args.con_total)
