@@ -147,6 +147,9 @@ void FixActionsSearch::initialize()
     }
     delete g_successor_generator;
     g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+    if(attack_heuristic != NULL) {
+    		attack_heuristic->reset();
+    }
 
     chrono::high_resolution_clock::time_point t2 =
         chrono::high_resolution_clock::now();
@@ -1065,7 +1068,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         search_engine->reset();
         g_state_registry->reset();
         if (attack_heuristic != NULL) {
-            attack_heuristic->reset();
+            //attack_heuristic->reset();
         }
         chrono::high_resolution_clock::time_point tt2 =
             chrono::high_resolution_clock::now();
