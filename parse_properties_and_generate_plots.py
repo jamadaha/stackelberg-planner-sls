@@ -37,7 +37,7 @@ def parse_properties_file(problem_file_name):
     domain_and_num_con = content['domain']
     i = domain_and_num_con.find("-tc")
     domain = domain_and_num_con[0:i]
-    num_con = domain_and_num_con[i+3:]
+    num_con = int(domain_and_num_con[i+3:])
     problem = content['problem']
     coverage = content['coverage']
     config = content['config_nick']
@@ -57,28 +57,62 @@ def parse_properties_file(problem_file_name):
         dic[domain][config][num_con][problem] = 0
     dic[domain][config][num_con][problem] = coverage
 
+def sort_data_pints (x_array, y_array):
+    x_array = list(x_array)
+    old_pos_by_x_value = {}
+    for i in range(len(x_array)):
+        old_pos_by_x_value[x_array[i]] = i
+    x_array.sort()
+
+    new_pos_by_old_pos = {}
+    for i in range(len(x_array)):
+        new_pos_by_old_pos[old_pos_by_x_value[x_array[i]]] = i
+
+    new_y_array = [0] * len(y_array)
+    for i in range(len(y_array)):
+        new_y_array[new_pos_by_old_pos[i]] = y_array[i]
+
+    return x_array, new_y_array
+
 
 def plot_coverage_for_domain(domain):
     fig, ax = plt.subplots(figsize=(15, 7))
+    # plt.style.use('grayscale')
 
     i = 0
+    x_array = []
+    y_array = []
+    y_array_total = []
     for config, config_dic in dic[domain].iteritems():
-        x_array = []
-        y_array = []
+        del x_array[:]
+        del y_array[:]
+        del y_array_total[:]
         for num_con, problem_dic in config_dic.iteritems():
             x_array.append(num_con)
             y = 0
+            y_total = 0
             for _, coverage in problem_dic.iteritems():
                 y += coverage
+                y_total += 1
             y_array.append(y)
+            y_array_total.append(y_total)
 
-        # plt.style.use('grayscale')
-        line = plt.plot(x_array, y_array, markers[i], fillstyle=fillstyles[i], markersize=MARKERWIDTH, \
+        _, y_array = sort_data_pints(x_array, y_array)
+        x_array, y_array_total = sort_data_pints(x_array, y_array_total)
+
+        # write: '--' + markers[i] for line between markers
+        line = plt.plot(x_array, y_array, '--' + markers[i], fillstyle=fillstyles[i], markersize=MARKERWIDTH, \
                         linewidth=LINEWIDTH, \
                         markeredgewidth=MEWs[i], \
                         label=config)
         plt.setp(line, color=colors[i])
         i += 1
+
+    line = plt.plot(x_array, y_array_total, '--' + '_', fillstyle='full', markersize=MARKERWIDTH, \
+                    linewidth=LINEWIDTH, \
+                    markeredgewidth='1', \
+                    label='Total')
+    plt.setp(line, color='g')
 
     ax.legend(loc='best', fontsize=legend_FONTSIZE)
 
@@ -87,7 +121,16 @@ def plot_coverage_for_domain(domain):
     plt.xticks(fontsize=FONTSIZE)
     plt.yticks(fontsize=FONTSIZE)
     plt.xscale('log')
-    ax.set_xticks([1, 2, 3, 4, 5, 6, 8, 10, 100, 1000, 10000])
+
+    last_x = x_array[-1]
+    ticks = [1, 2, 3, 4, 5, 6, 8, 10, 16, 32, 64, 128, 1024, 4096]
+    for i in range(len(ticks)):
+        tick = ticks[i]
+        if tick >= last_x:
+            ticks = ticks[0:i+1]
+            break
+
+    ax.set_xticks(ticks)
     ax.get_xaxis().set_major_formatter(ScalarFormatter())
     # ax.set_xlim(xmin=0)
 
