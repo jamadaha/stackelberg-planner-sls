@@ -74,12 +74,20 @@
  :precondition (and (at ?t ?from) (connected ?from ?to))
  :effect (and (not (at ?t ?from)) (at ?t ?to)))	      
 
-(:action fix_remove_connection
+(:action fix_remove_connection_1
  :parameters (?t - fix_truck ?from ?to - place)
  :precondition (and (at ?t ?from) (connected ?from ?to)
  					(connected ?to ?from)
  					(allowed_to_remove ?to ?from))
  :effect (and (not (connected ?from ?to))
- 			  (not (connected ?to ?from)) ))	  
+ 			  (not (connected ?to ?from)) ))
+
+(:action fix_remove_connection_2
+ :parameters (?t - fix_truck ?from ?to - place)
+ :precondition (and (at ?t ?to) (connected ?from ?to)
+ 					(connected ?to ?from)
+ 					(allowed_to_remove ?to ?from))
+ :effect (and (not (connected ?from ?to))
+ 			  (not (connected ?to ?from)) )) 			    
 
 )

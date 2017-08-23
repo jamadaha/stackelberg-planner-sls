@@ -20,12 +20,21 @@
 :effect (and (at-fix-robot ?nextpos) (not (at-fix-robot?curpos)))
 )
 
-(:action fix_remove_connection
+(:action fix_remove_connection_1
 :parameters (?pos1 ?pos2 - place)
 :precondition (and (connected ?pos1 ?pos2)
 				   (connected ?pos2 ?pos1)
 				   (allowed_to_remove ?pos1 ?pos2)
 				   (at-fix-robot ?pos1))
+:effect (and (not (connected ?pos1 ?pos2))
+			 (not (connected ?pos2 ?pos1)))
+)
+(:action fix_remove_connection_2
+:parameters (?pos1 ?pos2 - place)
+:precondition (and (connected ?pos1 ?pos2)
+				   (connected ?pos2 ?pos1)
+				   (allowed_to_remove ?pos1 ?pos2)
+				   (at-fix-robot ?pos2))
 :effect (and (not (connected ?pos1 ?pos2))
 			 (not (connected ?pos2 ?pos1)))
 )

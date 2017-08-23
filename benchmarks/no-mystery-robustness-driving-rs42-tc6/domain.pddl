@@ -71,7 +71,7 @@
        :effect (and (not (at ?v ?n1))
                     (at ?v ?n2))) 
 
-   (:action fix_remove_road
+   (:action fix_remove_road_1
        :parameters (?v ?n1 ?n2)
        :precondition (and (at ?v ?n1)
         (location ?n1)
@@ -82,4 +82,16 @@
         (location ?n2))
        :effect (and (not (connected ?n1 ?n2))
                     (not (connected ?n2 ?n1))
-                    )))                                       
+                    ))
+    (:action fix_remove_road_2
+       :parameters (?v ?n1 ?n2)
+       :precondition (and (at ?v ?n2)
+        (location ?n1)
+        (fix_vehicle ?v)
+        (connected ?n1 ?n2)
+        (connected ?n2 ?n1)
+        (allowed_to_remove ?n1 ?n2)
+        (location ?n2))
+       :effect (and (not (connected ?n1 ?n2))
+                    (not (connected ?n2 ?n1))
+                    ))                )                                       
