@@ -8,7 +8,8 @@
 	       (IS-GOAL ?l - location)
 	       (IS-NONGOAL ?l - location)
          (MOVE-DIR ?from ?to - location ?dir - direction)
-         (block-loc ?l - location))
+         (block-loc ?l - location)
+         (allowed_to_remove ?l1 ?l2 - location))
   (:functions (total-cost) - number)
 
   (:action attack_move
@@ -72,10 +73,13 @@
    )
 
   (:action fix_block-location
-   :parameters (?loc - location)
-   :precondition (and (not (block-loc ?loc))
-                      )
-   :effect       (and (block-loc ?loc)
+   :parameters (?from ?to - location ?dir - direction)
+   :precondition (and (block-loc ?from)
+                      (clear ?to)
+                      (not (block-loc ?to))
+                      (MOVE-DIR ?from ?to ?dir)
+                      (allowed_to_remove ?to ?to))
+   :effect       (and (block-loc ?to)
                       (increase (total-cost) 1)
                       )
    )   
