@@ -101,7 +101,7 @@ def plot_coverage_for_domain(domain):
         x_array, y_array_total = sort_data_pints(x_array, y_array_total)
 
         # write: '--' + markers[i] for line between markers
-        line = plt.plot(x_array, y_array, '--' + markers[i], fillstyle=fillstyles[i], markersize=MARKERWIDTH, \
+        line = plt.plot(x_array, y_array, '--', fillstyle=fillstyles[i], markersize=MARKERWIDTH, \
                         linewidth=LINEWIDTH, \
                         markeredgewidth=MEWs[i], \
                         label=config)
