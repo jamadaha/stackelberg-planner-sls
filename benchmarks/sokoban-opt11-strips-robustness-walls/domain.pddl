@@ -75,7 +75,6 @@
   (:action fix_block-location
    :parameters (?from ?to - location ?dir - direction)
    :precondition (and (block-loc ?from)
-                      (clear ?to)
                       (not (block-loc ?to))
                       (MOVE-DIR ?from ?to ?dir)
                       (allowed_to_remove ?to ?to))
