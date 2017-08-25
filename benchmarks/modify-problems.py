@@ -10,7 +10,8 @@ domain_location_regex_dic = {"logistics-strips": "city\d+-\d+",
                              "Rover": "waypoint\d+",
                              "TPP-Propositional": "market\d+|depot\d+",
                              "transport": "city-?\d*-loc-\d+",
-                             "grid-visit-all": "loc-x\d+-y\d+"}
+                             "grid-visit-all": "loc-x\d+-y\d+",
+                             "sokoban-sequential": "pos-\d+-\d+"}
 connection_predicate_regex = {"no-mystery-strips": "connected",
                               "TPP-Propositional": "connected",
                               "transport": "road",
@@ -19,7 +20,7 @@ connection_predicate_regex = {"no-mystery-strips": "connected",
 makes_sense_to_increase_number_of_connections = False
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all":
+    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -54,6 +55,44 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                     else:
                         print "We assumed here that all roads in Rovers are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!"
                         exit()
+    elif domain_name == "sokoban-sequential":
+            for loc in locations:
+                if content.find("(clear " + loc + ")") != -1 and re.search("\(at \w+-\d+ " + loc + "\)", content) is None:
+                    connections.append((loc, loc))
+
+def generate_walls_for_sokoban(locations, content):
+    walls = []
+    for loc in locations:
+        if content.find("(clear " + loc + ")") == -1 and re.search("\(at \w+-\d+ " + loc + "\)", content) is None:
+            walls.append(loc)
+    predicate1 = "(block-loc {0})"
+    predicate2 = "(MOVE-DIR {0} {1} {2})"
+    predicates_to_insert = ""
+    for loc1 in walls:
+        predicates_to_insert += "\n" + predicate1.format(loc1)
+        loc1_minus1 = loc1.find("-")
+        loc1_minus2 = loc1.find("-", loc1_minus1 + 1)
+        loc1_x = int(loc1[loc1_minus1+1:loc1_minus2])
+        loc1_y = int(loc1[loc1_minus2+1:])
+
+        for loc2 in locations:
+            if loc1 == loc2 or loc2 in walls:
+                continue
+            loc2_minus1 = loc2.find("-")
+            loc2_minus2 = loc2.find("-", loc2_minus1 + 1)
+            loc2_x = int(loc2[loc2_minus1 + 1:loc2_minus2])
+            loc2_y = int(loc2[loc2_minus2 + 1:])
+
+            if loc1_x == loc2_x and (loc1_y+1) == loc2_y:
+                predicates_to_insert += "\n" + predicate2.format(loc1, loc2, "dir-down")
+            if loc1_x == loc2_x and (loc1_y-1) == loc2_y:
+                predicates_to_insert += "\n" + predicate2.format(loc1, loc2, "dir-up")
+            if (loc1_x+1) == loc2_x and loc1_y == loc2_y:
+                predicates_to_insert += "\n" + predicate2.format(loc1, loc2, "dir-right")
+            if (loc1_x-1) == loc2_x and loc1_y == loc2_y:
+                predicates_to_insert += "\n" + predicate2.format(loc1, loc2, "dir-left")
+    return predicates_to_insert
+
 
 
 def generate_random_connection_sublist (connection_list, new_size):
@@ -113,6 +152,8 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     predicates_to_insert = ""
     for con in connections_subset:
         predicates_to_insert += "\n" + predicate.format(con[0], con[1])
+    if domain_name == "sokoban-sequential":
+        predicates_to_insert += generate_walls_for_sokoban(locations, content)
     print predicates_to_insert
 
     i = content.find("(:init")
