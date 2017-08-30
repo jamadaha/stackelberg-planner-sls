@@ -84,6 +84,9 @@ def plot_coverage_for_domain(domain):
     y_array = []
     y_array_total = []
     for config, config_dic in dic[domain].iteritems():
+        if config not in interesting_configs:
+            continue
+
         del x_array[:]
         del y_array[:]
         del y_array_total[:]
@@ -101,9 +104,9 @@ def plot_coverage_for_domain(domain):
         x_array, y_array_total = sort_data_pints(x_array, y_array_total)
 
         # write: '--' + markers[i] for line between markers
-        line = plt.plot(x_array, y_array, '--', fillstyle=fillstyles[i], markersize=MARKERWIDTH, \
+        # additional marker options: , fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i]
+        line = plt.plot(x_array, y_array, '--',  \
                         linewidth=LINEWIDTH, \
-                        markeredgewidth=MEWs[i], \
                         label=config)
         plt.setp(line, color=colors[i])
         i += 1
@@ -123,7 +126,7 @@ def plot_coverage_for_domain(domain):
     plt.xscale('log')
 
     last_x = x_array[-1]
-    ticks = [1, 2, 3, 4, 5, 6, 8, 10, 16, 32, 64, 128, 1024, 4096]
+    ticks = [1, 2, 3, 4, 5, 6, 8, 10, 16, 25, 32, 50, 64, 128, 1024, 4096]
     for i in range(len(ticks)):
         tick = ticks[i]
         if tick >= last_x:
@@ -150,22 +153,25 @@ def plot_coverage_for_domain(domain):
 
 
 p = argparse.ArgumentParser(description="")
-p.add_argument("--dir", type=str, help="The directory which should be crawled", default=None)
+p.add_argument("--dir", nargs='+', type=str, help="The directories which should be crawled", default=None)
+p.add_argument("--configs", nargs='+', type=str, help="The interesting configs which you want to plot", default=None)
 args = p.parse_args(sys.argv[1:])
 
-dir = str(args.dir)
-files_in_dir = os.listdir(dir)
-#print files_in_dir
+interesting_configs = args.configs
 
-all_subdirs = [x[0] for x in os.walk(dir)]
-for subdir in all_subdirs:
-    #print subdir
-    if re.match(".*/\d{5}", subdir) is not None:
-        files_in_subdir = os.listdir(subdir)
-        for file in files_in_subdir:
-            if file.find("properties") != -1:
-                parse_properties_file(os.path.join(subdir, file))
-                break
+for dir in args.dir:
+    files_in_dir = os.listdir(dir)
+    #print files_in_dir
+
+    all_subdirs = [x[0] for x in os.walk(dir)]
+    for subdir in all_subdirs:
+        #print subdir
+        if re.match(".*/\d{5}", subdir) is not None:
+            files_in_subdir = os.listdir(subdir)
+            for file in files_in_subdir:
+                if file.find("properties") != -1:
+                    parse_properties_file(os.path.join(subdir, file))
+                    break
 
 #print dic
 for domain, _ in dic.iteritems():
