@@ -112,7 +112,7 @@ void FixActionsSearch::initialize()
 
     compute_commutative_and_dependent_fix_ops_matrices();
 
-    if (use_partial_order_reduction) {
+    if (use_partial_order_reduction || upper_bound_pruning) {
         compute_fix_facts_ops_sets();
     }
 
