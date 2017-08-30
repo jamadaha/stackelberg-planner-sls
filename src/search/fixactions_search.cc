@@ -57,6 +57,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	use_ids = opts.get<bool>("ids");
 	sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
 	greedy_fix_search = opts.get<bool>("greedy");
+	upper_bound_pruning = opts.get<bool>("upper_bound_pruning");
 
 	if(greedy_fix_search && use_ids) {
 		cout << "greedy fix search and IDS makes no sense!!!! Deactivating IDS!" << endl;
@@ -138,6 +139,27 @@ void FixActionsSearch::initialize()
             delrax_search->get_reward(), fix_operators,
             attack_operators_with_fix_vars_preconds,
             deleting_fix_facts_ops);
+    }
+
+    if (upper_bound_pruning) {
+    		g_operators.clear();
+    		compute_always_applicable_attack_ops(g_operators);
+    		cout << "number of always applicable attack ops: " << g_operators.size() << endl;
+    	    delete g_successor_generator;
+    	    g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+    	    search_engine->reset();
+    	    g_state_registry->reset();
+    	    if(attack_heuristic != NULL) {
+    	    		attack_heuristic->reset();
+    	    }
+    	    search_engine->search();
+    	    if (search_engine->found_solution()) {
+    	    		search_engine->save_plan_if_necessary();
+    	    		attacker_cost_upper_bound = search_engine->calculate_plan_cost();
+    	    } else {
+    	    		attacker_cost_upper_bound = ATTACKER_TASK_UNSOLVABLE;
+    	    }
+    	    cout << "attacker_cost_upper_bound: " << attacker_cost_upper_bound << endl;
     }
 
     /* FIXME Because of REMOVED DIVIDING VARIABLES, we added this: */
@@ -896,6 +918,30 @@ void FixActionsSearch::prune_dominated_ops(vector<const GlobalOperator *> &ops,
     }
 }
 
+void FixActionsSearch::compute_always_applicable_attack_ops(vector<GlobalOperator> &ops) {
+    for (size_t op_no = 0; op_no < attack_operators_with_fix_vars_preconds.size(); op_no++) {
+        const GlobalOperator *op = &attack_operators_with_fix_vars_preconds[op_no];
+
+        bool always_applicable = true;
+        const vector<GlobalCondition> &preconditions = op->get_preconditions();
+        for (size_t precond_no = 0; precond_no < preconditions.size(); precond_no++) {
+            int precond_var = preconditions[precond_no].var;
+            int precond_val = preconditions[precond_no].val;
+            const vector< const GlobalOperator *> &deleting_ops =
+                deleting_fix_facts_ops[precond_var][precond_val];
+
+            if(deleting_ops.size() > 0) {
+            		always_applicable = false;
+            		break;
+            }
+        }
+
+        if (always_applicable) {
+        		ops.push_back(attack_operators_with_all_preconds[op->get_op_id()]);
+        }
+    }
+}
+
 bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
 {
     return op1->get_name() < op2->get_name();
@@ -945,8 +991,6 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
     }
 
     cout << "fix_actions_cost: " << fix_actions_cost << endl;
-    cout << "fix_action_costs_for_no_attacker_solution: " <<
-         fix_action_costs_for_no_attacker_solution << endl;
 #endif
     if (!recurse) {
 #ifdef FIX_SEARCH_DEBUG
@@ -1283,9 +1327,9 @@ void FixActionsSearch::iterate_applicable_ops(const
             returned_somewhere_bc_of_budget = true;
             continue;
         }
-        if (new_fix_actions_cost > fix_action_costs_for_no_attacker_solution) {
+        if (upper_bound_pruning && new_fix_actions_cost > fix_action_costs_for_attacker_upper_bound) {
             //cout
-            //       << "Do not continue with this op, because the new fix_action_cost is already greater than fix_action_costs_for_no_attacker_solution"
+            //       << "Do not continue with this op, because the new fix_action_cost is already greater than fix_action_costs_for_attacker_upper_bound"
             //        << endl;
             fix_ops_sequence.pop_back();
             continue;
@@ -1348,10 +1392,10 @@ void FixActionsSearch::add_node_to_pareto_frontier(
     triple<int, int, vector<vector<const GlobalOperator *>>> &node)
 {
 
-    // First check whether attack_prob_costs == Intmax and fix_actions_cost < fix_action_costs_for_no_attacker_solution
-    if (get<1>(node) == ATTACKER_TASK_UNSOLVABLE) {
-        if (get<0>(node) < fix_action_costs_for_no_attacker_solution) {
-            fix_action_costs_for_no_attacker_solution = get<0>(node);
+    // First check whether attack_prob_costs == Intmax and fix_actions_cost < fix_action_costs_for_attacker_upper_bound
+    if (get<1>(node) >= attacker_cost_upper_bound) {
+        if (get<0>(node) < fix_action_costs_for_attacker_upper_bound) {
+            fix_action_costs_for_attacker_upper_bound = get<0>(node);
         }
     }
 
@@ -1604,12 +1648,13 @@ SearchEngine *_parse(OptionParser &parser)
                             "always check whether the current fix state is already known and spare search in attacker statespace",
                             "true");
     parser.add_option<bool>("attack_op_dom_pruning",
-                            "use the attack operator dominance pruning", "true");
+                            "use the attack operator dominance pruning", "false");
     parser.add_option<bool>("sort_fix_ops",
                             "When expanding fix state successors, first compute attacker cost in all successor states and then recurse in descending cost order.",
                             "true");
     parser.add_option<bool>("ids", "use iterative deepening search", "true");
     parser.add_option<bool>("greedy", "Only makes sense in combination with sort_fix_ops=true. Basically only greedily recurse with best op w.r.t. to fix-op sorting and do not consider the others ", "false");
+    parser.add_option<bool>("upper_bound_pruning", "Prune fix action sequences with higher costs then already known sequences leading to a state with upper bound attacker costs", "true");
     Options opts = parser.parse();
     if (!parser.dry_run()) {
         return new FixActionsSearch(opts);
