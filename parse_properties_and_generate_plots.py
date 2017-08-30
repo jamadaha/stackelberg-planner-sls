@@ -28,6 +28,7 @@ MEWs = ['1', '1', '1', '1', '1']
 
 
 dic = {}
+num_instances_of_domain = {}
 
 def parse_properties_file(problem_file_name):
     problem_file = open(problem_file_name, "r")
@@ -53,8 +54,6 @@ def parse_properties_file(problem_file_name):
         dic[domain][config] = dict()
     if num_con not in dic[domain][config]:
         dic[domain][config][num_con] = dict()
-    if problem not in dic[domain][config][num_con]:
-        dic[domain][config][num_con][problem] = 0
     dic[domain][config][num_con][problem] = coverage
 
 def sort_data_pints (x_array, y_array):
@@ -79,6 +78,10 @@ def plot_coverage_for_domain(domain):
     fig, ax = plt.subplots(figsize=(15, 7))
     # plt.style.use('grayscale')
 
+    abs_num_total_instances = 0.0
+    for _, coverage in dic[domain][dic[domain].keys()[0]][1].iteritems():
+        abs_num_total_instances += 1.0
+
     i = 0
     x_array = []
     y_array = []
@@ -92,16 +95,18 @@ def plot_coverage_for_domain(domain):
         del y_array_total[:]
         for num_con, problem_dic in config_dic.iteritems():
             x_array.append(num_con)
-            y = 0
-            y_total = 0
+            y = 0.0
+            y_total = 0.0
             for _, coverage in problem_dic.iteritems():
                 y += coverage
-                y_total += 1
-            y_array.append(y)
-            y_array_total.append(y_total)
+                y_total += 1.0
+            y_array.append(y/y_total)
+            y_array_total.append(y_total/abs_num_total_instances)
 
         _, y_array = sort_data_pints(x_array, y_array)
         x_array, y_array_total = sort_data_pints(x_array, y_array_total)
+
+        assert (y_array_total[0] == 1.0)
 
         # write: '--' + markers[i] for line between markers
         # additional marker options: , fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i]
