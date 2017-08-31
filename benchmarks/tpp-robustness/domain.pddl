@@ -1,11 +1,9 @@
 ; IPC5 Domain: TPP Propositional
 ; Authors: Alfonso Gerevini and Alessandro Saetti 
 
-;; Basically tpp domain with additional fix truck driving on the map which can remove a connection in both directions at once if it is in an adjacent place.
-;; The cost for this truck to drive is currently 1 and for removing a connection it is also 1
+;; Basically tpp domain with with fix actions which can remove a connection in both directions at once.
+;; The cost for removing a connection is 1
 ;; Only connections for which the allowed_to_remove predicate is set, can be removed.
-;; The initial location of the fix truck always is depot1
-;; THESE INITIAL LOCATION IS PROBABLY NOT PERFECTLY CHOSEN
 
 (define (domain TPP-Propositional)
 (:requirements :strips :typing)
@@ -69,25 +67,13 @@
  :effect (and (on-sale ?g ?m ?l1) (not (on-sale ?g ?m ?l2)) 
 	      (ready-to-load ?g ?m ?l4) (not (ready-to-load ?g ?m ?l3))))
 
-(:action fix_drive
- :parameters (?t - fix_truck ?from ?to - place)
- :precondition (and (at ?t ?from) (connected ?from ?to))
- :effect (and (not (at ?t ?from)) (at ?t ?to)))	      
 
-(:action fix_remove_connection_1
- :parameters (?t - fix_truck ?from ?to - place)
- :precondition (and (at ?t ?from) (connected ?from ?to)
+(:action fix_remove_connection
+ :parameters (?from ?to - place)
+ :precondition (and (connected ?from ?to)
  					(connected ?to ?from)
  					(allowed_to_remove ?to ?from))
  :effect (and (not (connected ?from ?to))
- 			  (not (connected ?to ?from)) ))
-
-(:action fix_remove_connection_2
- :parameters (?t - fix_truck ?from ?to - place)
- :precondition (and (at ?t ?to) (connected ?from ?to)
- 					(connected ?to ?from)
- 					(allowed_to_remove ?to ?from))
- :effect (and (not (connected ?from ?to))
- 			  (not (connected ?to ?from)) )) 			    
+ 			  (not (connected ?to ?from)) ))			    
 
 )
