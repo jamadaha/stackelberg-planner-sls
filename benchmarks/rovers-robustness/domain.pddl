@@ -1,9 +1,8 @@
-;; Basically rovers domain with additional fix rover driving on the map which can remove connection if it is in an adjacent waypoint.
-;; The fix rover can traverse a connection if a normal rover can traverse it
-;; With a single action, the fix rover can remove a connection for all rovers and in both directions at once
+;; Basically rovers domain with additional with fix actions which can remove connections between waypoint.
+;; A connection can be removed if a normal rover can traverse it
+;; With a single action, a connection for all rovers and in both directions is removed at once
 ;; Only connections for which the allowed_to_remove predicate is set, can be removed.
-;; The cost for this rover to drive is currently 1 and for removing a segment, it is also 1
-;; The initial location of the fix truck always is waypoint0
+;; The cost for for removing a segment is 1
 
 (define (domain Rover)
 (:requirements :typing)
@@ -129,19 +128,10 @@
           )
 )
 
-(:action fix_navigate
-:parameters (?x - fix_rover ?r - rover ?y - waypoint ?z - waypoint) 
-:precondition (and (can_traverse ?r ?y ?z) (available ?x) (at ?x ?y) 
-                (visible ?y ?z)
-                (not (removed-connection ?y ?z))
-      )
-:effect (and (not (at ?x ?y)) (at ?x ?z)
-    )
-)
 
-(:action fix_remove_connection_1
-:parameters (?x - fix_rover ?r - rover  ?y - waypoint ?z - waypoint) 
-:precondition (and (can_traverse ?r ?y ?z) (available ?x) (at ?x ?y) 
+(:action fix_remove_connection
+:parameters (?r - rover  ?y - waypoint ?z - waypoint) 
+:precondition (and (can_traverse ?r ?y ?z)
                 (visible ?y ?z)
                 (allowed_to_remove ?y ?z)
                 (not (removed-connection ?y ?z))
@@ -152,17 +142,5 @@
     )
 )
 
-(:action fix_remove_connection_2
-:parameters (?x - fix_rover ?r - rover  ?y - waypoint ?z - waypoint) 
-:precondition (and (can_traverse ?r ?y ?z) (available ?x) (at ?x ?z) 
-                (visible ?y ?z)
-                (allowed_to_remove ?y ?z)
-                (not (removed-connection ?y ?z))
-                (not (removed-connection ?z ?y))
-      )
-:effect (and (removed-connection ?y ?z)
-             (removed-connection ?z ?y)
-    )
-)
 
 )
