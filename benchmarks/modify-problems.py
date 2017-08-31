@@ -196,6 +196,9 @@ for file in files_in_dir:
 
 if makes_sense_to_increase_number_of_connections is False:
     print "Increasing total number of connections makes no sense for this domain!"
+    exit(1)
+else:
+    exit(0)
 
 
 
