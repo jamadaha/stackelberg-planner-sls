@@ -3,8 +3,10 @@
    (:objects package7 package6 package5 package4 package3 package2
              package1 city3 city2 city1 truck9 truck8 truck7 truck6 truck5
              truck4 truck3 truck2 truck1 plane1 city3-1 city2-1 city1-1
-             city3-2 city2-2 city1-2)
-   (:init (obj package7)
+             city3-2 city2-2 city1-2 truck-fix)
+   (:init (FIX_TRUCK truck-fix)
+          (at truck-fix city1-1)
+          (obj package7)
           (obj package6)
           (obj package5)
           (obj package4)

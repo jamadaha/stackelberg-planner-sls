@@ -5,8 +5,10 @@
              truck8 truck7 truck6 truck5 truck4 truck3 truck2 truck1 plane1
              city9-1 city8-1 city7-1 city6-1 city5-1 city4-1 city3-1
              city2-1 city1-1 city9-2 city8-2 city7-2 city6-2 city5-2
-             city4-2 city3-2 city2-2 city1-2)
-   (:init (obj package4)
+             city4-2 city3-2 city2-2 city1-2 truck-fix)
+   (:init (FIX_TRUCK truck-fix)
+          (at truck-fix city1-1)
+          (obj package4)
           (obj package3)
           (obj package2)
           (obj package1)

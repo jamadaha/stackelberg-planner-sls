@@ -5,7 +5,9 @@
              truck3 truck2 truck1 plane2 plane1 city6-1 city5-1 city4-1
              city3-1 city2-1 city1-1 city6-2 city5-2 city4-2 city3-2
              city2-2 city1-2 truck-fix)
-   (:init (obj package6)
+   (:init (FIX_TRUCK truck-fix)
+          (at truck-fix city1-1)
+          (obj package6)
           (obj package5)
           (obj package4)
           (obj package3)

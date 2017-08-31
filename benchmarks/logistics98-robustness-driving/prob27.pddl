@@ -46,8 +46,10 @@
              city1-12 city1-11 city1-10 city1-9 city1-8 city1-7 city1-6
              city1-5 city1-4 city1-3 city1-2 city1-1 city15-14 city14-14
              city13-14 city12-14 city11-14 city10-14 city9-14 city8-14
-             city7-14 city6-14 city5-14 city4-14 city3-14 city2-14 city1-14)
-   (:init (obj package57)
+             city7-14 city6-14 city5-14 city4-14 city3-14 city2-14 city1-14 truck-fix)
+   (:init (FIX_TRUCK truck-fix)
+          (at truck-fix city1-1)
+          (obj package57)
           (obj package56)
           (obj package55)
           (obj package54)
