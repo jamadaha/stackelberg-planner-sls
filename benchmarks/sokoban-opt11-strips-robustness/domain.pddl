@@ -73,10 +73,8 @@
    )
 
   (:action fix_block-location
-   :parameters (?from ?to - location ?dir - direction)
-   :precondition (and (block-loc ?from)
-                      (not (block-loc ?to))
-                      (MOVE-DIR ?from ?to ?dir)
+   :parameters (?to - location)
+   :precondition (and (not (block-loc ?to))
                       (allowed_to_remove ?to ?to))
    :effect       (and (block-loc ?to)
                       (increase (total-cost) 1)
