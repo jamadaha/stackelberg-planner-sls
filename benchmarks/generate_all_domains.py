@@ -10,7 +10,10 @@ number_of_cons_array = ["0", "1", "2", "3", "4", "5", "6", "8", "10", "12", "16"
 
 for domain in domains_array:
     for i, cons in enumerate(number_of_cons_array):
-        if i== 0:
+        if i == 0:
             continue
         #print "python modify-problems.py --dir " + domain + " --con-total " + cons + " --at-least-con " + number_of_cons_array[i-1]
-        os.system("python modify-problems.py --dir " + domain + " --con-total " + cons + " --at-least-con " + number_of_cons_array[i-1])
+        ret_code = os.system("python modify-problems.py --dir " + domain + " --con-total " + cons + " --at-least-con " + number_of_cons_array[i-1]) >> 8
+        if ret_code == 1:
+            # Increasing total number of connections makes no sense for this domain. Continue with next domain
+            break
