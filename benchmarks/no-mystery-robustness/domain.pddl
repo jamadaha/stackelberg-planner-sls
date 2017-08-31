@@ -1,7 +1,6 @@
-;; Basically no-mystery domain with additional fix truck driving on the map which can remove a connection if it is in an adjacent location.
+;; Basically no-mystery domain with fix actions to remove connections
 ;; A connection is always removed in both directions at once. Only connections for which the allowed_to_remove predicate is set, can be removed.
-;; The cost for this truck to drive is currently 1 and for removing a segment, it is also 1.
-;; The intial location of the fix truck is the first location listed in the respective problem file
+;; The cost for removing a segment is also 1.
 (define (domain no-mystery-strips)
    (:predicates
        (fuel-number ?x)
@@ -60,22 +59,12 @@
                     (at ?c ?n)
                     (not (capacity ?v ?s1))
                     (capacity ?v ?s2)))
+ 
 
-   (:action fix_drive
-       :parameters (?v ?n1 ?n2)
-       :precondition (and (at ?v ?n1)
+   (:action fix_remove_road
+       :parameters (?n1 ?n2)
+       :precondition (and
         (location ?n1)
-        (fix_vehicle ?v)
-        (connected ?n1 ?n2)
-        (location ?n2))
-       :effect (and (not (at ?v ?n1))
-                    (at ?v ?n2))) 
-
-   (:action fix_remove_road_1
-       :parameters (?v ?n1 ?n2)
-       :precondition (and (at ?v ?n1)
-        (location ?n1)
-        (fix_vehicle ?v)
         (connected ?n1 ?n2)
         (connected ?n2 ?n1)
         (allowed_to_remove ?n1 ?n2)
@@ -83,15 +72,4 @@
        :effect (and (not (connected ?n1 ?n2))
                     (not (connected ?n2 ?n1))
                     ))
-    (:action fix_remove_road_2
-       :parameters (?v ?n1 ?n2)
-       :precondition (and (at ?v ?n2)
-        (location ?n1)
-        (fix_vehicle ?v)
-        (connected ?n1 ?n2)
-        (connected ?n2 ?n1)
-        (allowed_to_remove ?n1 ?n2)
-        (location ?n2))
-       :effect (and (not (connected ?n1 ?n2))
-                    (not (connected ?n2 ?n1))
-                    ))                )                                       
+                )                                       
