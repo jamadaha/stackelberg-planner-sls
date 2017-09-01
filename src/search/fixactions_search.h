@@ -46,10 +46,11 @@ private:
 	bool use_partial_order_reduction = true;
 	bool check_parent_attack_plan_applicable = true;
 	bool check_fix_state_already_known = true;
-	bool do_attack_op_dom_pruning = true;
+	bool do_attack_op_dom_pruning = false;
 	bool sort_fix_ops_stupid = false;
 	bool sort_fix_ops_advanced = true;
 	bool greedy_fix_search = false;
+	bool upper_bound_pruning = true;
 
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
@@ -89,7 +90,6 @@ private:
 	Heuristic* attack_heuristic;
 
 	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
-	int fix_action_costs_for_no_attacker_solution = std::numeric_limits<int>::max();
 	PerFixStateInformation<FixSearchInfoAttackPlan> fix_search_node_infos_attack_plan;
 	PerStateInformation<FixSearchInfoFixSequence> fix_search_node_infos_fix_sequence;
 	int max_fix_actions_budget = UNLTD_BUDGET;
@@ -104,6 +104,9 @@ private:
 	double ids_fix_budget_factor = 1.5;
 
 	int max_fix_action_cost = 0; // The cost of the most expensive fix action
+
+	int attacker_cost_upper_bound = std::ATTACKER_TASK_UNSOLVABLE;
+	int fix_action_costs_for_attacker_upper_bound = std::numeric_limits<int>::max();
 
 	SortFixActionsByAttackerReward *sortFixActionsByAttackerReward = NULL;
 
@@ -138,6 +141,7 @@ protected:
     void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
     void prune_applicable_fix_ops_sss (const GlobalState &state, const std::vector<int> &attack_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
     void prune_dominated_ops(std::vector<const GlobalOperator*> &ops, std::vector<std::vector<int>> dominated_op_ids);
+    void compute_always_applicable_attack_ops(std::vector<GlobalOperator> &ops);
     std::string fix_state_to_string(const GlobalState &state);
     std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
     int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
