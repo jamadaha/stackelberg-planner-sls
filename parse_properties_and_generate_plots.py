@@ -16,12 +16,12 @@ import math
 
 
 FONTSIZE = 18
-legend_FONTSIZE = 22
+legend_FONTSIZE = 10
 LINEWIDTH = 1
 MARKERWIDTH = 30
 MEW = 2
 
-colors = ['b', 'r', 'g', 'k', 'y', 'm', 'c']
+colors = ['b', 'r', 'g', 'k', 'y', 'm', 'c', 'C0', 'C1', 'C2', 'C3', 'C4']
 markers = ['x', 's', '+', '.', 'd']
 fillstyles = ['full', 'none', 'full', 'none', 'none']
 MEWs = ['1', '1', '1', '1', '1']
@@ -38,16 +38,19 @@ def parse_properties_file(problem_file_name):
     domain_and_num_con = content['domain']
     i = domain_and_num_con.find("-tc")
     domain = domain_and_num_con[0:i]
+    # HACK!!!
+    if domain == "pentesting-large-robustness-rs42":
+        domain = "pentesting-robustness-rs42"
     num_con = int(domain_and_num_con[i+3:])
     problem = content['problem']
     coverage = content['coverage']
     config = content['config_nick']
-    print domain_and_num_con
-    print domain
-    print num_con
-    print problem
-    print coverage
-    print config
+    #print domain_and_num_con
+    #print domain
+    #print num_con
+    #print problem
+    #print coverage
+    #print config
     if domain not in dic:
         dic[domain] = dict()
     if config not in dic[domain]:
@@ -73,21 +76,34 @@ def sort_data_pints (x_array, y_array):
 
     return x_array, new_y_array
 
+def prettify_config (config):
+    config_mapping = {'IDS with DEADPDB, LM-cut, w/o AUBP': 'OPT, w/o AUBP',
+                      'IDS with DEADPDB, FF, w/o POR PAPA AUBP': 'SAT, w/o POR PAPA AUBP',
+                      'IDS with DEADPDB, LM-cut': 'OPT',
+                      'IDS with DEADPDB, FF, w/o AUBP': 'SAT, w/o AUBP',
+                      'IDS with DEADPDB, FF, w/o PAPA': 'SAT, w/o PAPA',
+                      'IDS with DEADPDB, LM-cut, w/o PAPA': 'OPT, w/o PAPA',
+                      'IDS with DEADPDB, FF': 'SAT',
+                      'IDS with DEADPDB, FF, and sorting fix ops, w/o POR': 'SAT, w/o POR',
+                      'IDS with DEADPDB, LM-cut, w/o POR': 'OPT, w/o POR',
+                      'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'OPT, w/o POR PAPA AUBP'}
+    return config_mapping[config]
+
 
 def plot_coverage_for_domain(domain):
     fig, ax = plt.subplots(figsize=(15, 7))
     # plt.style.use('grayscale')
 
     abs_num_total_instances = 0.0
-    for _, coverage in dic[domain][dic[domain].keys()[0]][1].iteritems():
-        abs_num_total_instances += 1.0
+    #for _, coverage in dic[domain][dic[domain].keys()[0]][1].iteritems():
+    #   abs_num_total_instances += 1.0
 
     i = 0
     x_array = []
     y_array = []
     y_array_total = []
     for config, config_dic in dic[domain].iteritems():
-        if config not in interesting_configs:
+        if interesting_configs is not None and config not in interesting_configs:
             continue
 
         del x_array[:]
@@ -101,26 +117,26 @@ def plot_coverage_for_domain(domain):
                 y += coverage
                 y_total += 1.0
             y_array.append(y/y_total)
-            y_array_total.append(y_total/abs_num_total_instances)
+            #y_array_total.append(y_total/abs_num_total_instances)
 
         _, y_array = sort_data_pints(x_array, y_array)
         x_array, y_array_total = sort_data_pints(x_array, y_array_total)
 
-        assert (y_array_total[0] == 1.0)
+        #assert (y_array_total[0] == 1.0)
 
         # write: '--' + markers[i] for line between markers
         # additional marker options: , fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i]
-        line = plt.plot(x_array, y_array, '--',  \
+        line = plt.plot(x_array, y_array, '--' + markers[i], fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i],  \
                         linewidth=LINEWIDTH, \
-                        label=config)
+                        label=prettify_config(config))
         plt.setp(line, color=colors[i])
         i += 1
 
-    line = plt.plot(x_array, y_array_total, '--' + '_', fillstyle='full', markersize=MARKERWIDTH, \
-                    linewidth=LINEWIDTH, \
-                    markeredgewidth='1', \
-                    label='Total')
-    plt.setp(line, color='g')
+    #line = plt.plot(x_array, y_array_total, '--' + '_', fillstyle='full', markersize=MARKERWIDTH, \
+    #                linewidth=LINEWIDTH, \
+    #                markeredgewidth='1', \
+    #                label='Total')
+    #plt.setp(line, color='g')
 
     ax.legend(loc='best', fontsize=legend_FONTSIZE)
 
@@ -140,16 +156,17 @@ def plot_coverage_for_domain(domain):
 
     ax.set_xticks(ticks)
     ax.get_xaxis().set_major_formatter(ScalarFormatter())
-    # ax.set_xlim(xmin=0)
+    ax.set_xlim(xmin=0.85)
 
     # plt.title('Cost and Reward for Five-eyes vs. DE scenarios 4 and 8')
     ax.grid(color='lightgrey', linestyle='--', linewidth=0.5)
 
-    # ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: str(int(x * 100)) + '%'))
+    ax.set_ylim(ymin=-0.05, ymax=1.05)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: str(int(x * 100)) + '%'))
     # default_formatter = ax.get_xaxis().get_major_formatter()
     # ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: 0 if pos == 2 else default_formatter(x,pos)))
 
-    output_file = domain + ".pdf"
+    output_file = domain + args.name_suffix + ".pdf"
     plt.savefig(output_file, format='pdf', bbox_inches='tight')
     # plt.show()
 
@@ -160,6 +177,7 @@ def plot_coverage_for_domain(domain):
 p = argparse.ArgumentParser(description="")
 p.add_argument("--dir", nargs='+', type=str, help="The directories which should be crawled", default=None)
 p.add_argument("--configs", nargs='+', type=str, help="The interesting configs which you want to plot", default=None)
+p.add_argument("--name-suffix", type=str, help="The output filename suffix", default="")
 args = p.parse_args(sys.argv[1:])
 
 interesting_configs = args.configs
