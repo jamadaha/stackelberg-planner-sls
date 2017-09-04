@@ -204,11 +204,16 @@ void FixActionsSearch::sort_operators()
 		}
 
 		if (op_name.find("attack") == 0) {
-			//string prob = everything_before_whitespace.substr(underscore + 1);
-			//int success_prob_cost = parse_success_prob_cost(prob);
-			// Note that cost and cost2 are swapped here on purpose!
-			//g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
-			//g_operators[op_no].set_cost(success_prob_cost);
+			string prob = everything_before_whitespace.substr(underscore + 1);
+			int success_prob_cost = parse_success_prob_cost(prob);
+			if (success_prob_cost == -1) {
+				g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
+			} else {
+				// Note that cost and cost2 are swapped here on purpose!
+				g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
+				g_operators[op_no].set_cost(success_prob_cost);
+			}
+
 			g_operators[op_no].set_op_id(attack_action_op_id);
 			attack_action_op_id++;
 
@@ -255,7 +260,7 @@ int FixActionsSearch::parse_success_prob_cost(string prob)
     if (backslash == string::npos) {
         cout << "No correct success probability suffix found! Error in PDDL file?" <<
              endl;
-        exit(EXIT_INPUT_ERROR);
+        return -1;
     }
 
     string numerator_string = prob.substr(0, backslash);
