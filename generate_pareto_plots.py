@@ -88,7 +88,7 @@ MEWs = ['1', '1', '1', '1', '1']
 
 fig, ax = plt.subplots(figsize=(15,7))
 
-output_file = "scatter_" + interesting_domain + "_" + interesting_config + ".pdf"
+output_file = "scatter_" + interesting_domain + "_" + interesting_config.replace(" ", "").replace(",", "") + ".pdf"
 
 x_array =[]
 y_array = []
