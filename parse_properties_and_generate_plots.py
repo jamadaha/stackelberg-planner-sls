@@ -98,17 +98,17 @@ def plot_coverage_for_domain(domain):
     #for _, coverage in dic[domain][dic[domain].keys()[0]][1].iteritems():
     #   abs_num_total_instances += 1.0
 
-    i = 0
-    x_array = []
-    y_array = []
-    y_array_total = []
+    x_arrays = []
+    y_arrays = []
+    y_total_arrays = []
+    first_zero_coverage_indezes = []
     for config, config_dic in dic[domain].iteritems():
         if interesting_configs is not None and config not in interesting_configs:
             continue
 
-        del x_array[:]
-        del y_array[:]
-        del y_array_total[:]
+        x_array = []
+        y_array = []
+        y_array_total = []
         for num_con, problem_dic in config_dic.iteritems():
             x_array.append(num_con)
             y = 0.0
@@ -124,13 +124,36 @@ def plot_coverage_for_domain(domain):
 
         #assert (y_array_total[0] == 1.0)
 
+        first_zero_coverage_index = len(y_array) - 1
+        for j in range(len(y_array)):
+            if first_zero_coverage_index == len(y_array) - 1  and y_array[j] == 0:
+                first_zero_coverage_index = j
+            elif first_zero_coverage_index != len(y_array) - 1:
+                if y_array[j] != 0:
+                    first_zero_coverage_index = len(y_array) - 1
+                    print "first_zero_coverage_index resetted for " + domain + " " + config
+
+        x_arrays.append(x_array)
+        y_arrays.append(y_array)
+        y_total_arrays.append(y_array_total)
+        first_zero_coverage_indezes.append(first_zero_coverage_index)
+
+
+    max_first_zero_coverage_index = 0
+    for i in range(len(first_zero_coverage_indezes)):
+        max_first_zero_coverage_index = max(max_first_zero_coverage_index, first_zero_coverage_indezes[i])
+
+    for i in range(len(x_arrays)):
+        x_array = x_arrays[i]
+        y_array = y_arrays[i]
         # write: '--' + markers[i] for line between markers
         # additional marker options: , fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i]
-        line = plt.plot(x_array, y_array, '--' + markers[i], fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i],  \
-                        linewidth=LINEWIDTH, \
-                        label=prettify_config(config))
+        line = plt.plot(x_array[:max_first_zero_coverage_index + 1], y_array[:max_first_zero_coverage_index + 1], '--' + markers[i],
+                    fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i], \
+                    linewidth=LINEWIDTH, \
+                    label=prettify_config(config))
         plt.setp(line, color=colors[i])
-        i += 1
+
 
     #line = plt.plot(x_array, y_array_total, '--' + '_', fillstyle='full', markersize=MARKERWIDTH, \
     #                linewidth=LINEWIDTH, \
@@ -146,8 +169,8 @@ def plot_coverage_for_domain(domain):
     plt.yticks(fontsize=FONTSIZE)
     plt.xscale('log')
 
-    last_x = x_array[-1]
-    ticks = [1, 2, 3, 4, 5, 6, 8, 10, 16, 25, 32, 50, 64, 128, 1024, 4096]
+    last_x = x_array[:max_first_zero_coverage_index+1][-1]
+    ticks = [1, 2, 3, 4, 5, 6, 8, 10, 16, 25, 32, 50, 64, 128, 256, 1024, 4096]
     for i in range(len(ticks)):
         tick = ticks[i]
         if tick >= last_x:
