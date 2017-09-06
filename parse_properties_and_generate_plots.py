@@ -22,9 +22,9 @@ MARKERWIDTH = 30
 MEW = 2
 
 colors = ['b', 'r', 'g', 'k', 'y', 'm', 'c', 'C0', 'C1', 'C2', 'C3', 'C4']
-markers = ['x', 's', '+', '.', 'd']
-fillstyles = ['full', 'none', 'full', 'none', 'none']
-MEWs = ['1', '1', '1', '1', '1']
+markers = ['x', 's', '+', '.', 'd', '*']
+fillstyles = ['full', 'none', 'full', 'none', 'none', 'none']
+MEWs = ['1', '1', '1', '1', '1', '1']
 
 
 dic = {}
@@ -86,7 +86,9 @@ def prettify_config (config):
                       'IDS with DEADPDB, FF': 'SAT',
                       'IDS with DEADPDB, FF, and sorting fix ops, w/o POR': 'SAT, w/o POR',
                       'IDS with DEADPDB, LM-cut, w/o POR': 'OPT, w/o POR',
-                      'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'OPT, w/o POR PAPA AUBP'}
+                      'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'OPT, w/o POR PAPA AUBP',
+                      'DFS with DEADPDB, FF, w/o POR PAPA AUBP': 'DFS SAT, w/o POR PAPA AUBP',
+                      'DFS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'DFS OPT, w/o POR PAPA AUBP'}
     return config_mapping[config]
 
 
@@ -102,6 +104,7 @@ def plot_coverage_for_domain(domain):
     y_arrays = []
     y_total_arrays = []
     first_zero_coverage_indezes = []
+    configs = []
     for config, config_dic in dic[domain].iteritems():
         if interesting_configs is not None and config not in interesting_configs:
             continue
@@ -137,6 +140,7 @@ def plot_coverage_for_domain(domain):
         y_arrays.append(y_array)
         y_total_arrays.append(y_array_total)
         first_zero_coverage_indezes.append(first_zero_coverage_index)
+        configs.append(config)
 
 
     max_first_zero_coverage_index = 0
@@ -151,7 +155,7 @@ def plot_coverage_for_domain(domain):
         line = plt.plot(x_array[:max_first_zero_coverage_index + 1], y_array[:max_first_zero_coverage_index + 1], '--' + markers[i],
                     fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i], \
                     linewidth=LINEWIDTH, \
-                    label=prettify_config(config))
+                    label=prettify_config(configs[i]))
         plt.setp(line, color=colors[i])
 
 
@@ -169,7 +173,7 @@ def plot_coverage_for_domain(domain):
     plt.yticks(fontsize=FONTSIZE)
     plt.xscale('log')
 
-    last_x = x_array[:max_first_zero_coverage_index+1][-1]
+    last_x = x_arrays[0][:max_first_zero_coverage_index+1][-1]
     ticks = [1, 2, 3, 4, 5, 6, 8, 10, 16, 25, 32, 50, 64, 128, 256, 1024, 4096]
     for i in range(len(ticks)):
         tick = ticks[i]
@@ -200,10 +204,12 @@ def plot_coverage_for_domain(domain):
 p = argparse.ArgumentParser(description="")
 p.add_argument("--dir", nargs='+', type=str, help="The directories which should be crawled", default=None)
 p.add_argument("--configs", nargs='+', type=str, help="The interesting configs which you want to plot", default=None)
+p.add_argument("--domains", nargs='+', type=str, help="The interesting domains which you want to plot", default=None)
 p.add_argument("--name-suffix", type=str, help="The output filename suffix", default="")
 args = p.parse_args(sys.argv[1:])
 
 interesting_configs = args.configs
+interesting_domains = args.domains
 
 for dir in args.dir:
     files_in_dir = os.listdir(dir)
@@ -221,7 +227,8 @@ for dir in args.dir:
 
 #print dic
 for domain, _ in dic.iteritems():
-    plot_coverage_for_domain(domain)
+    if interesting_domains == None or domain in interesting_domains:
+        plot_coverage_for_domain(domain)
 
 
 #for file in filesin_dir:
