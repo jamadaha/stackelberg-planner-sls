@@ -23,7 +23,7 @@ only_sat_configs_str = ""
 for str in only_sat_configs:
     only_sat_configs_str += " \'" + str + "\'"
 
-pentesting_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-03-09-17/'
+pentesting_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17-2/'
 robustness_wo_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/'
 robustness_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/'
 
