@@ -27,7 +27,7 @@ def parse_properties_file(problem_file_name):
     # HACK!!!
     if domain == "pentesting-large-robustness-rs42":
         domain = "pentesting-robustness-rs42"
-    num_con = int(domain_and_num_con[i+3:])
+    num_con = domain_and_num_con[i+3:]
     problem = content['problem']
     coverage = content['coverage']
     config = content['config_nick']
@@ -37,18 +37,20 @@ def parse_properties_file(problem_file_name):
     #print problem
     #print coverage
     #print config
-    return domain_and_num_con, config, problem, coverage
+    return domain, num_con, config, problem, coverage
 
 
 p = argparse.ArgumentParser(description="")
 p.add_argument("--dir", nargs='+', type=str, help="The directories which should be crawled", default=None)
 p.add_argument("--config", type=str, help="The interesting config which you want to plot", default=None)
 p.add_argument("--domain", type=str, help="The interesting domain which you want to plot", default=None)
+p.add_argument("--tcs", nargs='+', type=str, help="The interesting total number of connections you want to plot", default=None)
 p.add_argument("--name-suffix", type=str, help="The output filename suffix", default="")
 args = p.parse_args(sys.argv[1:])
 
 interesting_config = args.config
 interesting_domain = args.domain
+interesting_num_cons = args.tcs
 
 pareto_paths = []
 
@@ -63,8 +65,8 @@ for dir in args.dir:
             files_in_subdir = os.listdir(subdir)
             for file in files_in_subdir:
                 if file.find("properties") != -1:
-                    domain_and_num_con, config, problem, coverage = parse_properties_file(os.path.join(subdir, file))
-                    if domain_and_num_con == interesting_domain and config == interesting_config and coverage == 1:
+                    domain, num_con, config, problem, coverage = parse_properties_file(os.path.join(subdir, file))
+                    if domain == interesting_domain and (interesting_num_cons is None or num_con in interesting_num_cons) and config == interesting_config and coverage == 1:
                         if os.path.exists(os.path.join(subdir, "pareto_frontier.json")) != -1:
                             pareto_paths.append(os.path.join(subdir, "pareto_frontier.json"))
                         else:
@@ -74,14 +76,14 @@ for dir in args.dir:
 
 FONTSIZE = 18
 legend_FONTSIZE = 22
-LINEWIDTH = 1
+LINEWIDTH = 3
 MARKERWIDTH = 30
 MEW = 2
 
 #colors = ['b', 'r', 'g', 'k', 'y', 'm', 'c']
-markers = ['x', 's', '+', '.', 'd']
+markers = ['x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*']
 filled_markers = ['o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X']
-fillstyles = ['full', 'none', 'full', 'none', 'none']
+fillstyles = ['full', 'none', 'full', 'none', 'none', 'none',    'full', 'none', 'full', 'none', 'none', 'none',   'full', 'none', 'full', 'none', 'none', 'none']
 MEWs = ['1', '1', '1', '1', '1']
 
 fig, ax = plt.subplots(figsize=(15,7))
@@ -93,7 +95,6 @@ y_array = []
 
 plt.style.use('grayscale')
 
-i = 0
 max_y = 0
 x_arrays = []
 y_arrays = []
@@ -109,6 +110,9 @@ for pareto_path in pareto_paths:
                 for entry in pareto[0:]:
                     x = entry['defender cost']
                     y = abs(entry['attacker cost'])
+                    if y == MAX_INT:
+                        s = entry['sequences']
+                        print s
                     if y != MAX_INT:
                         max_y = max(max_y, y)
                     if x == 0:
@@ -125,9 +129,9 @@ for pareto_path in pareto_paths:
                 if y_array[0] == MAX_INT:
                     print pareto_path + "skipped, because not solvable in initial state"
                     continue
-                x_arrays.append(x_array)
-                y_arrays.append(y_array)
-                i += 1
+                if x_array not in x_arrays and y_arrays not in y_arrays:
+                    x_arrays.append(x_array)
+                    y_arrays.append(y_array)
 
 inf_representation = 1.5 * max_y
 y_axis_max = 1.6 * max_y
@@ -141,7 +145,7 @@ for i in range(len(x_arrays)):
     x_array = x_arrays[i]
     y_array = y_arrays[i]
 # write: '--' + markers[i] for line between markers
-    line = ax.plot(x_array, y_array, '--' + filled_markers[i], label='a', c=next(colors))
+    line = ax.plot(x_array, y_array, '--' + markers[i], fillstyle=fillstyles[i], label='a', c=next(colors), markersize=MARKERWIDTH, linewidth=LINEWIDTH, MEW=2)
 #line = plt.plot(x_array, y_array, markers[0], fillstyle=fillstyles[0], markersize=MARKERWIDTH, \
 #                            linewidth=LINEWIDTH, \
 #                            markeredgewidth=MEWs[0], \
@@ -154,7 +158,7 @@ for i in range(len(x_arrays)):
 #             linewidth=LINEWIDTH, \
 #             label=attacker + ' vs. ' + dc + ', scenario ' + s)
 
-ax.legend(loc='best', fontsize=legend_FONTSIZE)
+#ax.legend(loc='best', fontsize=legend_FONTSIZE)
 
 plt.xlabel('Leader Cost',fontsize=FONTSIZE)
 plt.ylabel('Follower Cost',fontsize=FONTSIZE)
