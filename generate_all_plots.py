@@ -9,13 +9,13 @@ only_opt_configs = ['IDS with DEADPDB, LM-cut, w/o AUBP',
                       'IDS with DEADPDB, LM-cut',
                       'IDS with DEADPDB, LM-cut, w/o PAPA',
                       'IDS with DEADPDB, LM-cut, w/o POR',
-                      'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP',
+                      #'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP',
                       'DFS with DEADPDB, LM-cut, w/o POR PAPA AUBP']
 only_opt_configs_str = ""
 for str in only_opt_configs:
     only_opt_configs_str += " \'" + str + "'"
 
-only_sat_configs = ['IDS with DEADPDB, FF, w/o POR PAPA AUBP',
+only_sat_configs = [#'IDS with DEADPDB, FF, w/o POR PAPA AUBP',
                       'IDS with DEADPDB, FF, w/o AUBP',
                       'IDS with DEADPDB, FF, w/o PAPA',
                       'IDS with DEADPDB, FF',
@@ -47,3 +47,8 @@ os.system("python parse_properties_and_generate_plots.py --dir " + robustness_wo
 print 6
 os.system("python parse_properties_and_generate_plots.py --dir " + robustness_driving_dirs + " --configs" + only_sat_configs_str + " --domains " + robustness_driving_domains + " --name-suffix _sat")
 print 7
+
+os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17 --domain no-mystery-robustness-driving-rs42 --config 'IDS with DEADPDB, LM-cut'")
+print 8
+os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17 --domain visitall-opt14-strips-robustness-driving-rs42 --config 'IDS with DEADPDB, LM-cut' --tcs 5 10 16 50")
+print 9
