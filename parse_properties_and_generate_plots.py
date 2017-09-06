@@ -167,7 +167,10 @@ def plot_coverage_for_domain(domain):
 
     ax.legend(loc='best', fontsize=legend_FONTSIZE)
 
-    plt.xlabel('#Conn', fontsize=FONTSIZE)
+    if interesting_domains == ["pentesting-robustness-rs42"]:
+        plt.xlabel('#Fix actions', fontsize=FONTSIZE)
+    else:
+        plt.xlabel('#Conn', fontsize=FONTSIZE)
     plt.ylabel('Coverage', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE)
     plt.yticks(fontsize=FONTSIZE)
