@@ -44,7 +44,12 @@ def parse_properties_file(problem_file_name):
     num_con = int(domain_and_num_con[i+3:])
     problem = content['problem']
     coverage = content['coverage']
+    search_returncode = content['search_returncode']
     config = content['config_nick']
+    if (domain.find("sokoban") != -1 or domain.find("no-mystery") != -1) and coverage == 0 and search_returncode == 0:
+        print "HACK! Set coverage to 1 because of 0 return code for " + domain_and_num_con + "/" + problem
+        coverage = 1
+
     #print domain_and_num_con
     #print domain
     #print num_con
@@ -77,23 +82,25 @@ def sort_data_pints (x_array, y_array):
     return x_array, new_y_array
 
 def prettify_config (config):
-    config_mapping = {'IDS with DEADPDB, LM-cut, w/o AUBP': 'OPT, w/o AUBP',
-                      'IDS with DEADPDB, FF, w/o POR PAPA AUBP': 'SAT, w/o POR PAPA AUBP',
-                      'IDS with DEADPDB, LM-cut': 'OPT',
-                      'IDS with DEADPDB, FF, w/o AUBP': 'SAT, w/o AUBP',
-                      'IDS with DEADPDB, FF, w/o PAPA': 'SAT, w/o PAPA',
-                      'IDS with DEADPDB, LM-cut, w/o PAPA': 'OPT, w/o PAPA',
-                      'IDS with DEADPDB, FF': 'SAT',
-                      'IDS with DEADPDB, FF, and sorting fix ops, w/o POR': 'SAT, w/o POR',
-                      'IDS with DEADPDB, LM-cut, w/o POR': 'OPT, w/o POR',
-                      'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'OPT, w/o POR PAPA AUBP',
-                      'DFS with DEADPDB, FF, w/o POR PAPA AUBP': 'DFS SAT, w/o POR PAPA AUBP',
-                      'DFS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'DFS OPT, w/o POR PAPA AUBP'}
+    config_mapping = {'IDS with DEADPDB, LM-cut, w/o AUBP': 'IDS FSP + SSS',
+                      'IDS with DEADPDB, FF, w/o POR PAPA AUBP': 'IDS Baseline',
+                      'IDS with DEADPDB, LM-cut': 'FSP + SSS + LSP',
+                      'IDS with DEADPDB, FF, w/o AUBP': 'IDS FSP + SSS',
+                      'IDS with DEADPDB, FF, w/o PAPA': 'SSS + LSP',
+                      'IDS with DEADPDB, LM-cut, w/o PAPA': 'SSS + LSP',
+                      'IDS with DEADPDB, FF': 'FSP + SSS + LSP',
+                      'IDS with DEADPDB, FF, and sorting fix ops, w/o POR': 'FSP + LSP',
+                      'IDS with DEADPDB, LM-cut, w/o POR': 'FSP + LSP',
+                      'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'IDS Baseline',
+                      'DFS with DEADPDB, FF, w/o POR PAPA AUBP': 'Baseline',
+                      'DFS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'Baseline',
+                      'DFS with DEADPDB, LM-cut, w/o AUBP': 'FSP + SSS',
+                      'DFS with DEADPDB, FF, w/o AUBP': 'FSP + SSS'}
     return config_mapping[config]
 
 
 def plot_coverage_for_domain(domain):
-    fig, ax = plt.subplots(figsize=(15, 7))
+    fig, ax = plt.subplots(figsize=(13, 6))
     # plt.style.use('grayscale')
 
     abs_num_total_instances = 0.0
