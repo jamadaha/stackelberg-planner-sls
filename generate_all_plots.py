@@ -30,6 +30,7 @@ for str in only_sat_configs:
 pentesting_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17-2/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 robustness_wo_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 robustness_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
+transport_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17-2/'
 
 pentesting_domains = 'pentesting-robustness-rs42'
 robustness_wo_driving_domains = 'logistics98-robustness-rs42 no-mystery-robustness-rs42 sokoban-opt11-strips-robustness-rs42 visitall-opt14-strips-robustness-rs42'
@@ -54,3 +55,6 @@ os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStu
 print 8
 os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17 --domain visitall-opt14-strips-robustness-driving-rs42 --config 'IDS with DEADPDB, LM-cut' --tcs 5 10 16 50")
 print 9
+
+#os.system("python parse_properties_and_generate_plots.py --dir " + transport_dirs + " --configs" + only_sat_configs_str + " --name-suffix _sat")
+#os.system("python parse_properties_and_generate_plots.py --dir " + transport_dirs + " --configs" + only_opt_configs_str + " --name-suffix _opt")
