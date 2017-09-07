@@ -16,9 +16,9 @@ import math
 
 
 FONTSIZE = 18
-legend_FONTSIZE = 10
+legend_FONTSIZE = 17
 LINEWIDTH = 1
-MARKERWIDTH = 30
+MARKERWIDTH = 24
 MEW = 2
 
 colors = ['b', 'r', 'g', 'k', 'y', 'm', 'c', 'C0', 'C1', 'C2', 'C3', 'C4']
