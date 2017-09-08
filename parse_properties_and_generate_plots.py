@@ -112,7 +112,8 @@ def plot_coverage_for_domain(domain):
     y_total_arrays = []
     first_zero_coverage_indezes = []
     configs = []
-    for config, config_dic in dic[domain].iteritems():
+    config_iteritems = sorted(dic[domain].iteritems())
+    for config, config_dic in config_iteritems:
         if interesting_configs is not None and config not in interesting_configs:
             continue
 
