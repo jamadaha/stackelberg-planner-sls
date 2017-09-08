@@ -30,25 +30,36 @@ for str in only_sat_configs:
 pentesting_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17-2/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 robustness_wo_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 robustness_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
+all_robustness_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 transport_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17-2/'
 
 pentesting_domains = 'pentesting-robustness-rs42'
 robustness_wo_driving_domains = 'logistics98-robustness-rs42 no-mystery-robustness-rs42 sokoban-opt11-strips-robustness-rs42 visitall-opt14-strips-robustness-rs42'
 robustness_driving_domains = 'logistics98-robustness-driving-rs42 no-mystery-robustness-driving-rs42 sokoban-opt11-strips-robustness-walls-rs42 visitall-opt14-strips-robustness-driving-rs42'
+all_robustness_domains = 'logistics98-robustness-rs42 no-mystery-robustness-rs42 sokoban-opt11-strips-robustness-rs42 visitall-opt14-strips-robustness-rs42'
 
 print 1
 os.system("python parse_properties_and_generate_plots.py --dir " + pentesting_dirs + " --configs" + only_opt_configs_str + " --domains " + pentesting_domains + " --name-suffix _opt")
 print 2
-os.system("python parse_properties_and_generate_plots.py --dir " + robustness_wo_driving_dirs + " --configs" + only_opt_configs_str + " --domains " + robustness_wo_driving_domains + " --name-suffix _opt")
+os.system("python parse_properties_and_generate_plots.py --dir " + all_robustness_dirs + " --configs" + only_opt_configs_str + " --domains " + all_robustness_domains + " --name-suffix _opt")
+
+
+
+
+#os.system("python parse_properties_and_generate_plots.py --dir " + robustness_wo_driving_dirs + " --configs" + only_opt_configs_str + " --domains " + robustness_wo_driving_domains + " --name-suffix _opt")
 print 3
-os.system("python parse_properties_and_generate_plots.py --dir " + robustness_driving_dirs + " --configs" + only_opt_configs_str + " --domains " + robustness_driving_domains + " --name-suffix _opt")
+#os.system("python parse_properties_and_generate_plots.py --dir " + robustness_driving_dirs + " --configs" + only_opt_configs_str + " --domains " + robustness_driving_domains + " --name-suffix _opt")
 print 4
 
 os.system("python parse_properties_and_generate_plots.py --dir " + pentesting_dirs + " --configs" + only_sat_configs_str + " --domains " + pentesting_domains + " --name-suffix _sat")
 print 5
-os.system("python parse_properties_and_generate_plots.py --dir " + robustness_wo_driving_dirs + " --configs" + only_sat_configs_str + " --domains " + robustness_wo_driving_domains + " --name-suffix _sat")
+os.system("python parse_properties_and_generate_plots.py --dir " + all_robustness_dirs + " --configs" + only_sat_configs_str + " --domains " + all_robustness_domains + " --name-suffix _sat")
+
+
+
+#os.system("python parse_properties_and_generate_plots.py --dir " + robustness_wo_driving_dirs + " --configs" + only_sat_configs_str + " --domains " + robustness_wo_driving_domains + " --name-suffix _sat")
 print 6
-os.system("python parse_properties_and_generate_plots.py --dir " + robustness_driving_dirs + " --configs" + only_sat_configs_str + " --domains " + robustness_driving_domains + " --name-suffix _sat")
+#os.system("python parse_properties_and_generate_plots.py --dir " + robustness_driving_dirs + " --configs" + only_sat_configs_str + " --domains " + robustness_driving_domains + " --name-suffix _sat")
 print 7
 
 os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17 --domain no-mystery-robustness-driving-rs42 --config 'IDS with DEADPDB, LM-cut'")
