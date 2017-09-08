@@ -95,8 +95,17 @@ void FixActionsSearch::initialize()
     cout << "fix_variable_domain.size() = " << fix_variable_domain.size() << endl;
     cout << "fix_vars_attacker_preconditioned.size() = " << fix_vars_attacker_preconditioned.size() << endl;
 
-    fix_search_node_infos_attack_plan.set_relevant_variables(
-        fix_vars_attacker_preconditioned);
+    if(check_parent_attack_plan_applicable) {
+        fix_search_node_infos_attack_plan.set_relevant_variables(
+            fix_vars_attacker_preconditioned);
+    } else {
+    		vector<int> temp;
+        for (size_t var = 0; var < fix_variable_domain.size(); var++) {
+                temp.push_back(var);
+        }
+        fix_search_node_infos_attack_plan.set_relevant_variables(temp);
+    }
+
 
     fix_operators_successor_generator = create_successor_generator(
                                             fix_variable_domain, fix_operators, fix_operators);
