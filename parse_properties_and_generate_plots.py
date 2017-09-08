@@ -41,13 +41,17 @@ def parse_properties_file(problem_file_name):
     # HACK!!!
     if domain == "pentesting-large-robustness-rs42":
         domain = "pentesting-robustness-rs42"
+
+    # HACK!!!!
+    domain = domain.replace("-driving", "").replace("-walls", "")
+
     num_con = int(domain_and_num_con[i+3:])
     problem = content['problem']
     coverage = content['coverage']
     search_returncode = content['search_returncode']
     config = content['config_nick']
     if (domain.find("sokoban") != -1 or domain.find("no-mystery") != -1) and coverage == 0 and search_returncode == 0:
-        print "HACK! Set coverage to 1 because of 0 return code for " + domain_and_num_con + "/" + problem
+        #print "HACK! Set coverage to 1 because of 0 return code for " + domain_and_num_con + "/" + problem
         coverage = 1
 
     #print domain_and_num_con
@@ -62,7 +66,10 @@ def parse_properties_file(problem_file_name):
         dic[domain][config] = dict()
     if num_con not in dic[domain][config]:
         dic[domain][config][num_con] = dict()
-    dic[domain][config][num_con][problem] = coverage
+    if problem not in dic[domain][config][num_con]:
+        dic[domain][config][num_con][problem] = coverage
+    else:
+        dic[domain][config][num_con][problem] += coverage
 
 def sort_data_pints (x_array, y_array):
     x_array = list(x_array)
@@ -144,6 +151,11 @@ def plot_coverage_for_domain(domain):
             for _, coverage in problem_dic.iteritems():
                 y += coverage
                 y_total += 1.0
+
+            # HACK!!!
+            if domain.find("pentesting") == -1:
+                y_total = y_total * 2.0
+
             y_array.append(y/y_total)
             #y_array_total.append(y_total/abs_num_total_instances)
 
