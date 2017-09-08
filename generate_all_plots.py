@@ -56,5 +56,6 @@ print 8
 os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17 --domain visitall-opt14-strips-robustness-driving-rs42 --config 'IDS with DEADPDB, LM-cut' --tcs 5 10 16 50")
 print 9
 
+
 #os.system("python parse_properties_and_generate_plots.py --dir " + transport_dirs + " --configs" + only_sat_configs_str + " --name-suffix _sat")
 #os.system("python parse_properties_and_generate_plots.py --dir " + transport_dirs + " --configs" + only_opt_configs_str + " --name-suffix _opt")

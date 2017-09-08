@@ -98,6 +98,23 @@ def prettify_config (config):
                       'DFS with DEADPDB, FF, w/o AUBP': 'FSP + SSS'}
     return config_mapping[config]
 
+def compare_config_iteritems (items1, items2):
+    place_in_legend_for_prettified_config = {'Baseline': 0,
+                                             'IDS Baseline': 1,
+                                             'FSP + SSS': 2,
+                                             'IDS FSP + SSS': 3,
+                                             'FSP + LSP': 4,
+                                             'SSS + LSP': 5,
+                                             'FSP + SSS + LSP': 10
+                                             }
+
+    if place_in_legend_for_prettified_config[prettify_config(items1[0])] < place_in_legend_for_prettified_config[prettify_config(items2[0])]:
+        return -1
+    elif place_in_legend_for_prettified_config[prettify_config(items1[0])] > place_in_legend_for_prettified_config[prettify_config(items2[0])]:
+        return 1
+    else:
+        return 0
+
 
 def plot_coverage_for_domain(domain):
     fig, ax = plt.subplots(figsize=(13, 6))
@@ -112,7 +129,7 @@ def plot_coverage_for_domain(domain):
     y_total_arrays = []
     first_zero_coverage_indezes = []
     configs = []
-    config_iteritems = sorted(dic[domain].iteritems())
+    config_iteritems = sorted(dic[domain].iteritems(), cmp=compare_config_iteritems)
     for config, config_dic in config_iteritems:
         if interesting_configs is not None and config not in interesting_configs:
             continue
@@ -175,11 +192,13 @@ def plot_coverage_for_domain(domain):
 
     ax.legend(loc='best', fontsize=legend_FONTSIZE)
 
-    if interesting_domains == ["pentesting-robustness-rs42"]:
-        plt.xlabel('#Fix actions', fontsize=FONTSIZE)
-    else:
-        plt.xlabel('#Conn', fontsize=FONTSIZE)
-    plt.ylabel('Coverage', fontsize=FONTSIZE)
+    #if domain == "pentesting-robustness-rs42":
+    #    plt.xlabel('Fix actions', fontsize=FONTSIZE)
+    #elif domain.find("sokoban-opt11-strips-robustness") != -1:
+    #    plt.xlabel('Walls', fontsize=FONTSIZE)
+    #else:
+    #    plt.xlabel('Connections', fontsize=FONTSIZE)
+    #plt.ylabel('Coverage', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE)
     plt.yticks(fontsize=FONTSIZE)
     plt.xscale('log')
