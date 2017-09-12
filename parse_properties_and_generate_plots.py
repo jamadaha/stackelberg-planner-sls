@@ -71,7 +71,7 @@ def parse_properties_file(problem_file_name):
     else:
         dic[domain][config][num_con][problem] += coverage
 
-def sort_data_pints (x_array, y_array):
+def sort_data_points (x_array, y_array):
     x_array = list(x_array)
     old_pos_by_x_value = {}
     for i in range(len(x_array)):
@@ -91,16 +91,22 @@ def sort_data_pints (x_array, y_array):
 def prettify_config (config):
     config_mapping = {'IDS with DEADPDB, LM-cut, w/o AUBP': 'IDS FSP + SSS',
                       'IDS with DEADPDB, FF, w/o POR PAPA AUBP': 'IDS Baseline',
+                      'IDS with DEADPDB, FF, w/o POR (real)PAPA AUBP': 'IDS Baseline',
                       'IDS with DEADPDB, LM-cut': 'FSP + SSS + LSP',
                       'IDS with DEADPDB, FF, w/o AUBP': 'IDS FSP + SSS',
                       'IDS with DEADPDB, FF, w/o PAPA': 'SSS + LSP',
+                      'IDS with DEADPDB, FF, w/o (real)PAPA': 'SSS + LSP',
                       'IDS with DEADPDB, LM-cut, w/o PAPA': 'SSS + LSP',
+                      'IDS with DEADPDB, LM-cut, w/o (real)PAPA': 'SSS + LSP',
                       'IDS with DEADPDB, FF': 'FSP + SSS + LSP',
                       'IDS with DEADPDB, FF, and sorting fix ops, w/o POR': 'FSP + LSP',
                       'IDS with DEADPDB, LM-cut, w/o POR': 'FSP + LSP',
                       'IDS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'IDS Baseline',
+                      'IDS with DEADPDB, LM-cut, w/o POR (real)PAPA AUBP': 'IDS Baseline',
                       'DFS with DEADPDB, FF, w/o POR PAPA AUBP': 'Baseline',
+                      'DFS with DEADPDB, FF, w/o POR (real)PAPA AUBP': 'Baseline',
                       'DFS with DEADPDB, LM-cut, w/o POR PAPA AUBP': 'Baseline',
+                      'DFS with DEADPDB, LM-cut, w/o POR (real)PAPA AUBP': 'Baseline',
                       'DFS with DEADPDB, LM-cut, w/o AUBP': 'FSP + SSS',
                       'DFS with DEADPDB, FF, w/o AUBP': 'FSP + SSS'}
     return config_mapping[config]
@@ -125,6 +131,7 @@ def compare_config_iteritems (items1, items2):
 
 def plot_coverage_for_domain(domain):
     fig, ax = plt.subplots(figsize=(13, 6))
+    #ax2 = ax.twinx()
     # plt.style.use('grayscale')
 
     abs_num_total_instances = 0.0
@@ -140,7 +147,6 @@ def plot_coverage_for_domain(domain):
     for config, config_dic in config_iteritems:
         if interesting_configs is not None and config not in interesting_configs:
             continue
-
         x_array = []
         y_array = []
         y_array_total = []
@@ -157,10 +163,10 @@ def plot_coverage_for_domain(domain):
                 y_total = y_total * 2.0
 
             y_array.append(y/y_total)
-            #y_array_total.append(y_total/abs_num_total_instances)
+            y_array_total.append(y_total)
 
-        _, y_array = sort_data_pints(x_array, y_array)
-        x_array, y_array_total = sort_data_pints(x_array, y_array_total)
+        _, y_array = sort_data_points(x_array, y_array)
+        x_array, y_array_total = sort_data_points(x_array, y_array_total)
 
         #assert (y_array_total[0] == 1.0)
 
@@ -189,18 +195,19 @@ def plot_coverage_for_domain(domain):
         y_array = y_arrays[i]
         # write: '--' + markers[i] for line between markers
         # additional marker options: , fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i]
-        line = plt.plot(x_array[:max_first_zero_coverage_index + 1], y_array[:max_first_zero_coverage_index + 1], '--' + markers[i],
+        line = ax.plot(x_array[:max_first_zero_coverage_index + 1], y_array[:max_first_zero_coverage_index + 1], '--' + markers[i],
                     fillstyle=fillstyles[i], markersize=MARKERWIDTH, markeredgewidth=MEWs[i], \
                     linewidth=LINEWIDTH, \
                     label=prettify_config(configs[i]))
         plt.setp(line, color=colors[i])
 
 
-    #line = plt.plot(x_array, y_array_total, '--' + '_', fillstyle='full', markersize=MARKERWIDTH, \
+    #line = ax2.plot(x_array, y_total_arrays[0], '--' + '_', fillstyle='full', markersize=MARKERWIDTH, \
     #                linewidth=LINEWIDTH, \
     #                markeredgewidth='1', \
     #                label='Total')
-    #plt.setp(line, color='g')
+    #plt.setp(line, color='m')
+    #ax2.set_ylim(ymin=0)
 
     ax.legend(loc='best', fontsize=legend_FONTSIZE)
 
