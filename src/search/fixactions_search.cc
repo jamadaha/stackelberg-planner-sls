@@ -301,6 +301,7 @@ void FixActionsSearch::divide_variables()
                 continue;
             } else {
                 attack_vars[var] = true;
+                attack_vars_indizes.push_back(var);
                 num_attack_vars++;
             }
         }
@@ -1169,6 +1170,9 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
                                           search_engine)->get_open_list();
                 const GlobalState *goal_state = search_engine->get_goal_state();
                 const int goal_state_budget = search_engine->get_goal_state_budget();
+
+                attack_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(attack_vars_indizes);
+
                 attack_heuristic->reinitialize(attack_heuristic_search_space, search_space,
                                                open_list, *goal_state,
                                                goal_state_budget);

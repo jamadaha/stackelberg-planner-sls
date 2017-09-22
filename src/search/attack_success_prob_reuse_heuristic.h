@@ -9,6 +9,7 @@
 #define SRC_SEARCH_ATTACK_SUCCESS_PROB_REUSE_HEURISTIC_H_
 
 #include "heuristic.h"
+#include "per_fix_state_information.h"
 
 struct AttackSearchInfo {
         int attack_plan_prob_cost_heuristic_value;
@@ -17,7 +18,7 @@ struct AttackSearchInfo {
 };
 
 struct AttackSearchSpace {
-	PerStateInformation<BudgetSearchNodeInfo> budget_attack_search_node_infos;
+	PerFixStateInformation<BudgetSearchNodeInfo> budget_attack_search_node_infos;
 	SegmentedVector<AttackSearchInfo> all_attack_search_node_infos;
 };
 

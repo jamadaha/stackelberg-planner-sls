@@ -60,9 +60,9 @@ void AttackSuccessProbReuseHeuristic::reinitialize(AttackSearchSpace* attack_sea
         int budget = state_id_and_budget.second;
         const GlobalState &state = g_state_registry->lookup_state(id);
         const SearchNode &node = search_space->get_node(state, budget);
-    	AttackSearchInfo &info = get_attack_search_info(state, budget);
-    	info.attack_plan_prob_cost_heuristic_value = node.get_h();
-    	own_open_list.push_back(pair<GlobalState, int>(state, budget));
+        AttackSearchInfo &info = get_attack_search_info(state, budget);
+    		info.attack_plan_prob_cost_heuristic_value = node.get_h();
+    		own_open_list.push_back(pair<GlobalState, int>(state, budget));
 	}
 
 

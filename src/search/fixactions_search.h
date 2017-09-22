@@ -64,6 +64,7 @@ private:
 	*/
 
 	std::vector<bool> attack_vars;
+	std::vector<int> attack_vars_indizes;
 	int num_vars = 0;
 	int num_attack_vars = 0;
 	int num_fix_vars = 0;
