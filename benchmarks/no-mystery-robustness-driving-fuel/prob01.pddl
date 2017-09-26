@@ -61,7 +61,8 @@
     (package seitenbacher-muesli)
     (vehicle moped)
     (fix_vehicle truck-fix)
-    (at truck-fix inzlingen))
+    (at truck-fix inzlingen)
+    (fuel truck-fix fuel-4))
   (:goal
     (and
       (at kapselheber inzlingen))))

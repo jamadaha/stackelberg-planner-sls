@@ -113,7 +113,8 @@
     (vehicle motorroller)
     (vehicle pferdetransport)
     (fix_vehicle truck-fix)
-    (at truck-fix guendlingen))
+    (at truck-fix guendlingen)
+    (fuel truck-fix fuel-4))
   (:goal
     (and
       (at kaesefondue guendlingen)

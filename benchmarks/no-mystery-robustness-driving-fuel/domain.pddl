@@ -1,6 +1,6 @@
 ;; Basically no-mystery domain with additional fix truck driving on the map which can remove a connection if it is in an adjacent location.
 ;; A connection is always removed in both directions at once. Only connections for which the allowed_to_remove predicate is set, can be removed.
-;; The cost for this truck to drive is currently 1 and for removing a segment, it is also 1.
+;; The cost for this truck to drive is currently 1 and for removing a segment, it is also 1. The fix truck consumes fuel while driving. It has fuel is equal to (floor(#locations) + 1))
 ;; The intial location of the fix truck is the first location listed in the respective problem file
 (define (domain no-mystery-strips)
    (:predicates
@@ -62,14 +62,20 @@
                     (capacity ?v ?s2)))
 
    (:action fix_drive
-       :parameters (?v ?n1 ?n2)
+       :parameters (?v ?n1 ?n2 ?l1 ?l2)
        :precondition (and (at ?v ?n1)
         (location ?n1)
         (fix_vehicle ?v)
         (connected ?n1 ?n2)
-        (location ?n2))
+        (location ?n2)
+        (fuel-number ?l1)
+        (fuel-number ?l2)
+        (fuel ?v ?l2)
+        (fuel-predecessor ?l1 ?l2))
        :effect (and (not (at ?v ?n1))
-                    (at ?v ?n2))) 
+                    (at ?v ?n2)
+                    (not (fuel ?v ?l2))
+                    (fuel ?v ?l1))) 
 
    (:action fix_remove_road_1
        :parameters (?v ?n1 ?n2)
