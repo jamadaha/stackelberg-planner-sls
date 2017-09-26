@@ -193,7 +193,8 @@
     (vehicle pferdetransport)
     (vehicle segway)
     (fix_vehicle truck-fix)
-    (at truck-fix kleinkems))
+    (at truck-fix kleinkems)
+    (fuel truck-fix fuel-8))
   (:goal
     (and
       (at saumagen emmendingen)

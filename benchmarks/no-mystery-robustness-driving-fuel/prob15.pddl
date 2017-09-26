@@ -176,7 +176,8 @@
     (vehicle segway)
     (vehicle sulki)
     (fix_vehicle truck-fix)
-    (at truck-fix emmendingen))
+    (at truck-fix emmendingen)
+    (fuel truck-fix fuel-9))
   (:goal
     (and
       (at feinkost-bratling denzlingen))))

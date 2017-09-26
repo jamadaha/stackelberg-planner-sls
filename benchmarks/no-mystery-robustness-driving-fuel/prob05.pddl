@@ -69,9 +69,13 @@
     (fuel-number fuel-1)
     (fuel-number fuel-2)
     (fuel-number fuel-3)
+    (fuel-number fuel-4)
+    (fuel-number fuel-5)
     (fuel-predecessor fuel-0 fuel-1)
     (fuel-predecessor fuel-1 fuel-2)
     (fuel-predecessor fuel-2 fuel-3)
+    (fuel-predecessor fuel-3 fuel-4)
+    (fuel-predecessor fuel-4 fuel-5)
     (location boetzingen)
     (location emmendingen)
     (location loerrach)
@@ -100,7 +104,8 @@
     (vehicle krankenwagen)
     (vehicle sulki)
     (fix_vehicle truck-fix)
-    (at truck-fix waldhaus))
+    (at truck-fix waldhaus)
+    (fuel truck-fix fuel-5))
   (:goal
     (and
       (at osterei tumringen)

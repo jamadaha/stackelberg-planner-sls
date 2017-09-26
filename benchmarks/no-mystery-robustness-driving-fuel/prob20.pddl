@@ -166,7 +166,8 @@
     (vehicle segway)
     (vehicle trollwagen)
     (fix_vehicle truck-fix)
-    (at truck-fix schallstadt))
+    (at truck-fix schallstadt)
+    (fuel truck-fix fuel-10))
   (:goal
     (and
       (at aschenbecher haltingen))))

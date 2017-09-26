@@ -92,7 +92,8 @@
     (vehicle moped)
     (vehicle muellabfuhr)
     (fix_vehicle truck-fix)
-    (at truck-fix bad-bellingen))
+    (at truck-fix bad-bellingen)
+    (fuel truck-fix fuel-4))
   (:goal
     (and
       (at pfingstochse muellheim)

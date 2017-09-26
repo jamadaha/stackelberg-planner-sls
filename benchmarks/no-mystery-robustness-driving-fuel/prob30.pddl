@@ -133,7 +133,8 @@
     (vehicle krankenwagen)
     (vehicle kuebelwagen)
     (fix_vehicle truck-fix)
-    (at truck-fix endingen))
+    (at truck-fix endingen)
+    (fuel truck-fix fuel-7))
   (:goal
     (and
       (at donnerkiesel freiburg)

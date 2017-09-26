@@ -80,11 +80,13 @@
     (fuel-number fuel-3)
     (fuel-number fuel-4)
     (fuel-number fuel-5)
+    (fuel-number fuel-6)
     (fuel-predecessor fuel-0 fuel-1)
     (fuel-predecessor fuel-1 fuel-2)
     (fuel-predecessor fuel-2 fuel-3)
     (fuel-predecessor fuel-3 fuel-4)
     (fuel-predecessor fuel-4 fuel-5)
+    (fuel-predecessor fuel-5 fuel-6)
     (location auggen)
     (location boetzingen)
     (location emmendingen)
@@ -113,7 +115,8 @@
     (vehicle segway)
     (vehicle trollwagen)
     (fix_vehicle truck-fix)
-    (at truck-fix boetzingen))
+    (at truck-fix boetzingen)
+    (fuel truck-fix fuel-6))
   (:goal
     (and
       (at haehnchenbein emmendingen)

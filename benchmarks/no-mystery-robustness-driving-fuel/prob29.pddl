@@ -95,7 +95,8 @@
     (vehicle krankenwagen)
     (vehicle segway)
     (fix_vehicle truck-fix)
-    (at truck-fix waldhaus))
+    (at truck-fix waldhaus)
+    (fuel truck-fix fuel-5))
   (:goal
     (and
       (at fernseher loerrach)

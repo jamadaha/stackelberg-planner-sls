@@ -79,7 +79,8 @@
     (package weihnachtsbaum)
     (vehicle betonmischer)
     (fix_vehicle truck-fix)
-    (at truck-fix endingen))
+    (at truck-fix endingen)
+    (fuel truck-fix fuel-5))
   (:goal
     (and
       (at kaesefondue guendlingen)

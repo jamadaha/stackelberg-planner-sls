@@ -94,7 +94,8 @@
     (vehicle kutsche)
     (vehicle muellabfuhr)
     (fix_vehicle truck-fix)
-    (at truck-fix bahlingen))
+    (at truck-fix bahlingen)
+    (fuel truck-fix fuel-4))
   (:goal
     (and
       (at fernseher wollbach)

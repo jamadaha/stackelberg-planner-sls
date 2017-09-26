@@ -67,7 +67,8 @@
     (package wensleydale)
     (vehicle daemonenrikscha)
     (fix_vehicle truck-fix)
-    (at truck-fix muellheim))
+    (at truck-fix muellheim)
+    (fuel truck-fix fuel-3))
   (:goal
     (and
       (at faschiertes boetzingen)

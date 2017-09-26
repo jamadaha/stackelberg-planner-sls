@@ -52,7 +52,8 @@
     (vehicle ICE)
     (vehicle droschke)
     (fix_vehicle truck-fix)
-    (at truck-fix wittlingen))
+    (at truck-fix wittlingen)
+    (fuel truck-fix fuel-3))
   (:goal
     (and
       (at neujahrsbrezel schallstadt))))
