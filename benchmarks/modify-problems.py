@@ -11,7 +11,8 @@ domain_location_regex_dic = {"logistics-strips": "city\d+-\d+",
                              "TPP-Propositional": "market\d+|depot\d+",
                              "transport": "city-?\d*-loc-\d+",
                              "grid-visit-all": "loc-x\d+-y\d+",
-                             "sokoban-sequential": "pos-\d+-\d+"}
+                             "sokoban-sequential": "pos-\d+-\d+",
+                             "pipesworld_strips": "B\d+"}
 connection_predicate_regex = {"no-mystery-strips": "connected",
                               "TPP-Propositional": "connected",
                               "transport": "road",
@@ -20,7 +21,7 @@ connection_predicate_regex = {"no-mystery-strips": "connected",
 makes_sense_to_increase_number_of_connections = False
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential":
+    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -58,6 +59,10 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
     elif domain_name == "sokoban-sequential":
             for loc in locations:
                 if content.find("(clear " + loc + ")") != -1 and re.search("\(at \w+-\d+ " + loc + "\)", content) is None:
+                    connections.append((loc, loc))
+    elif domain_name == "pipesworld_strips":
+            for loc in locations:
+                if re.search("\(on " + loc + " A\d+\)", content) is None:
                     connections.append((loc, loc))
 
 def generate_walls_for_sokoban(locations, content):

@@ -48,6 +48,8 @@
   (normal ?pipe - pipe)
   (push-updating ?pipe - pipe)
   (pop-updating ?pipe - pipe)
+
+  (allowed_to_remove ?batch-atom1 - batch-atom ?batch-atom2 - batch-atom)
 )
 
 ;; PUSH-START action
@@ -57,7 +59,7 @@
 ;; first part -- initialise the push and turn control
 ;; over to contents update operators
 
-(:action PUSH-START
+(:action attack_PUSH-START
   :parameters(
     ;; Pipeline segment that will be moved
     ?pipe - pipe
@@ -115,7 +117,7 @@
 ;; second part -- when start of pipe has been done, care about the
 ;; end of the pipe
 
-(:action PUSH-END
+(:action attack_PUSH-END
   :parameters(
     ;; Pipeline segment that will be moved
     ?pipe - pipe
@@ -163,7 +165,7 @@
 ;; first part -- initialise the pop and turn control
 ;; over to contents update operators
 
-(:action POP-START
+(:action attack_POP-START
   :parameters(
     ;; Pipeline segment that will be moved
     ?pipe - pipe
@@ -221,7 +223,7 @@
 ;; second part -- when start of pipe has been done, care about the
 ;; end of the pipe
 
-(:action POP-END
+(:action attack_POP-END
   :parameters(
     ;; Pipeline segment that will be moved
     ?pipe - pipe
@@ -269,7 +271,7 @@
 ;; first part -- initialise the push and turn control
 ;; over to contents update operators
 
-(:action PUSH-UNITARYPIPE
+(:action attack_PUSH-UNITARYPIPE
   :parameters(
     ;; Pipeline segment that will be moved
     ?pipe - pipe
@@ -324,7 +326,7 @@
 ;; first part -- initialise the pop and turn control
 ;; over to contents update operators
 
-(:action POP-UNITARYPIPE
+(:action attack_POP-UNITARYPIPE
   :parameters(
     ;; Pipeline segment that will be moved
     ?pipe - pipe
@@ -370,6 +372,120 @@
     ;; Batch-atom removed from pipeline segment is inserted
     ;; into the destination area
      (on ?last-batch-atom ?from-area)
+)
+)
+
+(:action fix_remove_first_batch_from_small_pipeline
+  :parameters(
+    ?pipe - pipe
+    ?batch-atom_to_remove - batch-atom
+    ?other-batch-atom - batch-atom
+  )
+  :precondition
+   (and
+   (first ?batch-atom_to_remove ?pipe)
+   (not-unitary ?pipe)
+   (follow ?other-batch-atom ?batch-atom_to_remove)
+   (last ?other-batch-atom ?pipe)
+   (allowed_to_remove ?batch-atom_to_remove ?batch-atom_to_remove)
+ )
+  :effect
+   (and 
+     (not (first ?batch-atom_to_remove ?pipe))
+     (first ?other-batch-atom ?pipe)
+     (not (follow ?other-batch-atom ?batch-atom_to_remove))
+     (unitary ?pipe)
+)
+)
+
+(:action fix_remove_last_batch_from_small_pipeline
+  :parameters(
+    ?pipe - pipe
+    ?batch-atom_to_remove - batch-atom
+    ?other-batch-atom - batch-atom
+  )
+  :precondition
+   (and
+   (last ?batch-atom_to_remove ?pipe)
+   (not-unitary ?pipe)
+   (follow ?batch-atom_to_remove ?other-batch-atom)
+   (first ?other-batch-atom ?pipe)
+   (allowed_to_remove ?batch-atom_to_remove ?batch-atom_to_remove)
+ )
+  :effect
+   (and 
+     (not (last ?batch-atom_to_remove ?pipe))
+     (last ?other-batch-atom ?pipe)
+     (not (follow ?batch-atom_to_remove ?other-batch-atom))
+     (unitary ?pipe)
+)
+)
+
+(:action fix_remove_first_batch_from_bigger_pipeline
+  :parameters(
+    ?pipe - pipe
+    ?batch-atom_to_remove - batch-atom
+    ?other-batch-atom - batch-atom
+  )
+  :precondition
+   (and
+   (first ?batch-atom_to_remove ?pipe)
+   (not-unitary ?pipe)
+   (follow ?other-batch-atom ?batch-atom_to_remove)
+   (not (last ?other-batch-atom ?pipe))
+   (allowed_to_remove ?batch-atom_to_remove ?batch-atom_to_remove)
+ )
+  :effect
+   (and 
+     (not (first ?batch-atom_to_remove ?pipe))
+     (first ?other-batch-atom ?pipe)
+     (not (follow ?other-batch-atom ?batch-atom_to_remove))
+)
+)
+
+(:action fix_remove_last_batch_from_small_pipeline
+  :parameters(
+    ?pipe - pipe
+    ?batch-atom_to_remove - batch-atom
+    ?other-batch-atom - batch-atom
+  )
+  :precondition
+   (and
+   (last ?batch-atom_to_remove ?pipe)
+   (not-unitary ?pipe)
+   (follow ?batch-atom_to_remove ?other-batch-atom)
+   (not (first ?other-batch-atom ?pipe))
+   (allowed_to_remove ?batch-atom_to_remove ?batch-atom_to_remove)
+ )
+  :effect
+   (and 
+     (not (last ?batch-atom_to_remove ?pipe))
+     (last ?other-batch-atom ?pipe)
+     (not (follow ?batch-atom_to_remove ?other-batch-atom))
+)
+)
+
+(:action fix_remove_some_batch_from_bigger_pipeline
+  :parameters(
+    ?pipe - pipe
+    ?batch-atom_to_remove - batch-atom
+    ?batch-atom_pred - batch-atom
+    ?batch-atom_succ - batch-atom
+  )
+  :precondition
+   (and
+   (not(first ?batch-atom_to_remove ?pipe))
+   (not(last ?batch-atom_to_remove ?pipe))
+   (not-unitary ?pipe)
+   (follow ?batch-atom_to_remove ?batch-atom_pred)
+   (follow ?batch-atom_succ ?batch-atom_to_remove)
+   (allowed_to_remove ?batch-atom_to_remove ?batch-atom_to_remove)
+ )
+  :effect
+   (and 
+     (not (follow ?batch-atom_to_remove ?batch-atom_pred))
+     (not (follow ?batch-atom_succ ?batch-atom_to_remove))
+     (follow ?batch-atom_succ ?batch-atom_pred)
 )
 )
 )
