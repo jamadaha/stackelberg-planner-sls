@@ -36,6 +36,7 @@ robustness_wo_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-what
 robustness_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 all_robustness_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-08-09-17/'
 transport_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17-2/'
+rovers_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-22-09-17/'
 
 pentesting_domains = 'pentesting-robustness-rs42'
 robustness_wo_driving_domains = 'logistics98-robustness-rs42 no-mystery-robustness-rs42 sokoban-opt11-strips-robustness-rs42 visitall-opt14-strips-robustness-rs42'
@@ -59,6 +60,8 @@ os.system("python parse_properties_and_generate_plots.py --dir " + all_robustnes
 
 
 print 6
+os.system("python parse_properties_and_generate_plots.py --dir " + rovers_dirs + " --configs" + only_sat_configs_str + " --name-suffix _sat")
+os.system("python parse_properties_and_generate_plots.py --dir " + rovers_dirs + " --configs" + only_opt_configs_str + " --name-suffix _opt")
 print 7
 
 os.system("python generate_pareto_plots.py --dir ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17 --domain no-mystery-robustness-driving-rs42 --config 'IDS with DEADPDB, LM-cut'")

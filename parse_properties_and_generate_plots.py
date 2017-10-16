@@ -60,6 +60,10 @@ def parse_properties_file(problem_file_name):
     #print problem
     #print coverage
     #print config
+
+    if interesting_configs is not None and config not in interesting_configs:
+        return
+
     if domain not in dic:
         dic[domain] = dict()
     if config not in dic[domain]:
