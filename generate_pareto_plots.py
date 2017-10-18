@@ -15,6 +15,7 @@ import matplotlib.cm as cm
 import math
 
 MAX_INT = 2147483647
+EPSILON = 2.220446049250313e-16
 
 def parse_properties_file(problem_file_name):
     problem_file = open(problem_file_name, "r")
@@ -81,9 +82,9 @@ MARKERWIDTH = 30
 MEW = 2
 
 #colors = ['b', 'r', 'g', 'k', 'y', 'm', 'c']
-markers = ['x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*']
+markers = ['x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*',   'x', 's', '+', '.', 'd', '*']
 filled_markers = ['o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X']
-fillstyles = ['full', 'none', 'full', 'none', 'none', 'none',    'full', 'none', 'full', 'none', 'none', 'none',   'full', 'none', 'full', 'none', 'none', 'none']
+fillstyles = ['full', 'none', 'full', 'none', 'none', 'none',    'full', 'none', 'full', 'none', 'none', 'none',   'full', 'none', 'full', 'none', 'none', 'none',    'full', 'none', 'full', 'none', 'none', 'none']
 MEWs = ['1', '1', '1', '1', '1']
 
 fig, ax = plt.subplots(figsize=(15,7))
@@ -140,12 +141,26 @@ for y_array in y_arrays:
         if y_array[i] == 2147483647:
             y_array[i] = inf_representation
 
+for i in range(len(x_arrays)):
+    x_array = x_arrays[i]
+    y_array = y_arrays[i]
+    j = 1
+    while j < len(x_array):
+        x_array = x_array[0:j] + [(x_array[j] - EPSILON)] + x_array[j:]
+        y_array = y_array[0:j] + [y_array[j-1]] + y_array[j:]
+
+        x_arrays[i] = x_array
+        y_arrays[i] = y_array
+        j = j + 2
+
+
 colors = iter(cm.rainbow(np.linspace(0, 1, len(x_arrays))))
 for i in range(len(x_arrays)):
     x_array = x_arrays[i]
     y_array = y_arrays[i]
 # write: '--' + markers[i] for line between markers
-    line = ax.plot(x_array, y_array, '--' + markers[i], fillstyle=fillstyles[i], label='a', c=next(colors), markersize=MARKERWIDTH, linewidth=LINEWIDTH, MEW=2)
+
+    line = ax.plot(x_array, y_array, '--' + markers[i], markevery=2, fillstyle=fillstyles[i], label='a', c=next(colors), markersize=MARKERWIDTH, linewidth=LINEWIDTH, MEW=2)
 #line = plt.plot(x_array, y_array, markers[0], fillstyle=fillstyles[0], markersize=MARKERWIDTH, \
 #                            linewidth=LINEWIDTH, \
 #                            markeredgewidth=MEWs[0], \
