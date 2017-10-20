@@ -65,11 +65,16 @@ private:
 
 	std::vector<bool> attack_vars;
 	std::vector<int> attack_vars_indizes;
+
+	std::vector<bool> fix_vars;
+	std::vector<int> fix_vars_indizes;
+
 	int num_vars = 0;
 	int num_attack_vars = 0;
 	int num_fix_vars = 0;
 
-	std::vector<int> map_var_id_to_new_var_id; // Vector indexed by old id, encloses new id
+	std::vector<int> map_var_id_to_new_attack_var_id; // Vector indexed by old id, encloses new attack var id
+	std::vector<int> map_var_id_to_new_fix_var_id; // Vector indexed by old id, encloses new attack var id
 	std::vector<int> map_fix_var_id_to_orig_var_id; // Vector indexed by fix var id, encloses original id
 	std::vector<int> map_attack_var_id_to_orig_var_id; // Vector indexed by attack var id, encloses original id
 	std::vector<int> fix_variable_domain;
@@ -133,7 +138,7 @@ protected:
     void divide_variables();
     void clean_attack_actions();
     void create_new_variable_indices();
-    void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops);
+    void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops, const std::vector<int> &map_precond_var_id_to_new_var_id, const std::vector<int> &map_eff_var_id_to_new_var_id);
     void check_fix_vars_attacker_preconditioned();
     SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_and_dependent_fix_ops_matrices();

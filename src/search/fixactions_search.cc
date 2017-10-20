@@ -290,8 +290,13 @@ double FixActionsSearch::prob_cost_to_prob(int prob_cost)
 void FixActionsSearch::divide_variables()
 {
     cout << "Begin divide_ariables()..." << endl;
+    num_vars = g_variable_domain.size();
+
     num_attack_vars = 0;
     attack_vars.assign(g_variable_domain.size(), false);
+
+    num_fix_vars = 0;
+    fix_vars.assign(g_variable_domain.size(), false);
 
     for (size_t op_no = 0; op_no < attack_operators.size(); op_no++) {
         const vector<GlobalEffect> &effects = attack_operators[op_no].get_effects();
@@ -306,8 +311,33 @@ void FixActionsSearch::divide_variables()
             }
         }
     }
-    num_vars = g_variable_domain.size();
-    num_fix_vars = num_vars - num_attack_vars;
+
+    for (size_t op_no = 0; op_no < fix_operators.size(); op_no++) {
+        const vector<GlobalEffect> &effects = fix_operators[op_no].get_effects();
+        for (size_t i = 0; i < effects.size(); i++) {
+            int var = effects[i].var;
+            if (fix_vars[var]) {
+                continue;
+            } else {
+            		fix_vars[var] = true;
+            		fix_vars_indizes.push_back(var);
+                num_fix_vars++;
+            }
+        }
+
+        const vector<GlobalCondition> &preconditions = fix_operators[op_no].get_preconditions();
+        for (size_t i = 0; i < preconditions.size(); i++) {
+            int var = preconditions[i].var;
+            if (fix_vars[var]) {
+                continue;
+            } else {
+            		fix_vars[var] = true;
+            		fix_vars_indizes.push_back(var);
+                num_fix_vars++;
+            }
+        }
+    }
+
 }
 
 bool cond_comp_func(GlobalCondition cond1, GlobalCondition cond2)
@@ -333,7 +363,8 @@ void FixActionsSearch::clean_attack_actions()
             if (attack_vars[var]) {
                 // This is a precondition on an attack var
                 attack_preconditions.push_back(conditions[i]);
-            } else {
+            }
+            if (fix_vars[var]) {
                 // This is a precondition on a fix var
                 fix_preconditions.push_back(conditions[i]);
             }
@@ -371,35 +402,37 @@ void FixActionsSearch::create_new_variable_indices()
     int curr_attack_var_index = 0;
     int curr_fix_var_index = 0;
 
-    map_var_id_to_new_var_id.resize(num_vars);
+    map_var_id_to_new_attack_var_id.resize(num_vars);
+    map_var_id_to_new_fix_var_id.resize(num_vars);
     map_fix_var_id_to_orig_var_id.resize(num_fix_vars);
     map_attack_var_id_to_orig_var_id.resize(num_attack_vars);
 
     for (int var = 0; var < num_vars; var++) {
         if (attack_vars[var]) {
             // This is an attack var
-            map_var_id_to_new_var_id[var] = curr_attack_var_index;
+        	    map_var_id_to_new_attack_var_id[var] = curr_attack_var_index;
             map_attack_var_id_to_orig_var_id[curr_attack_var_index] = var;
             curr_attack_var_index++;
-        } else {
+        }
+        if (fix_vars[var]) {
             // This is a fix var
-            map_var_id_to_new_var_id[var] = curr_fix_var_index;
+        		map_var_id_to_new_fix_var_id[var] = curr_fix_var_index;
             map_fix_var_id_to_orig_var_id[curr_fix_var_index] = var;
             curr_fix_var_index++;
         }
     }
 
-    adjust_var_indices_of_ops(fix_operators);
+    adjust_var_indices_of_ops(fix_operators, map_var_id_to_new_fix_var_id, map_var_id_to_new_fix_var_id);
 
-    adjust_var_indices_of_ops(attack_operators);
+    adjust_var_indices_of_ops(attack_operators, map_var_id_to_new_attack_var_id, map_var_id_to_new_attack_var_id);
 
-    adjust_var_indices_of_ops(attack_operators_with_fix_vars_preconds);
+    adjust_var_indices_of_ops(attack_operators_with_fix_vars_preconds, map_var_id_to_new_fix_var_id, map_var_id_to_new_attack_var_id);
 
     // Save the fix var stuff locally and clean g_variable_domain, g_variable_name and g_fact_names
     int num_vars_temp = num_vars;
     int var = 0;
     for (int i = 0; i < num_vars_temp; i++) {
-        if (!attack_vars[var]) {
+        if (fix_vars[var]) {
             // This is a fix var
             // Save it to local vectors
             fix_variable_domain.push_back(g_variable_domain[i]);
@@ -449,18 +482,18 @@ void FixActionsSearch::create_new_variable_indices()
     */
 }
 
-void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops)
+void FixActionsSearch::adjust_var_indices_of_ops(vector<GlobalOperator> &ops, const vector<int> &map_precond_var_id_to_new_var_id, const vector<int> &map_eff_var_id_to_new_var_id)
 {
     // Adjust indices in preconditions and effects of all operators in ops vector
     for (size_t op_no = 0; op_no < ops.size(); op_no++) {
         vector<GlobalCondition> &conditions = ops[op_no].get_preconditions();
         for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
-            conditions[cond_no].var = map_var_id_to_new_var_id[conditions[cond_no].var];
+            conditions[cond_no].var = map_precond_var_id_to_new_var_id[conditions[cond_no].var];
         }
 
         vector<GlobalEffect> &effects = ops[op_no].get_effects();
         for (size_t eff_no = 0; eff_no < effects.size(); eff_no++) {
-            effects[eff_no].var = map_var_id_to_new_var_id[effects[eff_no].var];
+            effects[eff_no].var = map_eff_var_id_to_new_var_id[effects[eff_no].var];
         }
 
         // Sort the conditions and effects by their respective var id
