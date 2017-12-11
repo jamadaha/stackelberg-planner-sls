@@ -31,10 +31,10 @@ only_sat_configs_str = ""
 for str in only_sat_configs:
     only_sat_configs_str += " \'" + str + "\'"
 
-pentesting_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17-2/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-08-09-17/'
+pentesting_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17-2/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-08-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-15-11-17/'
 robustness_wo_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
 robustness_driving_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/'
-all_robustness_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-08-09-17/'
+all_robustness_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-31-08-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-04-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-01-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-06-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-08-09-17/ ~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-15-11-17/'
 transport_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-05-09-17-2/'
 rovers_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-22-09-17/'
 no_mystery_robustness_driving_fuel_dirs = '~/Documents/SimPentestWhatIfStuff/sim-pentest-whatif-27-09-17/'
