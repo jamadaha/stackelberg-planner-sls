@@ -1247,8 +1247,9 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
 	if (!info_fix_sequence.already_in_frontier) {
 		vector<vector<const GlobalOperator *>> temp_list_op_sequences;
 		temp_list_op_sequences.push_back(fix_ops_sequence);
-		triple<int, int, vector<vector<const GlobalOperator *>>> curr_node = make_tuple(
-				fix_actions_cost, attack_plan_cost, temp_list_op_sequences);
+
+		quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> curr_node = make_tuple(
+				fix_actions_cost, attack_plan_cost, temp_list_op_sequences, parent_attack_plan_applicable ? parent_attack_plan : attack_plan);
 		add_node_to_pareto_frontier(curr_node);
 		info_fix_sequence.already_in_frontier = true;
 	}
@@ -1433,14 +1434,14 @@ void FixActionsSearch::iterate_applicable_ops(const
 }
 
 bool pareto_node_comp_func(const
-                           triple<int, int, vector<vector<const GlobalOperator *>>> &node1,
-                           const triple<int, int, vector<vector<const GlobalOperator *>>> &node2)
+						   quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> &node1,
+                           const quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> &node2)
 {
     return get<0>(node1) < get<0>(node2);
 }
 
 void FixActionsSearch::add_node_to_pareto_frontier(
-    triple<int, int, vector<vector<const GlobalOperator *>>> &node)
+		quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> &node)
 {
 
     // First check whether attack_prob_costs == Intmax and fix_actions_cost < fix_action_costs_for_attacker_upper_bound
@@ -1523,20 +1524,36 @@ void FixActionsSearch::add_node_to_pareto_frontier(
 
 }
 
+void FixActionsSearch::dump_attack_op_sequence(const vector<int> &op_sequence, std::ostringstream &json)
+{
+	json << " [";
+	    if (op_sequence.size() < 1) {
+	        cout << "\t\t <unsolvable>" << endl;
+	        json << "]";
+	        return;
+	    }
+
+	    for (size_t i = 0; i < op_sequence.size(); ++i) {
+	    	json << (i > 0 ? ", " : "") << "\"" << attack_operators[op_sequence[i]].get_name() << "\"";
+	        cout << "\t\t " << attack_operators[op_sequence[i]].get_name() << endl;
+	    }
+	    json << "]";
+}
+
 void FixActionsSearch::dump_op_sequence(const vector<const GlobalOperator *>
                                         &op_sequence, std::ostringstream &json)
 {
 
 	json << "  [";
     if (op_sequence.size() < 1) {
-        cout << "\t\t\t <empty sequence>" << endl;
+        cout << "\t\t\t\t <empty sequence>" << endl;
         json << "]";
         return;
     }
 
     for (size_t i = 0; i < op_sequence.size(); ++i) {
     	json << (i > 0 ? ", " : "") << "\"" << op_sequence[i]->get_name() << "\"";
-        cout << "\t\t\t " << op_sequence[i]->get_name() << endl;
+        cout << "\t\t\t\t " << op_sequence[i]->get_name() << endl;
     }
     json << "]";
 }
@@ -1548,7 +1565,7 @@ void FixActionsSearch::dump_op_sequence_sequence(const
         if (i > 0)  {
             json << ",\n";
         }
-        cout << "\t\t sequence " << i << ":" << endl;
+        cout << "\t\t\t sequence " << i << ":" << endl;
         dump_op_sequence(op_sequence_sequence[i], json);
     }
 }
@@ -1560,16 +1577,22 @@ void FixActionsSearch::dump_op_sequence_sequence(const
 //}
 
 void FixActionsSearch::dump_pareto_frontier_node(
-    triple<int, int, vector<vector<const GlobalOperator *>>> &node, std::ostringstream &json)
+    quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> &node, std::ostringstream &json)
 {
     cout << "\t fix ops costs: " << get<0>(node) << ", attacker cost: " <<
-             get<1>(node) << ", sequences: " << endl;
+             get<1>(node) << ": " << endl;
+    cout << "\t fix action sequences: " << endl;
     json << "{"
          << "\"attacker cost\": " << abs(get<1>(node))
          << ", \"defender cost\": " << get<0>(node)
          << ", \"sequences\": [";
     dump_op_sequence_sequence(get<2>(node), json);
-    json << "]}";
+    json << "]";
+
+    cout << "\t attacker plan: " << endl;
+    json << ", \"attacker plan\": ";
+    dump_attack_op_sequence(get<3>(node), json);
+    json << "}";
 }
 
 void FixActionsSearch::dump_pareto_frontier()

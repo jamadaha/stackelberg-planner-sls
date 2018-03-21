@@ -18,6 +18,7 @@
 #include "delrax_search.h"
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
+template<typename T1, typename T2, typename T3, typename T4> using quadruple = std::tuple<T1, T2, T3, T4>;
 
 #define ATTACKER_TASK_UNSOLVABLE numeric_limits<int>::max()
 #define NO_ATTACKER_COST 0
@@ -95,7 +96,7 @@ private:
 	SearchEngine* search_engine;
 	Heuristic* attack_heuristic;
 
-	std::vector<triple<int, int, std::vector<std::vector<const GlobalOperator* >>>> pareto_frontier;
+	std::vector<quadruple<int, int, std::vector<std::vector<const GlobalOperator* >>, std::vector<int>>> pareto_frontier;
 	PerFixStateInformation<FixSearchInfoAttackPlan> fix_search_node_infos_attack_plan;
 	PerStateInformation<FixSearchInfoFixSequence> fix_search_node_infos_fix_sequence;
 	int max_fix_actions_budget = UNLTD_BUDGET;
@@ -151,11 +152,12 @@ protected:
     std::string fix_state_to_string(const GlobalState &state);
     std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
     int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
-    void add_node_to_pareto_frontier(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node);
+    void add_node_to_pareto_frontier(quadruple<int, int, std::vector<std::vector<const GlobalOperator*>>, std::vector<int>> &node);
 
+    void dump_attack_op_sequence(const std::vector<int> &op_sequence, std::ostringstream &json);
     void dump_op_sequence(const std::vector<const GlobalOperator*> &op_sequence, std::ostringstream &json);
     void dump_op_sequence_sequence(const std::vector<std::vector<const GlobalOperator*>> &op_sequence_sequence, std::ostringstream &json);
-    void dump_pareto_frontier_node(triple<int, int, std::vector<std::vector<const GlobalOperator*>>> &node, std::ostringstream &json);
+    void dump_pareto_frontier_node(quadruple<int, int, std::vector<std::vector<const GlobalOperator*>>, std::vector<int>> &node, std::ostringstream &json);
     void dump_pareto_frontier ();
 
 public:
