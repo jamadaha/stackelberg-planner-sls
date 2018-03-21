@@ -10,18 +10,13 @@ PORTFOLIO_DIR = os.path.join(DRIVER_DIR, "portfolios")
 
 ALIASES = {}
 
-ALIASES["whatif"] = [
-    '--heuristic', 'h=lmcut',
-    '--search', 'fixsearch(search_engine=astar(h, pruning=null), attack_heuristic=h, initial_attack_budget=minimal, initial_fix_budget=minimal, attack_op_dom_pruning=false)'
+ALIASES["mititnp"] = [
+    '--search', 'fixsearch(search_engine=delrax, attack_op_dom_pruning=false, check_parent_attack_plan_applicable=false, partial_order_reduction=false)'
 ]
 
-ALIASES["whatif-all"] = [
-    '--heuristic','h1=attack_success_prob_reuse(default_heuristic=lmcut)',
-    '--heuristic', 'h2=lmcut(cost_type=3)',
-    '--heuristic', 'h3=budget_dead_end(budget_heuristic=h2, prob_cost_heuristic=h1)',
-    '--search', 'fixsearch(search_engine=astar(h3, pruning=stubborn_sets_simple), attack_heuristic=h3, initial_attack_budget=2147483647, initial_fix_budget=2147483647)'
+ALIASES["mitit"] = [
+    '--search', 'fixsearch(search_engine=delrax, attack_op_dom_pruning=false, check_parent_attack_plan_applicable=false)'
 ]
-
 
 ALIASES["seq-sat-fd-autotune-1"] = [
     "--heuristic", "hff=ff(cost_type=one)",
