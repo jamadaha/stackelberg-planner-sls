@@ -192,21 +192,6 @@ HEADERS += utils/countdown_timer.h \
 	   pdbs/validation.h
 
 
-HEADERS += delrax_search.h
-HEADERS += sort_fixactions_by_attacker_reward.h
-HEADERS += second_order_search/open_list.h \
-           second_order_search/best_first_open_list.h \
-           second_order_search/open_list_factory.h \
-           second_order_search/per_state_storage.h \
-           second_order_search/search_node_info.h \
-           second_order_search/search_space.h \
-           second_order_search/globals.h \
-           second_order_search/successor_pruning_method.h \
-           second_order_search/strong_stubborn_set.h \
-		   second_order_search/second_order_task_search.h \
-		   second_order_search/best_first_search.h \
-		   second_order_search/depth_first_search.h
-
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
 TARGET = downward
