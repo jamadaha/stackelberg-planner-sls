@@ -1638,7 +1638,7 @@ SearchStatus FixActionsSearch::step() {
 
 		compute_pareto_frontier(fix_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_attack_plan, 0, sleep, true);
 
-		if(get<1>(pareto_frontier[pareto_frontier.size() -1 ]) == numeric_limits<int>::max()) {
+		if(get<1>(pareto_frontier[pareto_frontier.size() -1 ]) == ATTACKER_TASK_UNSOLVABLE) {
 			break;
 		}
 
