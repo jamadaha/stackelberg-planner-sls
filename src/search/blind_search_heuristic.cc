@@ -32,6 +32,10 @@ int BlindSearchHeuristic::compute_heuristic(const GlobalState &state) {
         return min_operator_cost;
 }
 
+void BlindSearchHeuristic::reset() {
+
+}
+
 static Heuristic *_parse(OptionParser &parser) {
     parser.document_synopsis("Blind heuristic",
                              "Returns cost of cheapest action for "
