@@ -213,7 +213,8 @@ void FixActionsSearch::sort_operators()
 		}
 
 		if (op_name.find("attack") == 0) {
-			string prob = everything_before_whitespace.substr(underscore + 1);
+			// Comment in the following lines for parsing attacker probability from action name
+		/*	string prob = everything_before_whitespace.substr(underscore + 1);
 			int success_prob_cost = parse_success_prob_cost(prob);
 			if (success_prob_cost == -1) {
 				g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
@@ -222,7 +223,7 @@ void FixActionsSearch::sort_operators()
 				g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
 				g_operators[op_no].set_cost(success_prob_cost);
 			}
-
+*/
 			g_operators[op_no].set_op_id(attack_action_op_id);
 			attack_action_op_id++;
 
