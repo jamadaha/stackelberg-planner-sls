@@ -5,7 +5,7 @@
 ## By default, build in 32-bit mode. Use DOWNWARD_BITWIDTH=64
 ## to build in 64-bit mode and DOWNWARD_BITWIDTH=native to use
 ## the native bitness of the OS.
-DOWNWARD_BITWIDTH ?= 32
+DOWNWARD_BITWIDTH ?= 64
 
 ## Set DOWNWARD_LINK_RELEASE_STATICALLY to 0 or 1 (default) to
 ## disable/enable static linking of the executable in release mode.
