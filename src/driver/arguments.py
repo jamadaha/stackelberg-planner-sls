@@ -198,7 +198,7 @@ def _set_components_automatically(parser, args):
     if len(args.filenames) == 1 and _looks_like_search_input(args.filenames[0]):
         args.components = ["search"]
     else:
-        args.components = ["translate", "preprocess", "search", "validate"]
+        args.components = ["translate", "preprocess", "search"]
 
 
 def _set_components_and_inputs(parser, args):

@@ -192,6 +192,30 @@ HEADERS += utils/countdown_timer.h \
 	   pdbs/validation.h
 
 
+HEADERS +=  symbolic/sym_variables.h \
+        symbolic/opt_order.h \
+        symbolic/sym_util.h \
+        symbolic/sym_enums.h \
+        symbolic/transition_relation.h \
+        symbolic/sym_bucket.h \
+        symbolic/sym_controller.h \
+        symbolic/sym_solution.h \
+        symbolic/original_state_space.h \
+        symbolic/sym_pdb.h \
+	symbolic/closed_list.h \
+	symbolic/open_list.h \
+	symbolic/frontier.h \
+        symbolic/sym_heuristic.h \
+        symbolic/sym_estimate.h \
+        symbolic/sym_params_search.h \
+        symbolic/sym_state_space_manager.h \
+	symbolic/sym_search.h \
+	symbolic/unidirectional_search.h \
+	symbolic/uniform_cost_search.h \
+	symbolic/breadth_first_search.h \
+	symbolic/gamer_pdbs_heuristic.h \
+	symbolic/bidirectional_search.h 
+
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
 TARGET = downward
@@ -414,13 +438,30 @@ endif
 
 endif # LP code
 
+CUDD_ROOT = cudd-3.0.0/cudd/.libs/libcudd.a
+
+$(CUDD_ROOT):
+	cd cudd-3.0.0 && ./configure --enable-obj --build=i686-pc-linux-gnu "CFLAGS=-m64 -Wall -Wextra -g -O3" "CXXFLAGS=-m64 -Wall -Wextra -std=c++0x -g -O3" "LDFLAGS=-m64" && make
+
+CUDD_CCOPT = -Icudd-3.0.0/cudd -Icudd-3.0.0/cplusplus
+
+CUDD_LINKOPT = cudd-3.0.0/cudd/.libs/libcudd.a
+
+
+#CUDD Includes
+CXXFLAGS += $(CUDD_CCOPT)
+
+POSTLINKOPT_RELEASE += $(CUDD_LINKOPT)
+POSTLINKOPT_DEBUG += $(CUDD_LINKOPT)
+POSTLINKOPT_PROFILE += $(CUDD_LINKOPT)
+
 all: release debug profile
 
 ## Build rules for the release target follow.
 
 release: $(TARGET_RELEASE)
 
-$(TARGET_RELEASE): $(OBJECTS_RELEASE)
+$(TARGET_RELEASE): $(OBJECTS_RELEASE)  $(CUDD_ROOT)
 	$(CXX) $(LDFLAGS) $(LDFLAGS_RELEASE) $(OBJECTS_RELEASE) $(POSTLINKOPT) $(POSTLINKOPT_RELEASE) -o $(TARGET_RELEASE)
 
 $(OBJECTS_RELEASE): .obj/%$(OBJECT_SUFFIX_RELEASE).o: %.cc
@@ -431,7 +472,7 @@ $(OBJECTS_RELEASE): .obj/%$(OBJECT_SUFFIX_RELEASE).o: %.cc
 
 debug: $(TARGET_DEBUG)
 
-$(TARGET_DEBUG): $(OBJECTS_DEBUG)
+$(TARGET_DEBUG): $(OBJECTS_DEBUG)  $(CUDD_ROOT)
 	$(CXX) $(LDFLAGS) $(LDFLAGS_DEBUG) $(OBJECTS_DEBUG) $(POSTLINKOPT) $(POSTLINKOPT_DEBUG) -o $(TARGET_DEBUG)
 
 $(OBJECTS_DEBUG): .obj/%$(OBJECT_SUFFIX_DEBUG).o: %.cc
@@ -442,7 +483,7 @@ $(OBJECTS_DEBUG): .obj/%$(OBJECT_SUFFIX_DEBUG).o: %.cc
 
 profile: $(TARGET_PROFILE)
 
-$(TARGET_PROFILE): $(OBJECTS_PROFILE)
+$(TARGET_PROFILE): $(OBJECTS_PROFILE)  $(CUDD_ROOT)
 	$(CXX) $(LDFLAGS) $(LDFLAGS_PROFILE) $(OBJECTS_PROFILE) $(POSTLINKOPT) $(POSTLINKOPT_PROFILE) -o $(TARGET_PROFILE)
 
 $(OBJECTS_PROFILE): .obj/%$(OBJECT_SUFFIX_PROFILE).o: %.cc

@@ -22,3 +22,5 @@ language.settings.xml
 benchmarks/pentest-generator-suite6
 benchmarks/pentesting-test
 benchmarks/suite-13
+src/search/cudd-3.0.0/
+*~

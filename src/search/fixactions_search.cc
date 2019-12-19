@@ -1645,7 +1645,6 @@ SearchStatus FixActionsSearch::step() {
 
 		if(!returned_somewhere_bc_of_budget) {
 			break;
-			cout << "Bla" << endl;
 		}
 
 		if(curr_fix_actions_budget >= max_fix_actions_budget) {
