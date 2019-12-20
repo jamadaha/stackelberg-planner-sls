@@ -1,7 +1,5 @@
 #include "operator_cost_function.h"
 
-#include "utils/system.h"
-
 using namespace std;
 
 
@@ -24,5 +22,5 @@ int OperatorCostPredefined::get_adjusted_cost(const GlobalOperator * op) const {
 	}  
     }
     std::cerr << "Fatal error: Global operator not found in OperatorCostPredefined::get_adjusted_cost: " << std::endl;
-    utils::exit_with(utils::ExitCode::CRITICAL_ERROR);
+    exit_with(EXIT_CRITICAL_ERROR);
 }

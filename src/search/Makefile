@@ -59,6 +59,7 @@ HEADERS = \
           lazy_search.h \
           max_evaluator.h \
           operator_cost.h \
+          operator_cost_function.h \
           option_parser.h \
           option_parser_util.h \
           segmented_vector.h \
@@ -213,7 +214,9 @@ HEADERS +=  symbolic/sym_variables.h \
 	symbolic/unidirectional_search.h \
 	symbolic/uniform_cost_search.h \
 	symbolic/breadth_first_search.h \
-	symbolic/bidirectional_search.h 
+	symbolic/bidirectional_search.h \
+	symbolic/symbolic_search.h 
+
 
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
@@ -286,7 +289,7 @@ CXXFLAGS =
 CXXFLAGS += -g
 CXXFLAGS += $(BITWIDTHOPT)
 # Note: we write "-std=c++0x" rather than "-std=c++11" to support gcc 4.4.
-CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic -Wno-deprecated -Werror
+CXXFLAGS += -std=c++14 -Wall -Wextra -pedantic -Wno-deprecated -Werror
 
 CXXFLAGS += -Iext
 ifeq ($(DOWNWARD_OS), osx)
