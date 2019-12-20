@@ -2,13 +2,13 @@
 
 #include "sym_bucket.h"
 
-#include "../utils/timer.h"
-
 #include "../utils/debug_macros.h"
+
+#include "../utilities.h"
 
 
 using namespace std;
-using utils::g_timer;
+using utils::Timer;
 
 namespace symbolic {
 
@@ -124,7 +124,7 @@ bool BreadthFirstSearch::stepImage(int maxTime, int maxNodes){
 	cout << ">> Step: " << *mgr << (fw ? " fw " : " bw ")
 	     << " frontierNodes: " << S.nodeCount() << " [" << nodeCount(open) << "]"  << " total time: " << g_timer 
 	     << " total nodes: " << mgr->totalNodes() << " total memory: " << mgr->totalMemory()/1000000 << "M " 
-	     << utils::get_peak_memory_in_kb() << "k" << endl;
+	     << get_peak_memory_in_kb() << "k" << endl;
     }
 
 

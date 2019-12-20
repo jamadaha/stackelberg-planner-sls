@@ -20,7 +20,7 @@ namespace symbolic {
 	if (exp_bw) {
 	    BDD newCut;
 	    if (!path.empty()) {
-		auto s = g_initial_state();
+		auto s = g_initial_state_data;
 		//Get state
 		for (auto op : path) {
                     for (const GlobalEffect &eff : op->get_effects()) {
@@ -69,7 +69,7 @@ namespace symbolic {
 	ADD hADD = vars->getADD(-1);
 	int h_val = g + h;
 
-	const auto & s = g_initial_state();
+        auto s = g_initial_state_data;
 	BDD sBDD = vars->getStateBDD(s);
 	hADD += sBDD.Add() * (vars->getADD(h_val + 1));
 	for (auto op : path) {

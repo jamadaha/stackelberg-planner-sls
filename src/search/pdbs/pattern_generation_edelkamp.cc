@@ -7,7 +7,7 @@
 #include "../globals.h"
 #include "../plugin.h"
 #include "../rng.h"
-#include "../timer.h"
+#include "../utils/timer.h"
 #include "../utilities.h"
 
 #include <algorithm>
@@ -19,6 +19,8 @@
 
 using namespace __gnu_cxx;
 using namespace std;
+
+using utils::Timer;
 
 PatternGenerationEdelkamp::PatternGenerationEdelkamp(const Options &opts)
     : pdb_max_size(opts.get<int>("pdb_max_size")),

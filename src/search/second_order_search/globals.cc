@@ -3,7 +3,7 @@
 
 #include "../globals.h"
 #include "../utilities.h"
-#include "../timer.h"
+#include "../utils/timer.h"
 
 #include <iostream>
 #include <cstdio>

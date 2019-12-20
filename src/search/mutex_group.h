@@ -23,6 +23,10 @@ struct FactPair {
     bool operator!=(const FactPair &other) const {
         return var != other.var || value != other.value;
     }
+
+    std::pair<int, int> get_pair() const {
+        return std::make_pair (var, value);
+    }
 };
 
 std::ostream &operator<<(std::ostream &os, const FactPair &fact_pair);

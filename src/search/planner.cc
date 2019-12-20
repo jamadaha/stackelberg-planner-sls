@@ -2,13 +2,15 @@
 
 #include "option_parser.h"
 #include "search_engine.h"
-#include "timer.h"
+#include "utils/timer.h"
 #include "utilities.h"
 
 #include "ext/tree_util.hh"
 
 #include <iostream>
 #include <new>
+
+using utils::Timer;
 
 using namespace std;
 

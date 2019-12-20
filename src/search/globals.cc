@@ -10,7 +10,7 @@
 #include "rng.h"
 #include "state_registry.h"
 #include "successor_generator.h"
-#include "timer.h"
+#include "utils/timer.h"
 #include "utilities.h"
 
 #include <cstdlib>
@@ -183,12 +183,12 @@ void read_mutexes(istream &in) {
         MutexGroup mg = MutexGroup(in);
         g_mutex_groups.push_back(mg);
   
-        const vector<pair<int, int> > & invariant_group = mg.getFacts();
+        const auto & invariant_group = mg.getFacts();
         for (size_t j = 0; j < invariant_group.size(); ++j) {
-            const pair<int, int> &fact1 = invariant_group[j];
+            const auto &fact1 = invariant_group[j];
             for (size_t k = 0; k < invariant_group.size(); ++k) {
-                const pair<int, int> &fact2 = invariant_group[k];
-                set_mutex(fact1, fact2);
+                const auto &fact2 = invariant_group[k];
+                set_mutex(fact1.get_pair(), fact2.get_pair());
             }
         }
     }
@@ -352,10 +352,12 @@ void verify_no_axioms_no_conditional_effects() {
 }
 
 bool are_mutex(const pair<int, int> &a, const pair<int, int> &b) {
-  if (a.second == -1 || b.second == -1)
-    return false;
-    if (a.first == b.first) // same variable: mutex iff different value
+    if (a.second == -1 || b.second == -1) {
+        return false;
+    }
+    if (a.first == b.first){ // same variable: mutex iff different value
         return a.second != b.second;
+    }
   return g_inconsistent_facts[id_mutex(a, b)];
 }
 
@@ -404,7 +406,7 @@ int g_num_facts;
 vector<int> g_id_first_fact;
 LegacyCausalGraph *g_legacy_causal_graph;
 
-Timer g_timer;
+utils::Timer g_timer;
 string g_plan_filename = "sas_plan";
 RandomNumberGenerator g_rng(2011); // Use an arbitrary default seed.
 StateRegistry *g_state_registry = 0;

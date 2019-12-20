@@ -8,7 +8,7 @@
 #include "../global_state.h"
 #include "../plugin.h"
 #include "../priority_queue.h"
-#include "../timer.h"
+#include "../utils/timer.h"
 #include "../utilities.h"
 
 #include <algorithm>
@@ -19,6 +19,7 @@
 #include <vector>
 
 using namespace std;
+using utils::Timer;
 
 AbstractOperator::AbstractOperator(const vector<pair<int, int> > &prev_pairs,
                                    const vector<pair<int, int> > &pre_pairs,

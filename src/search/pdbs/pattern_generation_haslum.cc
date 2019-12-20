@@ -13,7 +13,7 @@
 #include "../rng.h"
 #include "../state_registry.h"
 #include "../successor_generator.h"
-#include "../timer.h"
+#include "../utils/timer.h"
 #include "../utilities.h"
 
 #include <algorithm>
@@ -27,6 +27,7 @@
 #include <vector>
 
 using namespace std;
+using utils::Timer;
 
 struct HillClimbingTimeout : public exception {};
 

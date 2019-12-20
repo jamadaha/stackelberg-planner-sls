@@ -1,16 +1,16 @@
 #include "mutex_group.h"
 
 #include "globals.h"
-#include "abstract_task.h" //For FactPair
 
 using namespace std;
 
-MutexGroup::MutexGroup(istream &in) {
+MutexGroup::MutexGroup(istream &in) : detected_fw(false), exactly_one(false) {
   check_magic(in, "begin_mutex_group");
-  string exactly_one_str, dir;
+  string exactly_one_str;
   int num_facts;
   in >> exactly_one_str;
-  in >> dir;
+  string dir;
+  // in >> dir;
   in >> num_facts;
   facts.reserve(num_facts);
   for (int j = 0; j < num_facts; ++j) {
@@ -20,7 +20,8 @@ MutexGroup::MutexGroup(istream &in) {
   }
   check_magic(in, "end_mutex_group");
   exactly_one = (exactly_one_str == "exactly_one");
-  detected_fw = (dir == "fw");
+  // detected_fw = (dir == "fw");
+  
 }
  
 bool MutexGroup::hasPair(int var, int val) const{

@@ -1,6 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include "utils/timer.h"
 #include "mutex_group.h"
 #include <iosfwd>
 #include <string>
@@ -19,7 +20,6 @@ class IntPacker;
 class LegacyCausalGraph;
 class RandomNumberGenerator;
 class SuccessorGenerator;
-class Timer;
 class StateRegistry;
 
 bool test_goal(const GlobalState &state);
@@ -87,7 +87,7 @@ extern SuccessorGenerator *g_successor_generator;
 extern std::vector<DomainTransitionGraph *> g_transition_graphs;
 extern CausalGraph *g_causal_graph;
 extern LegacyCausalGraph *g_legacy_causal_graph;
-extern Timer g_timer;
+extern utils::Timer g_timer;
 extern std::string g_plan_filename;
 extern RandomNumberGenerator g_rng;
 // Only one global object for now. Could later be changed to use one instance

@@ -6,6 +6,8 @@
 
 #include "../global_operator.h"
 
+#include "sym_controller.h"
+
 using namespace std;
 
 namespace symbolic {

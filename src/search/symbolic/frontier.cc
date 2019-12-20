@@ -2,7 +2,6 @@
 
 #include "sym_state_space_manager.h"
 
-#include "../timer.h"
 #include "../utils/timer.h"
 #include "../utils/debug_macros.h"
 

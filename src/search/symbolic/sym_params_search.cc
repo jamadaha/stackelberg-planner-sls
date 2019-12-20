@@ -1,10 +1,10 @@
 #include "sym_params_search.h"
 
 #include "../option_parser.h"
-#include "../timer.h"
+#include "../utils/timer.h"
 
 using namespace std;
-using utils::g_timer;
+using utils::Timer;
 
 namespace symbolic {
 SymParamsSearch::SymParamsSearch(const Options &opts) :

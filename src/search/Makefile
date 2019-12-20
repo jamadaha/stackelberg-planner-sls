@@ -51,6 +51,7 @@ HEADERS = \
           global_operator.h \
           global_state.h \
           globals.h \
+	  mutex_group.h	\
           heuristic.h \
           int_packer.h \
           ipc_max_heuristic.h \
@@ -74,7 +75,6 @@ HEADERS = \
           state_registry.h \
           successor_generator.h \
           sum_evaluator.h \
-          timer.h \
           utilities.h \
           variable_order_finder.h \
           weighted_evaluator.h \
@@ -213,7 +213,6 @@ HEADERS +=  symbolic/sym_variables.h \
 	symbolic/unidirectional_search.h \
 	symbolic/uniform_cost_search.h \
 	symbolic/breadth_first_search.h \
-	symbolic/gamer_pdbs_heuristic.h \
 	symbolic/bidirectional_search.h 
 
 

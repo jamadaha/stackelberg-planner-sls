@@ -10,13 +10,14 @@
 #include "../globals.h"
 #include "../option_parser.h"
 #include "../plugin.h"
-#include "../timer.h"
+#include "../utils/timer.h"
 #include "../utilities.h"
 
 #include <cassert>
 #include <cstdlib>
 #include <vector>
 
+using utils::Timer;
 using namespace std;
 
 CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(const Options &opts)

@@ -12,7 +12,7 @@
 
 #include "successor_pruning_method.h"
 
-#include "../timer.h"
+#include "../utils/timer.h"
 
 #include "../int_packer.h"
 
@@ -41,7 +41,7 @@ class BestFirstSearch : public SecondOrderTaskSearch
     size_t m_stat_expanded_last_f_layer;
 
     size_t m_stat_inner_searches;
-    Timer m_stat_time_inner_search;
+    utils::Timer m_stat_time_inner_search;
 
     int m_stat_current_g;
 

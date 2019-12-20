@@ -1,12 +1,12 @@
 #ifndef COUNTDOWN_TIMER_H
 #define COUNTDOWN_TIMER_H
 
-#include "timer.h"
+#include "utils/timer.h"
 
 #include <ostream>
 
 class CountdownTimer {
-    Timer timer;
+    utils::Timer timer;
     double max_time;
 public:
     explicit CountdownTimer(double max_time);

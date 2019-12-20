@@ -2,7 +2,7 @@
 #define SEARCH_PROGRESS_H
 
 #include "globals.h"
-#include "timer.h"
+#include "utils/timer.h"
 #include "heuristic.h"
 
 /**

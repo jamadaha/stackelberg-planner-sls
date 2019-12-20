@@ -12,10 +12,12 @@
 #include "../utils/debug_macros.h"
 #include "../utils/timer.h"
 #include "../globals.h"
+#include "sym_controller.h"
 
 #include "sym_test.h"
 
 using namespace std;
+using utils::Timer;
 
 namespace symbolic {
 
