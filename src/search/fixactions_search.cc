@@ -26,55 +26,48 @@
 using namespace std;
 
 
-FixActionsSearch::FixActionsSearch(const Options &opts) :
-    SearchEngine(opts)
-{
+FixActionsSearch::FixActionsSearch(const Options &opts) :  SearchEngine(opts) {
     search_engine = opts.get<SearchEngine *>("search_engine");
 
     if (opts.contains("attack_heuristic")) {
         attack_heuristic =
             opts.get<Heuristic *>("attack_heuristic"); // (AttackSuccessProbReuseHeuristic*) (((BudgetDeadEndHeuristic*)opts.get<Heuristic*>("attack_heuristic"))->get_prob_cost_heuristic());
     } else {
-        attack_heuristic = NULL;
+        attack_heuristic = nullptr;
     }
 
-	attack_budget_factor = opts.get<double>("attack_budget_factor");
-	fix_budget_factor = opts.get<double>("fix_budget_factor");
-	g_initial_budget = opts.get<int>("initial_attack_budget");
-	max_fix_actions_budget = opts.get<int>("initial_fix_budget");
+    attack_budget_factor = opts.get<double>("attack_budget_factor");
+    fix_budget_factor = opts.get<double>("fix_budget_factor");
+    g_initial_budget = opts.get<int>("initial_attack_budget");
+    max_fix_actions_budget = opts.get<int>("initial_fix_budget");
 
-	if (g_initial_budget < UNLTD_BUDGET) {
-		g_initial_budget = (int) ((double) g_initial_budget) * attack_budget_factor;
-	}
-	if(max_fix_actions_budget < UNLTD_BUDGET) {
-		max_fix_actions_budget = (int) ((double) max_fix_actions_budget) * fix_budget_factor;
-	}
+    if (g_initial_budget < UNLTD_BUDGET) {
+        g_initial_budget = (int) ((double) g_initial_budget) * attack_budget_factor;
+    }
+    if(max_fix_actions_budget < UNLTD_BUDGET) {
+        max_fix_actions_budget = (int) ((double) max_fix_actions_budget) * fix_budget_factor;
+    }
 
-	use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
-	check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
-	check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
-	do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
-	use_ids = opts.get<bool>("ids");
-	sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
-	greedy_fix_search = opts.get<bool>("greedy");
-	upper_bound_pruning = opts.get<bool>("upper_bound_pruning");
+    use_partial_order_reduction = opts.get<bool>("partial_order_reduction");
+    check_parent_attack_plan_applicable = opts.get<bool>("check_parent_attack_plan_applicable");
+    check_fix_state_already_known = opts.get<bool>("check_fix_state_already_known");
+    do_attack_op_dom_pruning = opts.get<bool>("attack_op_dom_pruning");
+    use_ids = opts.get<bool>("ids");
+    sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
+    greedy_fix_search = opts.get<bool>("greedy");
+    upper_bound_pruning = opts.get<bool>("upper_bound_pruning");
 
-	if(greedy_fix_search && use_ids) {
-		cout << "greedy fix search and IDS makes no sense!!!! Deactivating IDS!" << endl;
-		use_ids = false;
-	}
-}
-
-FixActionsSearch::~FixActionsSearch()
-{
+    if(greedy_fix_search && use_ids) {
+        cout << "greedy fix search and IDS makes no sense!!!!" << endl;
+        exit_with(EXIT_UNSUPPORTED);
+    }
 }
 
 void FixActionsSearch::initialize()
 {
     cout << "Initializing FixActionsSearch..." << endl;
 
-    chrono::high_resolution_clock::time_point t1 =
-        chrono::high_resolution_clock::now();
+    auto t1 = chrono::high_resolution_clock::now();
 
     sort_operators();
 
@@ -96,12 +89,11 @@ void FixActionsSearch::initialize()
     cout << "fix_vars_attacker_preconditioned.size() = " << fix_vars_attacker_preconditioned.size() << endl;
 
     if(check_parent_attack_plan_applicable) {
-        fix_search_node_infos_attack_plan.set_relevant_variables(
-            fix_vars_attacker_preconditioned);
+        fix_search_node_infos_attack_plan.set_relevant_variables(fix_vars_attacker_preconditioned);
     } else {
-    		vector<int> temp;
+        vector<int> temp;
         for (size_t var = 0; var < fix_variable_domain.size(); var++) {
-                temp.push_back(var);
+            temp.push_back(var);
         }
         fix_search_node_infos_attack_plan.set_relevant_variables(temp);
     }
@@ -140,8 +132,7 @@ void FixActionsSearch::initialize()
     */
 
     if (sort_fix_ops_stupid && use_partial_order_reduction) {
-        delrax_search::DelRaxSearch *delrax_search = (delrax_search::DelRaxSearch *)
-                search_engine;
+        delrax_search::DelRaxSearch *delrax_search = (delrax_search::DelRaxSearch *) search_engine;
         delrax_search->initialize();
         sortFixActionsByAttackerReward = new SortFixActionsByAttackerReward(
             delrax_search->get_positive_values(),
@@ -158,9 +149,10 @@ void FixActionsSearch::initialize()
     	    g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
     	    search_engine->reset();
     	    g_state_registry->reset();
-    	    if(attack_heuristic != NULL) {
-    	    		attack_heuristic->reset();
+    	    if(attack_heuristic) {
+                attack_heuristic->reset();
     	    }
+            
     	    search_engine->search();
     	    if (search_engine->found_solution()) {
     	    		search_engine->save_plan_if_necessary();
@@ -178,8 +170,8 @@ void FixActionsSearch::initialize()
     }
     delete g_successor_generator;
     g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
-    if(attack_heuristic != NULL) {
-    		attack_heuristic->reset();
+    if(attack_heuristic) {
+        attack_heuristic->reset();
     }
 
     chrono::high_resolution_clock::time_point t2 =
@@ -1116,9 +1108,8 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
 #endif
         }
 
-        if (attack_heuristic != NULL) {
-            attack_heuristic_search_space =
-                attack_heuristic->get_curr_attack_search_space();
+        if (attack_heuristic) {
+            attack_heuristic_search_space = attack_heuristic->get_curr_attack_search_space();
         }
     } else {
         num_attacker_searches++;
@@ -1196,10 +1187,10 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
             cout << "Attack attack_plan cost is " << attack_plan_cost << endl;
 #endif
 
-            if (attack_heuristic != NULL) {
+            if (attack_heuristic) {
                 attack_heuristic_search_space = new AttackSearchSpace();
                 free_attack_heuristic_per_state_info = true;
-
+                
                 OpenList<pair<StateID, int>> *open_list = ((EagerSearch *)
                                           search_engine)->get_open_list();
                 const GlobalState *goal_state = search_engine->get_goal_state();
@@ -1694,14 +1685,10 @@ SearchStatus FixActionsSearch::step() {
     return IN_PROGRESS;
 }
 
-void FixActionsSearch::add_options_to_parser(OptionParser &parser)
-{
-    SearchEngine::add_options_to_parser(parser);
-}
 
-SearchEngine *_parse(OptionParser &parser)
-{
-    FixActionsSearch::add_options_to_parser(parser);
+SearchEngine *_parse(OptionParser &parser) {
+    SearchEngine::add_options_to_parser(parser);
+    
     parser.add_option<SearchEngine *>("search_engine");
     parser.add_option<Heuristic *>("attack_heuristic",
                                    "The heuristic used for search in AttackerStateSpace", "", OptionFlags(false));

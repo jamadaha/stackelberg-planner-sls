@@ -12,8 +12,7 @@ namespace delrax_search
 
 bool is_task_delete_free();
 
-class DelRaxSearch : public ::SearchEngine
-{
+class DelRaxSearch : public ::SearchEngine {
 protected:
     bool initialized = false;
 

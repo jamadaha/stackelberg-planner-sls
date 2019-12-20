@@ -162,8 +162,7 @@ protected:
 
 public:
     FixActionsSearch(const Options &opts);
-    virtual ~FixActionsSearch();
-    static void add_options_to_parser(OptionParser &parser);
+    virtual ~FixActionsSearch() = default;
 };
 
 #endif /* SRC_SEARCH_FIXACTIONS_SEARCH_H_ */

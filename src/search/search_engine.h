@@ -29,7 +29,7 @@ protected:
     int bound;
     OperatorCost cost_type;
     double max_time;
-    const GlobalState *goal_state = NULL;
+    const GlobalState *goal_state = nullptr;
     int goal_state_budget = UNLTD_BUDGET;
 
     virtual void initialize() {}
