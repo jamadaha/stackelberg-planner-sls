@@ -7,6 +7,8 @@
 class GlobalOperator;
 
 namespace stackelberg {
+    
+    class StackelbergTask;
     class ParetoFrontier;
     class ParetoFrontierNode {
         int leader_cost;
@@ -29,7 +31,7 @@ namespace stackelberg {
         }
         
     
-        void dump(const std::vector<GlobalOperator> & attack_operators, std::ostringstream &json);
+        void dump(const StackelbergTask & task, std::ostringstream &json);
 
         friend class ParetoFrontier;
     };
@@ -47,7 +49,7 @@ namespace stackelberg {
                       const std::vector<int> & follower_plan);
 
 
-        void dump(const std::vector<GlobalOperator> & attack_operators);
+        void dump(const StackelbergTask & task);
 
         void set_complete_up_to(int leader_cost) {
             complete_up_to = leader_cost;

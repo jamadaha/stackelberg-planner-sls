@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "stackelberg_task.h"
 #include "../global_operator.h"
 
 using namespace std;
@@ -100,7 +101,7 @@ namespace stackelberg {
 
 
 
-    void dump_attack_op_sequence(const vector<int> &op_sequence, const std::vector<GlobalOperator> & attack_operators, std::ostringstream &json)
+    void dump_attack_op_sequence(const vector<int> &op_sequence, const StackelbergTask & task, std::ostringstream &json)
     {
 	json << " [";
         if (op_sequence.size() < 1) {
@@ -110,8 +111,8 @@ namespace stackelberg {
         }
 
         for (size_t i = 0; i < op_sequence.size(); ++i) {
-            json << (i > 0 ? ", " : "") << "\"" << attack_operators[op_sequence[i]].get_name() << "\"";
-            cout << "\t\t " << attack_operators[op_sequence[i]].get_name() << endl;
+            json << (i > 0 ? ", " : "") << "\"" << task.get_attack_operator(op_sequence[i]).get_name() << "\"";
+            cout << "\t\t " << task.get_attack_operator(op_sequence[i]).get_name() << endl;
         }
         json << "]";
     }
@@ -149,7 +150,7 @@ namespace stackelberg {
 
 
 
-    void ParetoFrontierNode::dump(const std::vector<GlobalOperator> & attack_operators, std::ostringstream &json)
+    void ParetoFrontierNode::dump(const StackelbergTask & task, std::ostringstream &json)
     {
         cout << "\t fix ops costs: " << leader_cost << ", attacker cost: " <<
             follower_cost << ": " << endl;
@@ -163,11 +164,11 @@ namespace stackelberg {
 
         cout << "\t attacker plan: " << endl;
         json << ", \"attacker plan\": ";
-        dump_attack_op_sequence(follower_plan, attack_operators, json);
+        dump_attack_op_sequence(follower_plan, task, json);
         json << "}";
     }
 
-    void ParetoFrontier::dump(const std::vector<GlobalOperator> & attack_operators)
+    void ParetoFrontier::dump(const StackelbergTask & task)
     {
         std::ostringstream json;
         json << "[";

@@ -218,7 +218,8 @@ HEADERS +=  symbolic/sym_variables.h \
 	symbolic/symbolic_search.h 
 
 HEADERS +=  stackelberg/stackelberg_search.h \
-	    stackelberg/pareto_frontier.h
+	    stackelberg/pareto_frontier.h \
+	    stackelberg/stackelberg_task.h
 
 
 
