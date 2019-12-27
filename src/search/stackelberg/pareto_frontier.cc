@@ -45,7 +45,7 @@ namespace stackelberg {
             );
 
 
-        // First check whether attack_prob_costs == Intmax and fix_actions_cost <
+        // First check whether follower_prob_costs == Intmax and fix_actions_cost <
         // fix_action_costs_for_attacker_upper_bound
         // if (follower_cost >= attacker_cost_upper_bound) {
         //     if (leader_cost < fix_action_costs_for_attacker_upper_bound) {
@@ -101,7 +101,7 @@ namespace stackelberg {
 
 
 
-    void dump_attack_op_sequence(const vector<int> &op_sequence, const StackelbergTask & task, std::ostringstream &json)
+    void dump_follower_op_sequence(const vector<int> &op_sequence, const StackelbergTask & task, std::ostringstream &json)
     {
 	json << " [";
         if (op_sequence.size() < 1) {
@@ -111,8 +111,8 @@ namespace stackelberg {
         }
 
         for (size_t i = 0; i < op_sequence.size(); ++i) {
-            json << (i > 0 ? ", " : "") << "\"" << task.get_attack_operator(op_sequence[i]).get_name() << "\"";
-            cout << "\t\t " << task.get_attack_operator(op_sequence[i]).get_name() << endl;
+            json << (i > 0 ? ", " : "") << "\"" << task.get_follower_operator(op_sequence[i]).get_name() << "\"";
+            cout << "\t\t " << task.get_follower_operator(op_sequence[i]).get_name() << endl;
         }
         json << "]";
     }
@@ -164,7 +164,7 @@ namespace stackelberg {
 
         cout << "\t attacker plan: " << endl;
         json << ", \"attacker plan\": ";
-        dump_attack_op_sequence(follower_plan, task, json);
+        dump_follower_op_sequence(follower_plan, task, json);
         json << "}";
     }
 
@@ -177,7 +177,7 @@ namespace stackelberg {
             if(i > 0) {
     		json << ",\n";
             }
-            frontier[i].dump(attack_operators, json);
+            frontier[i].dump(task, json);
         }
         cout << "END Pareto-frontier" << endl;
 

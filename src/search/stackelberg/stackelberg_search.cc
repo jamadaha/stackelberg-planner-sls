@@ -1,6 +1,5 @@
 #include "stackelberg_search.h"
 #include <vector>
-#include <math.h>
 #include "../option_parser.h"
 #include "../plugin.h"
 #include "../attack_success_prob_reuse_heuristic.h"
@@ -61,20 +60,27 @@ namespace stackelberg {
 
         task = make_unique<StackelbergTask> ();
 
+	
+        // Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
+
+	
         if(check_parent_follower_plan_applicable) {
-            leader_search_node_infos_follower_plan.set_relevant_variables(task->get_leader_vars_attacker_preconditioned());
+            leader_search_node_infos_follower_plan.set_relevant_variables(task->get_leader_vars_follower_preconditioned());
         } else {
+
+	    size_t num_leader_vars = task->get_leader_variable_domain().size();
             vector<int> temp;
-            for (size_t var = 0; var < leader_variable_domain.size(); var++) {
+            for (size_t var = 0; var < num_leader_vars; var++) {
                 temp.push_back(var);
             }
             leader_search_node_infos_follower_plan.set_relevant_variables(temp);
         }
 
 
-        leader_operators_successor_generator.reset(create_successor_generator(
-                                                    leader_variable_domain, leader_operators, leader_operators));
-
+        leader_operators_successor_generator.reset(
+	    create_successor_generator(
+		task->get_leader_variable_domain(), task->get_leader_operators(), task->get_leader_operators()));
+	
         /* FIXME REMOVED DIVIDING VARIABLES
            follower_operators_for_leader_vars_successor_generator = create_successor_generator(
            leader_variable_domain,
@@ -87,13 +93,11 @@ namespace stackelberg {
             compute_leader_facts_ops_sets();
         }
 
-        if (do_follower_op_dom_pruning) {
-            compute_op_dominance_relation(follower_operators, dominated_follower_op_ids);
-        }
+        // if (do_follower_op_dom_pruning) {
+        //     compute_op_dominance_relation(follower_operators, dominated_follower_op_ids);
+        // }
 
-        g_all_follower_operators.insert(g_all_follower_operators.begin(),
-                                      follower_operators.begin(), follower_operators.end());
-
+        
         /* FIXME REMOVED DIVIDING VARIABLES
            g_operators.clear();
            g_operators.insert(g_operators.begin(),
@@ -117,17 +121,17 @@ namespace stackelberg {
     	    search_engine->search();
     	    if (search_engine->found_solution()) {
                 search_engine->save_plan_if_necessary();
-                attacker_cost_upper_bound = search_engine->calculate_plan_cost();
+                follower_cost_upper_bound = search_engine->calculate_plan_cost();
     	    } else {
-                attacker_cost_upper_bound = ATTACKER_TASK_UNSOLVABLE;
+                follower_cost_upper_bound = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE;
     	    }
-    	    cout << "attacker_cost_upper_bound: " << attacker_cost_upper_bound << endl;
+    	    cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << endl;
         }
 
         /* FIXME Because of REMOVED DIVIDING VARIABLES, we added this: */
         g_operators.clear();
-        for (size_t op_no = 0; op_no < follower_operators_with_all_preconds.size(); op_no++) {
-            g_operators.push_back(follower_operators_with_all_preconds[op_no]);
+        for (const auto & op :task->get_follower_operators_with_all_preconds()) {
+            g_operators.push_back(op);
         }
         delete g_successor_generator;
         g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
@@ -142,21 +146,6 @@ namespace stackelberg {
     }
 
 
-    int StackelbergSearch::parse_success_prob_cost(string prob)
-    {
-        size_t backslash = prob.find("/");
-        if (backslash == string::npos) {
-            cout << "No correct success probability suffix found! Error in PDDL file?" <<
-                endl;
-            return -1;
-        }
-
-        string numerator_string = prob.substr(0, backslash);
-        string denominator_string = prob.substr(backslash + 1);
-        double numerator = (double) stoi(numerator_string);
-        double denominator = (double) stoi(denominator_string);
-        return (int)(fabs(log2(numerator / denominator)) * 1000);
-    }
 
 /**
  * returns a SuccessorGeneratorSwitch based on the preconditions of the ops in pre_cond_ops and entailing the ops from ops vector in the leaves
@@ -181,63 +170,63 @@ namespace stackelberg {
             vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
 
             if (conditions.size() == 0) {
-            // This op has no preconditions, add it immediately to the root node
-            if (root_node->immediate_ops == NULL) {
-            root_node->immediate_ops = new SuccessorGeneratorGenerate();
-        }
-            ((SuccessorGeneratorGenerate *) root_node->immediate_ops)->add_op(&ops[op_no]);
-            continue;
-        }
+		// This op has no preconditions, add it immediately to the root node
+		if (root_node->immediate_ops == NULL) {
+		    root_node->immediate_ops = new SuccessorGeneratorGenerate();
+		}
+		((SuccessorGeneratorGenerate *) root_node->immediate_ops)->add_op(&ops[op_no]);
+		continue;
+	    }
 
             SuccessorGeneratorSwitch *current_node = root_node;
             for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
-            int var = conditions[cond_no].var;
-            int val = conditions[cond_no].val;
-            //cout << "Consider precond with var: " << var << ", val: " << val << endl;
+		int var = conditions[cond_no].var;
+		int val = conditions[cond_no].val;
+		//cout << "Consider precond with var: " << var << ", val: " << val << endl;
 
-            while (var != current_node->switch_var) {
-            if (current_node->default_generator == NULL) {
-            int next_var_index = current_node->switch_var + 1;
-            current_node->default_generator = new SuccessorGeneratorSwitch(next_var_index,
-                variable_domain[next_var_index]);
+		while (var != current_node->switch_var) {
+		    if (current_node->default_generator == NULL) {
+			int next_var_index = current_node->switch_var + 1;
+			current_node->default_generator = new SuccessorGeneratorSwitch(next_var_index,
+										       variable_domain[next_var_index]);
+		    }
+
+		    current_node = (SuccessorGeneratorSwitch *) current_node->default_generator;
+		}
+
+		// Here: var == current_node->switch_var
+
+		int next_var_index = current_node->switch_var + 1;
+		if (next_var_index >= (int) variable_domain.size()) {
+		    if (current_node->generator_for_value[val] == NULL) {
+			current_node->generator_for_value[val] = new SuccessorGeneratorGenerate();
+		    }
+		    ((SuccessorGeneratorGenerate *) current_node->generator_for_value[val])->add_op(
+			&ops[op_no]);
+
+		} else {
+		    if (current_node->generator_for_value[val] == NULL) {
+			current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(
+			    next_var_index,
+			    variable_domain[next_var_index]);
+		    }
+
+		    current_node = (SuccessorGeneratorSwitch *)
+			current_node->generator_for_value[val];
+		    if (cond_no == (conditions.size() - 1)) {
+			// This was the last cond.
+			if (current_node->immediate_ops == NULL) {
+			    current_node->immediate_ops = new SuccessorGeneratorGenerate();
+			}
+			((SuccessorGeneratorGenerate *) current_node->immediate_ops)->add_op(
+			    &ops[op_no]);
+		    }
+		}
+	    }
         }
 
-            current_node = (SuccessorGeneratorSwitch *) current_node->default_generator;
-        }
-
-            // Here: var == current_node->switch_var
-
-            int next_var_index = current_node->switch_var + 1;
-            if (next_var_index >= (int) variable_domain.size()) {
-            if (current_node->generator_for_value[val] == NULL) {
-            current_node->generator_for_value[val] = new SuccessorGeneratorGenerate();
-        }
-            ((SuccessorGeneratorGenerate *) current_node->generator_for_value[val])->add_op(
-            &ops[op_no]);
-
-        } else {
-            if (current_node->generator_for_value[val] == NULL) {
-            current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(
-            next_var_index,
-                variable_domain[next_var_index]);
-        }
-
-            current_node = (SuccessorGeneratorSwitch *)
-                current_node->generator_for_value[val];
-            if (cond_no == (conditions.size() - 1)) {
-            // This was the last cond.
-            if (current_node->immediate_ops == NULL) {
-            current_node->immediate_ops = new SuccessorGeneratorGenerate();
-        }
-            ((SuccessorGeneratorGenerate *) current_node->immediate_ops)->add_op(
-            &ops[op_no]);
-        }
-        }
-        }
-        }
-
-            return root_node;
-        }
+	return root_node;
+    }
 
 /**
  * For every pair of ops op1 and op2, this method checks whether op1 has a precond on var v on which op2 has an effect and vice versa.
@@ -245,238 +234,243 @@ namespace stackelberg {
  * If op1 and op2 both effect a var v with different effect values,
  * there are also not commutative and are dependent. Otherwise, they are commutative and not dependet.
  */
-            void StackelbergSearch::compute_commutative_and_dependent_leader_ops_matrices()
-            {
-            cout << "Begin compute_commutative_and_dependent_leader_ops_matrices()..." << endl;
+    void StackelbergSearch::compute_commutative_and_dependent_leader_ops_matrices()
+    {
+	cout << "Begin compute_commutative_and_dependent_leader_ops_matrices()..." << endl;
 
-            /*   cout << "We assume that all fix actions are commutative and not dependent!" <<
-                 endl;
-                 {
-                 vector<bool> val1(leader_operators.size(), true);
-                 commutative_leader_ops.assign(leader_operators.size(), val1);
-                 vector<bool> val2(leader_operators.size(), false);
-                 dependent_leader_ops.assign(leader_operators.size(), val2);
-                 return;
-                 }*/
+	/*   cout << "We assume that all fix actions are commutative and not dependent!" <<
+	     endl;
+	     {
+	     vector<bool> val1(leader_operators.size(), true);
+	     commutative_leader_ops.assign(leader_operators.size(), val1);
+	     vector<bool> val2(leader_operators.size(), false);
+	     dependent_leader_ops.assign(leader_operators.size(), val2);
+	     return;
+	     }*/
 
 
-            vector<bool> val(leader_operators.size());
-            commutative_leader_ops.assign(leader_operators.size(), val);
-            dependent_leader_ops.assign(leader_operators.size(), val);
-            for (size_t op_no1 = 0; op_no1 < leader_operators.size(); op_no1++) {
+	const auto & leader_operators = task->get_leader_operators();
+	vector<bool> val(leader_operators.size());
+	commutative_leader_ops.assign(leader_operators.size(), val);
+	dependent_leader_ops.assign(leader_operators.size(), val);
+	for (size_t op_no1 = 0; op_no1 < leader_operators.size(); op_no1++) {
             for (size_t op_no2 = op_no1 + 1; op_no2 < leader_operators.size(); op_no2++) {
-            /*#ifdef LEADER_SEARCH_DEBUG
-              cout << "Comparing op1 with id " << op_no1 << ":" << endl;
-              leader_operators[op_no1].dump();
-              cout << "to op2 with id " << op_no2 << ":" << endl;
-              leader_operators[op_no2].dump();
-              #endif*/
+		/*#ifdef LEADER_SEARCH_DEBUG
+		  cout << "Comparing op1 with id " << op_no1 << ":" << endl;
+		  leader_operators[op_no1].dump();
+		  cout << "to op2 with id " << op_no2 << ":" << endl;
+		  leader_operators[op_no2].dump();
+		  #endif*/
 
-            const vector<GlobalCondition> &conditions1 =
-                leader_operators[op_no1].get_preconditions();
-            const vector<GlobalCondition> &conditions2 =
-                leader_operators[op_no2].get_preconditions();
-            const vector<GlobalEffect> &effects1 = leader_operators[op_no1].get_effects();
-            const vector<GlobalEffect> &effects2 = leader_operators[op_no2].get_effects();
+		const vector<GlobalCondition> &conditions1 =
+		    leader_operators[op_no1].get_preconditions();
+		const vector<GlobalCondition> &conditions2 =
+		    leader_operators[op_no2].get_preconditions();
+		const vector<GlobalEffect> &effects1 = leader_operators[op_no1].get_effects();
+		const vector<GlobalEffect> &effects2 = leader_operators[op_no2].get_effects();
 
-            bool commutative = true;
-            bool dependent = false;
+		bool commutative = true;
+		bool dependent = false;
 
-            int i_eff2 = 0;
-            for (int i_cond1 = 0; i_cond1 < (int) conditions1.size(); i_cond1++) {
-            if (!commutative && dependent) {
-            break;
+		int i_eff2 = 0;
+		for (int i_cond1 = 0; i_cond1 < (int) conditions1.size(); i_cond1++) {
+		    if (!commutative && dependent) {
+			break;
+		    }
+
+		    int var = conditions1[i_cond1].var;
+		    int val = conditions1[i_cond1].val;
+
+		    while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
+			i_eff2++;
+		    }
+
+		    if (i_eff2 < (int) effects2.size() && effects2[i_eff2].var == var) {
+			commutative = false;
+			if (val != effects2[i_eff2].val) {
+			    dependent = true;
+			}
+		    }
+		}
+
+		int i_eff1 = 0;
+		for (int i_cond2 = 0; i_cond2 < (int) conditions2.size(); i_cond2++) {
+		    if (!commutative && dependent) {
+			break;
+		    }
+
+		    int var = conditions2[i_cond2].var;
+		    int val = conditions2[i_cond2].val;
+
+		    while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
+			i_eff1++;
+		    }
+
+		    if (i_eff1 < (int) effects1.size() && effects1[i_eff1].var == var) {
+			commutative = false;
+			if (val != effects1[i_eff1].val) {
+			    dependent = true;
+			}
+		    }
+		}
+
+		i_eff2 = 0;
+		for (i_eff1 = 0; i_eff1 < (int) effects1.size(); i_eff1++) {
+		    if (!commutative && dependent) {
+			break;
+		    }
+
+		    int var = effects1[i_eff1].var;
+		    int val = effects1[i_eff1].val;
+
+		    while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
+			i_eff2++;
+		    }
+
+		    if (i_eff2 < (int) effects2.size() && effects2[i_eff2].var == var) {
+			if (val != effects2[i_eff2].val) {
+			    commutative = false;
+			    dependent = true;
+			}
+		    }
+		}
+
+		/*#ifdef LEADER_SEARCH_DEBUG
+		  cout << "ops are commutative?: " << commutative << endl;
+		  cout << "ops are dependent?: " << dependent << endl;
+		  #endif*/
+		commutative_leader_ops[op_no1][op_no2] = commutative;
+		commutative_leader_ops[op_no2][op_no1] = commutative;
+
+		dependent_leader_ops[op_no1][op_no2] = dependent;
+		dependent_leader_ops[op_no2][op_no1] = dependent;
+	    }
         }
+    }
 
-            int var = conditions1[i_cond1].var;
-            int val = conditions1[i_cond1].val;
+    void StackelbergSearch::compute_op_dominance_relation(const
+							  vector<GlobalOperator> &ops, vector<vector<int>> &dominated_op_ids)
+    {
+	cout << "Begin compute_op_dominance_relation()..." << endl;
+	dominated_op_ids.assign(ops.size(), vector<int>());
 
-            while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
-            i_eff2++;
-        }
-
-            if (i_eff2 < (int) effects2.size() && effects2[i_eff2].var == var) {
-            commutative = false;
-            if (val != effects2[i_eff2].val) {
-            dependent = true;
-        }
-        }
-        }
-
-            int i_eff1 = 0;
-            for (int i_cond2 = 0; i_cond2 < (int) conditions2.size(); i_cond2++) {
-                if (!commutative && dependent) {
-                    break;
-                }
-
-                int var = conditions2[i_cond2].var;
-                int val = conditions2[i_cond2].val;
-
-                while (i_eff1 < ((int) effects1.size() - 1) && effects1[i_eff1].var < var) {
-                    i_eff1++;
-                }
-
-                if (i_eff1 < (int) effects1.size() && effects1[i_eff1].var == var) {
-                    commutative = false;
-                    if (val != effects1[i_eff1].val) {
-                        dependent = true;
-                    }
-                }
-            }
-
-            i_eff2 = 0;
-            for (i_eff1 = 0; i_eff1 < (int) effects1.size(); i_eff1++) {
-                if (!commutative && dependent) {
-                    break;
-                }
-
-                int var = effects1[i_eff1].var;
-                int val = effects1[i_eff1].val;
-
-                while (i_eff2 < ((int) effects2.size() - 1) && effects2[i_eff2].var < var) {
-                    i_eff2++;
-                }
-
-                if (i_eff2 < (int) effects2.size() && effects2[i_eff2].var == var) {
-                    if (val != effects2[i_eff2].val) {
-                        commutative = false;
-                        dependent = true;
-                    }
-                }
-            }
-
-            /*#ifdef LEADER_SEARCH_DEBUG
-              cout << "ops are commutative?: " << commutative << endl;
-              cout << "ops are dependent?: " << dependent << endl;
-              #endif*/
-            commutative_leader_ops[op_no1][op_no2] = commutative;
-            commutative_leader_ops[op_no2][op_no1] = commutative;
-
-            dependent_leader_ops[op_no1][op_no2] = dependent;
-            dependent_leader_ops[op_no2][op_no1] = dependent;
-        }
-        }
-        }
-
-            void StackelbergSearch::compute_op_dominance_relation(const
-                vector<GlobalOperator> &ops, vector<vector<int>> &dominated_op_ids)
-            {
-            cout << "Begin compute_op_dominance_relation()..." << endl;
-            dominated_op_ids.assign(ops.size(), vector<int>());
-
-            for (size_t op_no1 = 0; op_no1 < ops.size(); op_no1++) {
+	for (size_t op_no1 = 0; op_no1 < ops.size(); op_no1++) {
             for (size_t op_no2 = 0; op_no2 < ops.size(); op_no2++) {
-            if (op_no1 == op_no2) {
-            continue;
+		if (op_no1 == op_no2) {
+		    continue;
+		}
+
+		bool dominated_or_equivalent = true;
+
+		const GlobalOperator &op1 = ops[op_no1];
+		const GlobalOperator &op2 = ops[op_no2];
+
+		//cout << "Checking dominacce of op1 with id " << op_no1 << ":" << endl;
+		//op1.dump();
+		//cout << "to op2 with id " << op_no2 << ":" << endl;
+		//op2.dump();
+
+		if (op1.get_cost() > op2.get_cost() || op1.get_cost2() > op2.get_cost2()) {
+		    continue;
+		}
+
+		const vector<GlobalCondition> &conditions1 = op1.get_preconditions();
+		const vector<GlobalCondition> &conditions2 = op2.get_preconditions();
+		const vector<GlobalEffect> &effects1 = op1.get_effects();
+		const vector<GlobalEffect> &effects2 = op2.get_effects();
+
+		if (conditions1.size() > conditions2.size()
+		    || effects1.size() != effects2.size()) {
+		    continue;
+		}
+
+		// The effects need to be the same. We already know that effects1.size() == effects2.size()
+		for (size_t i_eff = 0; i_eff < effects1.size(); i_eff++) {
+		    if (effects1[i_eff].var != effects2[i_eff].var
+			|| effects1[i_eff].val != effects2[i_eff].val) {
+			dominated_or_equivalent = false;
+			break;
+		    }
+		}
+
+		if (!dominated_or_equivalent) {
+		    continue;
+		}
+
+		// Regarding preconditions, every precond of op1 needs to be a precond of op2
+		int i_cond2 = 0;
+		for (int i_cond1 = 0; i_cond1 < (int) conditions1.size(); i_cond1++) {
+		    int var = conditions1[i_cond1].var;
+		    int val = conditions1[i_cond1].val;
+
+		    while (i_cond2 < ((int) conditions2.size() - 1)
+			   && conditions2[i_cond2].var < var) {
+			i_cond2++;
+		    }
+
+		    if (i_cond2 >= (int) conditions2.size() || conditions2[i_cond2].var != var
+			|| conditions2[i_cond2].val != val) {
+			dominated_or_equivalent = false;
+			break;
+		    }
+		}
+
+		/*#ifdef LEADER_SEARCH_DEBUG
+		  cout << "op1 dominates op2?: " << dominated_or_equivalent << endl;
+		  //#endif*/
+		if (dominated_or_equivalent) {
+		    dominated_op_ids[op_no1].push_back(op_no2);
+		}
+	    }
         }
+    }
 
-            bool dominated_or_equivalent = true;
+    void StackelbergSearch::compute_leader_facts_ops_sets()
+    {
+	cout << "Begin compute_leader_facts_ops_sets()..." << endl;
 
-            const GlobalOperator &op1 = ops[op_no1];
-            const GlobalOperator &op2 = ops[op_no2];
+	int num_leader_vars = task->get_num_leader_vars();
+	const auto & leader_variable_domain = task->get_leader_variable_domain();
+	const auto & leader_operators = task->get_leader_operators();
+	deleting_leader_facts_ops.resize(num_leader_vars);
+	achieving_leader_facts_ops.resize(num_leader_vars);
 
-            //cout << "Checking dominacce of op1 with id " << op_no1 << ":" << endl;
-            //op1.dump();
-            //cout << "to op2 with id " << op_no2 << ":" << endl;
-            //op2.dump();
-
-            if (op1.get_cost() > op2.get_cost() || op1.get_cost2() > op2.get_cost2()) {
-            continue;
-        }
-
-            const vector<GlobalCondition> &conditions1 = op1.get_preconditions();
-            const vector<GlobalCondition> &conditions2 = op2.get_preconditions();
-            const vector<GlobalEffect> &effects1 = op1.get_effects();
-            const vector<GlobalEffect> &effects2 = op2.get_effects();
-
-            if (conditions1.size() > conditions2.size()
-                || effects1.size() != effects2.size()) {
-            continue;
-        }
-
-            // The effects need to be the same. We already know that effects1.size() == effects2.size()
-            for (size_t i_eff = 0; i_eff < effects1.size(); i_eff++) {
-            if (effects1[i_eff].var != effects2[i_eff].var
-                || effects1[i_eff].val != effects2[i_eff].val) {
-            dominated_or_equivalent = false;
-            break;
-        }
-        }
-
-            if (!dominated_or_equivalent) {
-            continue;
-        }
-
-            // Regarding preconditions, every precond of op1 needs to be a precond of op2
-            int i_cond2 = 0;
-            for (int i_cond1 = 0; i_cond1 < (int) conditions1.size(); i_cond1++) {
-            int var = conditions1[i_cond1].var;
-            int val = conditions1[i_cond1].val;
-
-            while (i_cond2 < ((int) conditions2.size() - 1)
-                             && conditions2[i_cond2].var < var) {
-            i_cond2++;
-        }
-
-            if (i_cond2 >= (int) conditions2.size() || conditions2[i_cond2].var != var
-                             || conditions2[i_cond2].val != val) {
-            dominated_or_equivalent = false;
-            break;
-        }
-        }
-
-            /*#ifdef LEADER_SEARCH_DEBUG
-              cout << "op1 dominates op2?: " << dominated_or_equivalent << endl;
-              //#endif*/
-            if (dominated_or_equivalent) {
-            dominated_op_ids[op_no1].push_back(op_no2);
-        }
-        }
-        }
-        }
-
-            void StackelbergSearch::compute_leader_facts_ops_sets()
-            {
-            cout << "Begin compute_leader_facts_ops_sets()..." << endl;
-
-            deleting_leader_facts_ops.resize(num_leader_vars);
-            achieving_leader_facts_ops.resize(num_leader_vars);
-
-            for (int var = 0; var < num_leader_vars; var++) {
+	for (int var = 0; var < num_leader_vars; var++) {
             int domain_size = leader_variable_domain[var];
             deleting_leader_facts_ops[var].resize(domain_size);
             achieving_leader_facts_ops[var].resize(domain_size);
         }
 
-            for (size_t op_no = 0; op_no < leader_operators.size(); op_no++) {
+	for (size_t op_no = 0; op_no < leader_operators.size(); op_no++) {
             const GlobalOperator *op = &leader_operators[op_no];
 
             const vector<GlobalEffect> &effects = op->get_effects();
             for (size_t eff_no = 0; eff_no < effects.size(); eff_no++) {
-            int var = effects[eff_no].var;
-            int effect_val = effects[eff_no].val;
+		int var = effects[eff_no].var;
+		int effect_val = effects[eff_no].val;
 
-            achieving_leader_facts_ops[var][effect_val].push_back(op);
+		achieving_leader_facts_ops[var][effect_val].push_back(op);
 
-            for (int other_val = 0; other_val < leader_variable_domain[var]; other_val++) {
-            if (other_val != effect_val) {
-            deleting_leader_facts_ops[var][other_val].push_back(op);
+		for (int other_val = 0; other_val < leader_variable_domain[var]; other_val++) {
+		    if (other_val != effect_val) {
+			deleting_leader_facts_ops[var][other_val].push_back(op);
+		    }
+		}
+	    }
         }
-        }
-        }
-        }
-        }
+    }
 
-            void StackelbergSearch::get_all_dependent_ops(const GlobalOperator *op,
-                vector<const GlobalOperator *> &result)
-            {
-            for (size_t other_op_no = 0; other_op_no < dependent_leader_ops.size();
-            other_op_no++) {
+    void StackelbergSearch::get_all_dependent_ops(const GlobalOperator *op,
+						  vector<const GlobalOperator *> &result)
+    {
+	const auto & leader_operators = task->get_leader_operators();
+	for (size_t other_op_no = 0; other_op_no < dependent_leader_ops.size();
+	     other_op_no++) {
             if (dependent_leader_ops[op->get_op_id()][other_op_no]) {
-            result.push_back(&leader_operators[other_op_no]);
+		result.push_back(&leader_operators[other_op_no]);
+	    }
         }
-        }
-        }
+    }
 
             void StackelbergSearch::prune_applicable_leader_ops_sss(const GlobalState &state,
                 const vector<int> &follower_plan,
@@ -486,13 +480,15 @@ namespace stackelberg {
             unordered_set<const GlobalOperator *> applicable_ops_set(applicable_ops.begin(),
                 applicable_ops.end());
 
+	    const auto & follower_operators_with_leader_vars_preconds = task->get_follower_operators_with_leader_vars_preconds();
+	    
             vector<const GlobalOperator *> current_T_s;
-            vector<bool> is_in_current_T_s(leader_operators.size(), false);
+            vector<bool> is_in_current_T_s(task->get_leader_operators().size(), false);
             // Initialize T_s to the disjunctive action landmark
-            // We rely on g_plan containing the currently computed attacker plan
+            // We rely on g_plan containing the currently computed follower plan
             for (size_t op_no = 0; op_no < follower_plan.size(); op_no++) {
             int op_id = follower_plan[op_no];
-            const GlobalOperator *op = &follower_operators_with_leader_vars_preconds[op_id];
+            const GlobalOperator *op = & follower_operators_with_leader_vars_preconds[op_id];
 
             const vector<GlobalCondition> &preconditions = op->get_preconditions();
             for (size_t precond_no = 0; precond_no < preconditions.size(); precond_no++) {
@@ -510,6 +506,9 @@ namespace stackelberg {
             }
             }
 
+
+	    const auto & leader_operators = task->get_leader_operators();
+	    
             vector<bool> is_in_result(leader_operators.size(), false);
 
             for (size_t op_no = 0; op_no < current_T_s.size(); op_no++) {
@@ -596,11 +595,12 @@ void StackelbergSearch::prune_dominated_ops(vector<const GlobalOperator *> &ops,
 }
 
 void StackelbergSearch::compute_always_applicable_follower_ops(vector<GlobalOperator> &ops) {
-    for (size_t op_no = 0; op_no < follower_operators_with_leader_vars_preconds.size(); op_no++) {
-        const GlobalOperator *op = &follower_operators_with_leader_vars_preconds[op_no];
+
+    
+    for (const auto & op : task->get_follower_operators_with_leader_vars_preconds()) {
 
         bool always_applicable = true;
-        const vector<GlobalCondition> &preconditions = op->get_preconditions();
+        const vector<GlobalCondition> &preconditions = op.get_preconditions();
         for (size_t precond_no = 0; precond_no < preconditions.size(); precond_no++) {
             int precond_var = preconditions[precond_no].var;
             int precond_val = preconditions[precond_no].val;
@@ -614,7 +614,7 @@ void StackelbergSearch::compute_always_applicable_follower_ops(vector<GlobalOper
         }
 
         if (always_applicable) {
-            ops.push_back(follower_operators_with_all_preconds[op->get_op_id()]);
+            ops.push_back(task->get_follower_operators_with_all_preconds()[op.get_op_id()]);
         }
     }
 }
@@ -622,14 +622,6 @@ void StackelbergSearch::compute_always_applicable_follower_ops(vector<GlobalOper
 bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
 {
     return op1->get_name() < op2->get_name();
-}
-
-string StackelbergSearch::leader_state_to_string(const GlobalState &state) {
-    string res = "";
-    for (size_t i = 0; i < leader_variable_domain.size(); i++) {
-        res += to_string(state[i]);
-    }
-    return res;
 }
 
 string StackelbergSearch::ops_to_string(vector<const GlobalOperator *> &ops) {
@@ -650,6 +642,8 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
                                                const vector<int> &parent_follower_plan, int parent_follower_plan_cost,
                                                vector<int> &sleep, bool recurse)
 {
+
+    const auto & follower_operators_with_leader_vars_preconds = task->get_follower_operators_with_leader_vars_preconds();
     num_recursive_calls++;
 #ifdef LEADER_SEARCH_DEBUG
     if ((num_recursive_calls % 50) == 0) {
@@ -699,7 +693,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
     AttackSearchSpace *follower_heuristic_search_space = NULL;
     bool free_follower_heuristic_per_state_info = false;
 
-    int follower_plan_cost = ATTACKER_TASK_UNSOLVABLE;
+    int follower_plan_cost = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE;
     FixSearchInfoAttackPlan &info_follower_plan =
         leader_search_node_infos_follower_plan[state];
     FixSearchInfoFixSequence &info_leader_sequence =
@@ -712,7 +706,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
             && info_follower_plan.follower_plan_prob_cost != -1) {
             follower_plan_cost = info_follower_plan.follower_plan_prob_cost;
             follower_plan = info_follower_plan.follower_plan;
-            spared_attacker_searches_because_leader_state_already_seen++;
+            spared_follower_searches_because_leader_state_already_seen++;
 
 #ifdef LEADER_SEARCH_DEBUG
             cout << "Attack prob cost for this state is already known in PerStateInformation: "
@@ -737,7 +731,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
                 info_follower_plan.follower_plan = parent_follower_plan;
                 info_leader_sequence.leader_actions_cost = leader_actions_cost;
             }
-            spared_attacker_searches_because_parent_plan_applicable++;
+            spared_follower_searches_because_parent_plan_applicable++;
 #ifdef LEADER_SEARCH_DEBUG
             cout << "Attack prob cost for this state is already known from parent_follower_plan: "
                  << follower_plan_cost << endl;
@@ -745,10 +739,10 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
         }
 
         if (follower_heuristic) {
-            follower_heuristic_search_space = follower_heuristic->get_curr_follower_search_space();
+            follower_heuristic_search_space = follower_heuristic->get_curr_attack_search_space();
         }
     } else {
-        num_attacker_searches++;
+        num_follower_searches++;
 
         /* FIXME REMOVED DIVIDING VARIABLES
            vector<const GlobalOperator *> applicable_follower_operators;
@@ -772,14 +766,15 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
            delete g_successor_generator;
            g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
            //g_successor_generator->dump();
-           //cout << "Attacker dump everything: " << endl;
+           //cout << "Follower dump everything: " << endl;
            //dump_everything();
 
            */
 
-        /* FIXME Because REMOVED DIVIDING VARIABLES, adjust attacker initial state w.r.t fix variables: */
+        /* FIXME Because REMOVED DIVIDING VARIABLES, adjust follower initial state w.r.t fix variables: */
+	const auto & leader_variable_domain = task->get_leader_variable_domain();
         for (size_t leader_var = 0; leader_var < leader_variable_domain.size(); leader_var++) {
-            int orig_var_id = map_leader_var_id_to_orig_var_id[leader_var];
+            int orig_var_id = task->get_map_leader_var_id_to_orig_var_id()[leader_var];
             g_initial_state_data[orig_var_id] = state[leader_var];
         }
 
@@ -814,7 +809,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
 #endif
 
         SearchSpace *search_space = search_engine->get_search_space();
-        all_attacker_states += search_space->get_num_search_node_infos();
+        all_follower_states += search_space->get_num_search_node_infos();
 
         if (search_engine->found_solution()) {
             search_engine->save_plan_if_necessary();
@@ -832,17 +827,17 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
                 const GlobalState *goal_state = search_engine->get_goal_state();
                 const int goal_state_budget = search_engine->get_goal_state_budget();
 
-                follower_heuristic_search_space->budget_follower_search_node_infos.set_relevant_variables(follower_vars_indizes);
+                follower_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(task->get_follower_vars_indizes());
 
                 follower_heuristic->reinitialize(follower_heuristic_search_space, search_space,
-                                               open_list, *goal_state,
-                                               goal_state_budget);
+						 open_list, *goal_state,
+						 goal_state_budget);
             }
         } else {
 #ifdef LEADER_SEARCH_DEBUG
-            cout << "Attacker task was not solvable!" << endl;
+            cout << "Follower task was not solvable!" << endl;
 #endif
-            follower_plan_cost = ATTACKER_TASK_UNSOLVABLE;
+            follower_plan_cost = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE;
         }
         if (check_leader_state_already_known) {
             info_follower_plan.follower_plan_prob_cost = follower_plan_cost;
@@ -852,7 +847,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
 
     // Copy found g_plan to local vector iff we even performed a successful search
     if (!parent_follower_plan_applicable && follower_plan.empty()
-        && follower_plan_cost != ATTACKER_TASK_UNSOLVABLE) {
+        && follower_plan_cost != StackelbergTask::FOLLOWER_TASK_UNSOLVABLE) {
         for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
             follower_plan.push_back(g_plan[op_no]->get_op_id());
         }
@@ -877,8 +872,8 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
         info_leader_sequence.already_in_frontier = true;
     }
 
-    if (follower_plan_cost == ATTACKER_TASK_UNSOLVABLE) {
-        // Return, if attacker task was not solvable
+    if (follower_plan_cost == StackelbergTask::FOLLOWER_TASK_UNSOLVABLE) {
+        // Return, if follower task was not solvable
         num_leader_op_paths++;
         return follower_plan_cost;
     }
@@ -910,35 +905,37 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
       applicable_ops_after_pruning[op_no]->dump();
       }*/
 
-    if (sortFixActionsByAttackerReward != NULL) {
-        cout << "Sort fix ops!" << endl;
-        sortFixActionsByAttackerReward->sort_leader_ops(applicable_ops);
-        cout << "After sorting fix ops" << endl;
-    }
+    // if (sortFixActionsByFollowerReward != NULL) {
+    //     cout << "Sort fix ops!" << endl;
+    //     sortFixActionsByFollowerReward->sort_leader_ops(applicable_ops);
+    //     cout << "After sorting fix ops" << endl;
+    // }
+
 
     if (sort_leader_ops_advanced) {
-        vector<int> recursive_attacker_costs(leader_operators.size(), NO_ATTACKER_COST);
+	const auto & leader_operators = task->get_leader_operators();
+        vector<int> recursive_follower_costs(leader_operators.size(), 0);
 
         iterate_applicable_ops(applicable_ops_after_pruning, state,
                                parent_follower_plan_applicable ? parent_follower_plan : follower_plan,
                                follower_plan_cost, leader_ops_sequence, sleep, follower_heuristic_search_space, false,
-                               recursive_attacker_costs);
+                               recursive_follower_costs);
 
         struct myComp {
-            const vector<int> &recursive_attacker_costs;
-            myComp(const vector<int> &_recursive_attacker_costs):
-                recursive_attacker_costs(_recursive_attacker_costs) {}
+            const vector<int> &recursive_follower_costs;
+            myComp(const vector<int> &_recursive_follower_costs):
+                recursive_follower_costs(_recursive_follower_costs) {}
             bool operator()(const GlobalOperator *op1, const GlobalOperator *op2)
                 {
-                    if (recursive_attacker_costs[op1->get_op_id()] ==
-                        recursive_attacker_costs[op2->get_op_id()]) {
+                    if (recursive_follower_costs[op1->get_op_id()] ==
+                        recursive_follower_costs[op2->get_op_id()]) {
                         return op1->get_cost() < op2->get_cost();
                     } else {
-                        return recursive_attacker_costs[op1->get_op_id()] >
-                            recursive_attacker_costs[op2->get_op_id()];
+                        return recursive_follower_costs[op1->get_op_id()] >
+                            recursive_follower_costs[op2->get_op_id()];
                     }
                 }
-        } myobject(recursive_attacker_costs);
+        } myobject(recursive_follower_costs);
 
         sort(applicable_ops_after_pruning.begin(), applicable_ops_after_pruning.end(),
              myobject);
@@ -965,7 +962,7 @@ void StackelbergSearch::iterate_applicable_ops(const
                                                const GlobalState &state, const vector<int> &follower_plan, int follower_plan_cost,
                                                vector<const GlobalOperator *> &leader_ops_sequence,
                                                vector<int> &sleep, AttackSearchSpace *follower_heuristic_search_space,
-                                               bool recurse, vector<int> &recursive_attacker_costs)
+                                               bool recurse, vector<int> &recursive_follower_costs)
 {
     /*cout << "applicable ops after pruning: " << endl;
       for (size_t op_no = 0; op_no < applicable_ops.size(); op_no++) {
@@ -988,16 +985,16 @@ void StackelbergSearch::iterate_applicable_ops(const
             continue;
         }
         leader_ops_sequence.push_back(op);
-        int new_leader_actions_cost = calculate_leader_actions_plan_cost(leader_ops_sequence);
+        int new_leader_actions_cost = task->calculate_leader_actions_plan_cost(leader_ops_sequence);
         if (new_leader_actions_cost > curr_leader_actions_budget) {
             // Continue, if adding this op exceeds the budget
             leader_ops_sequence.pop_back();
             returned_somewhere_bc_of_budget = true;
             continue;
         }
-        if (upper_bound_pruning && new_leader_actions_cost > leader_action_costs_for_attacker_upper_bound) {
+        if (upper_bound_pruning && new_leader_actions_cost > leader_action_costs_for_follower_upper_bound) {
             //cout
-            //       << "Do not continue with this op, because the new leader_action_cost is already greater than leader_action_costs_for_attacker_upper_bound"
+            //       << "Do not continue with this op, because the new leader_action_cost is already greater than leader_action_costs_for_follower_upper_bound"
             //        << endl;
             leader_ops_sequence.pop_back();
             continue;
@@ -1016,17 +1013,17 @@ void StackelbergSearch::iterate_applicable_ops(const
         const GlobalState &next_state = leader_vars_state_registry->get_successor_state(
             state, *op);
         if (follower_heuristic != NULL) {
-            follower_heuristic->set_curr_follower_search_space(follower_heuristic_search_space);
+            follower_heuristic->set_curr_attack_search_space(follower_heuristic_search_space);
         }
 
         at_least_one_recursion = true;
 
  
-        int attacker_cost = compute_pareto_frontier(next_state, leader_ops_sequence,
+        int follower_cost = compute_pareto_frontier(next_state, leader_ops_sequence,
                                                     new_leader_actions_cost,
                                                     follower_plan, follower_plan_cost, sleep, recurse);
         if (!recurse) {
-            recursive_attacker_costs[op->get_op_id()] = attacker_cost;
+            recursive_follower_costs[op->get_op_id()] = follower_cost;
         }
         // Remove all ops before op_no in applicable_ops from sleep set if they are commutative
         for (size_t op_no2 = 0; op_no2 < op_no; op_no2++) {
@@ -1056,6 +1053,7 @@ SearchStatus StackelbergSearch::step() {
         curr_leader_actions_budget = max_leader_actions_budget;
     }
 
+    const auto & leader_operators = task->get_leader_operators();
     auto t1 = chrono::high_resolution_clock::now();
 
     while (true) {
@@ -1068,7 +1066,7 @@ SearchStatus StackelbergSearch::step() {
 
         compute_pareto_frontier(leader_vars_state_registry->get_initial_state(), op_sequnce, 0, parent_follower_plan, 0, sleep, true);
 
-        if(pareto_frontier.is_complete(ATTACKER_TASK_UNSOLVABLE)) {
+        if(pareto_frontier.is_complete(StackelbergTask::FOLLOWER_TASK_UNSOLVABLE)) {
             break;
         }
 
@@ -1095,7 +1093,7 @@ SearchStatus StackelbergSearch::step() {
     cout << "FixSearch initialize took: " << leader_search_initialize_duration << "ms"
          << endl;
     cout << "Complete Fixsearch took: " << duration << "ms" << endl;
-    cout << "Search in Attacker Statespace took " << (follower_search_duration_sum/1000) <<
+    cout << "Search in Follower Statespace took " << (follower_search_duration_sum/1000) <<
         "ms" << endl;
     cout << "Search in Fixactions Statespace took " << (duration -
                                                         (follower_search_duration_sum/1000)) << "ms" << endl;
@@ -1107,19 +1105,19 @@ SearchStatus StackelbergSearch::step() {
         num_recursive_calls_for_sorting << endl;
     cout << "and " << (num_recursive_calls - num_recursive_calls_for_sorting) <<
         " \"real\" calls" << endl;
-    cout << "They were " << num_attacker_searches <<
-        " searches in Attacker Statespace" << endl;
-    cout << "We spared " << (spared_attacker_searches_because_leader_state_already_seen
+    cout << "They were " << num_follower_searches <<
+        " searches in Follower Statespace" << endl;
+    cout << "We spared " << (spared_follower_searches_because_leader_state_already_seen
                              - (num_recursive_calls - num_recursive_calls_for_sorting) + 1)
-         << " attacker searches, because the fix state was already known" << endl;
-    cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable
-         << " attacker searches, because the fix parent state attack plan was still applicable"
+         << " follower searches, because the fix state was already known" << endl;
+    cout << "We spared " << spared_follower_searches_because_parent_plan_applicable
+         << " follower searches, because the fix parent state attack plan was still applicable"
          << endl;
-    // cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
-    // cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
+    // cout << "Follower Searchspace had " << (all_follower_states / num_follower_searches) << " states on average" << endl;
+    // cout << "Follower Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
     // cout << "Num fix action paths: " << num_leader_op_paths << endl; TODO This is currently not computed correctly
     pareto_frontier.dump(*task);
-    exit(EXIT_CRITICAL_ERROR);
+    exit(0);
     return IN_PROGRESS;
 }
 
@@ -1129,8 +1127,8 @@ SearchEngine *_parse(OptionParser &parser) {
     
     parser.add_option<SearchEngine *>("search_engine");
     parser.add_option<Heuristic *>("follower_heuristic",
-                                   "The heuristic used for search in AttackerStateSpace", "", OptionFlags(false));
-    parser.add_option<int>("initial_follower_budget", "The initial attacker Budget",
+                                   "The heuristic used for search in FollowerStateSpace", "", OptionFlags(false));
+    parser.add_option<int>("initial_follower_budget", "The initial follower Budget",
                            "2147483647");
     parser.add_option<int>("initial_leader_budget", "The initial fix actions Budget",
                            "2147483647");
@@ -1141,18 +1139,18 @@ SearchEngine *_parse(OptionParser &parser) {
     parser.add_option<bool>("partial_order_reduction",
                             "use partial order reduction for fix ops", "true");
     parser.add_option<bool>("check_parent_follower_plan_applicable",
-                            "always check whether the attacker plan of the parent fix state is still applicable",
+                            "always check whether the follower plan of the parent fix state is still applicable",
                             "true");
     parser.add_option<bool>("check_leader_state_already_known",
-                            "always check whether the current fix state is already known and spare search in attacker statespace",
+                            "always check whether the current fix state is already known and spare search in follower statespace",
                             "true");
     parser.add_option<bool>("follower_op_dom_pruning",
                             "use the attack operator dominance pruning", "false");
     parser.add_option<bool>("sort_leader_ops",
-                            "When expanding fix state successors, first compute attacker cost in all successor states and then recurse in descending cost order.",
+                            "When expanding fix state successors, first compute follower cost in all successor states and then recurse in descending cost order.",
                             "true");
     parser.add_option<bool>("ids", "use iterative deepening search", "true");
-    parser.add_option<bool>("upper_bound_pruning", "Prune fix action sequences with higher costs then already known sequences leading to a state with upper bound attacker costs", "true");
+    parser.add_option<bool>("upper_bound_pruning", "Prune fix action sequences with higher costs then already known sequences leading to a state with upper bound follower costs", "true");
     Options opts = parser.parse();
     if (!parser.dry_run()) {
         return new StackelbergSearch(opts);

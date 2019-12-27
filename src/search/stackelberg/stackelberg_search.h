@@ -26,9 +26,6 @@
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
-#define ATTACKER_TASK_UNSOLVABLE numeric_limits<int>::max()
-#define NO_ATTACKER_COST 0
-
 namespace stackelberg {
     
     struct FixSearchInfoAttackPlan {
@@ -68,8 +65,7 @@ namespace stackelberg {
         
         std::unique_ptr<SuccessorGeneratorSwitch> leader_operators_successor_generator;
 
-
-	StateRegistry *leader_vars_state_registry = NULL;
+	std::unique_ptr<StateRegistry> leader_vars_state_registry;
 
 	std::vector<std::vector<bool>> commutative_leader_ops;
 	std::vector<std::vector<bool>> dependent_leader_ops;
@@ -96,23 +92,23 @@ namespace stackelberg {
 
 	int max_leader_action_cost = 0; // The cost of the most expensive fix action
 
-	int attacker_cost_upper_bound = std::ATTACKER_TASK_UNSOLVABLE;
-	int leader_action_costs_for_attacker_upper_bound = std::numeric_limits<int>::max();
+	int follower_cost_upper_bound;
+	int leader_action_costs_for_follower_upper_bound = std::numeric_limits<int>::max();
 
 	SortFixActionsByAttackerReward *sortFixActionsByAttackerReward = NULL;
 
 	int num_recursive_calls = 0;
-	int num_attacker_searches = 0;
+	int num_follower_searches = 0;
 	long follower_search_duration_sum = 0;
 	long reset_and_initialize_duration_sum = 0;
 	long leader_search_initialize_duration = 0;
-	int all_attacker_states = 0;
-	int spared_attacker_searches_because_leader_state_already_seen = 0;
-	int spared_attacker_searches_because_parent_plan_applicable = 0;
+	int all_follower_states = 0;
+	int spared_follower_searches_because_leader_state_already_seen = 0;
+	int spared_follower_searches_because_parent_plan_applicable = 0;
 	int num_leader_op_paths = 0;
 	int num_recursive_calls_for_sorting = 0;
 
-	void iterate_applicable_ops(const std::vector<const GlobalOperator*>& applicable_ops_after_pruning, const GlobalState& state, const std::vector<int> &follower_plan, int follower_plan_cost, std::vector<const GlobalOperator*>& leader_ops_sequence, std::vector<int>& sleep, AttackSearchSpace* follower_heuristic_search_space, bool recurse, std::vector<int> &recursive_attacker_costs);
+	void iterate_applicable_ops(const std::vector<const GlobalOperator*>& applicable_ops_after_pruning, const GlobalState& state, const std::vector<int> &follower_plan, int follower_plan_cost, std::vector<const GlobalOperator*>& leader_ops_sequence, std::vector<int>& sleep, AttackSearchSpace* follower_heuristic_search_space, bool recurse, std::vector<int> &recursive_follower_costs);
 
     protected:
         virtual void initialize();
@@ -125,7 +121,7 @@ namespace stackelberg {
         void prune_applicable_leader_ops_sss (const GlobalState &state, const std::vector<int> &follower_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
         void prune_dominated_ops(std::vector<const GlobalOperator*> &ops, std::vector<std::vector<int>> dominated_op_ids);
         void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops);
-        std::string leader_state_to_string(const GlobalState &state);
+
         std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
         int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &leader_ops_sequence, int leader_actions_cost, const std::vector<int> &parent_follower_plan, int parent_follower_plan_cost, std::vector<int> &sleep, bool recurse);
         

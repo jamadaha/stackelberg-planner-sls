@@ -1,6 +1,8 @@
 #include "stackelberg_task.h"
 
+#include <math.h>
 #include <iostream>
+#include "../globals.h"
 
 using namespace std;
 
@@ -10,10 +12,10 @@ namespace stackelberg {
     void StackelbergTask::sort_operators()
     {
         cout << "Begin sort_operators()..." << endl;
-        int fix_action_op_id = 0;
+        int leader_action_op_id = 0;
         int follower_action_op_id = 0;
         for (size_t op_no = 0; op_no < g_operators.size(); op_no++) {
-#ifdef FIX_SEARCH_DEBUG
+#ifdef LEADER_SEARCH_DEBUG
             cout << "Consider op " << op_no << ":" << endl;
             g_operators[op_no].dump();
 #endif
@@ -63,18 +65,14 @@ namespace stackelberg {
                    int id = stoi(id_string);
                 */
 
-                if (g_operators[op_no].get_cost() > max_fix_action_cost) {
-                    max_fix_action_cost = g_operators[op_no].get_cost();
-                }
-
                 g_operators[op_no].set_cost2(0);
-                g_operators[op_no].set_conds_variable_name(fix_variable_name);
-                g_operators[op_no].set_effs_variable_name(fix_variable_name);
+                g_operators[op_no].set_conds_variable_name(leader_variable_name);
+                g_operators[op_no].set_effs_variable_name(leader_variable_name);
                 g_operators[op_no].set_scheme_id(0);
-                g_operators[op_no].set_op_id(fix_action_op_id);
-                fix_action_op_id++;
+                g_operators[op_no].set_op_id(leader_action_op_id);
+                leader_action_op_id++;
 
-                fix_operators.push_back(g_operators[op_no]);
+                leader_operators.push_back(g_operators[op_no]);
 
             } else {
                 cout << "No op prefix found! Error in PDDL file?" << endl;
@@ -82,13 +80,10 @@ namespace stackelberg {
             }
 	}
     }
-
-
-
     
     double StackelbergTask::prob_cost_to_prob(int prob_cost)
     {
-        if (prob_cost == ATTACKER_TASK_UNSOLVABLE) {
+        if (prob_cost == FOLLOWER_TASK_UNSOLVABLE) {
             return 0.0;
         }
         return pow(2.0, -(((double)prob_cost) / 1000));
@@ -102,8 +97,8 @@ namespace stackelberg {
         num_follower_vars = 0;
         follower_vars.assign(g_variable_domain.size(), false);
 
-        num_fix_vars = 0;
-        fix_vars.assign(g_variable_domain.size(), false);
+        num_leader_vars = 0;
+        leader_vars.assign(g_variable_domain.size(), false);
 
         for (size_t op_no = 0; op_no < follower_operators.size(); op_no++) {
             const vector<GlobalEffect> &effects = follower_operators[op_no].get_effects();
@@ -119,28 +114,28 @@ namespace stackelberg {
             }
         }
 
-        for (size_t op_no = 0; op_no < fix_operators.size(); op_no++) {
-            const vector<GlobalEffect> &effects = fix_operators[op_no].get_effects();
+        for (size_t op_no = 0; op_no < leader_operators.size(); op_no++) {
+            const vector<GlobalEffect> &effects = leader_operators[op_no].get_effects();
             for (size_t i = 0; i < effects.size(); i++) {
                 int var = effects[i].var;
-                if (fix_vars[var]) {
+                if (leader_vars[var]) {
                     continue;
                 } else {
-                    fix_vars[var] = true;
-                    fix_vars_indizes.push_back(var);
-                    num_fix_vars++;
+                    leader_vars[var] = true;
+                    leader_vars_indizes.push_back(var);
+                    num_leader_vars++;
                 }
             }
 
-            const vector<GlobalCondition> &preconditions = fix_operators[op_no].get_preconditions();
+            const vector<GlobalCondition> &preconditions = leader_operators[op_no].get_preconditions();
             for (size_t i = 0; i < preconditions.size(); i++) {
                 int var = preconditions[i].var;
-                if (fix_vars[var]) {
+                if (leader_vars[var]) {
                     continue;
                 } else {
-                    fix_vars[var] = true;
-                    fix_vars_indizes.push_back(var);
-                    num_fix_vars++;
+                    leader_vars[var] = true;
+                    leader_vars_indizes.push_back(var);
+                    num_leader_vars++;
                 }
             }
         }
@@ -163,7 +158,7 @@ namespace stackelberg {
         for (size_t op_no = 0; op_no < follower_operators.size(); op_no++) {
             const GlobalOperator &op = follower_operators[op_no];
             const vector<GlobalCondition> &conditions = op.get_preconditions();
-            vector<GlobalCondition> fix_preconditions;
+            vector<GlobalCondition> leader_preconditions;
             vector<GlobalCondition> follower_preconditions;
             for (size_t i = 0; i < conditions.size(); i++) {
                 int var = conditions[i].var;
@@ -171,9 +166,9 @@ namespace stackelberg {
                     // This is a precondition on an attack var
                     follower_preconditions.push_back(conditions[i]);
                 }
-                if (fix_vars[var]) {
+                if (leader_vars[var]) {
                     // This is a precondition on a fix var
-                    fix_preconditions.push_back(conditions[i]);
+                    leader_preconditions.push_back(conditions[i]);
                 }
             }
 
@@ -192,11 +187,11 @@ namespace stackelberg {
                                                      g_variable_name);
             follower_operators[op_no] = op_with_follower_preconds;
 
-            GlobalOperator op_with_fix_preconds(op.is_axiom(), fix_preconditions,
+            GlobalOperator op_with_leader_preconds(op.is_axiom(), leader_preconditions,
                                                 op.get_effects(), op.get_name(),
-                                                op.get_cost(), op.get_cost2(), op.get_op_id(), fix_variable_name,
+                                                op.get_cost(), op.get_cost2(), op.get_op_id(), leader_variable_name,
                                                 g_variable_name);
-            follower_operators_with_fix_vars_preconds.push_back(op_with_fix_preconds);
+            follower_operators_with_leader_vars_preconds.push_back(op_with_leader_preconds);
 
 
         }
@@ -207,11 +202,11 @@ namespace stackelberg {
         cout << "Begin create_new_variable_indices()..." << endl;
 
         int curr_follower_var_index = 0;
-        int curr_fix_var_index = 0;
+        int curr_leader_var_index = 0;
 
         map_var_id_to_new_follower_var_id.resize(num_vars);
-        map_var_id_to_new_fix_var_id.resize(num_vars);
-        map_fix_var_id_to_orig_var_id.resize(num_fix_vars);
+        map_var_id_to_new_leader_var_id.resize(num_vars);
+        map_leader_var_id_to_orig_var_id.resize(num_leader_vars);
         map_follower_var_id_to_orig_var_id.resize(num_follower_vars);
 
         for (int var = 0; var < num_vars; var++) {
@@ -221,31 +216,31 @@ namespace stackelberg {
                 map_follower_var_id_to_orig_var_id[curr_follower_var_index] = var;
                 curr_follower_var_index++;
             }
-            if (fix_vars[var]) {
+            if (leader_vars[var]) {
                 // This is a fix var
-                map_var_id_to_new_fix_var_id[var] = curr_fix_var_index;
-                map_fix_var_id_to_orig_var_id[curr_fix_var_index] = var;
-                curr_fix_var_index++;
+                map_var_id_to_new_leader_var_id[var] = curr_leader_var_index;
+                map_leader_var_id_to_orig_var_id[curr_leader_var_index] = var;
+                curr_leader_var_index++;
             }
         }
 
-        adjust_var_indices_of_ops(fix_operators, map_var_id_to_new_fix_var_id, map_var_id_to_new_fix_var_id);
+        adjust_var_indices_of_ops(leader_operators, map_var_id_to_new_leader_var_id, map_var_id_to_new_leader_var_id);
 
         adjust_var_indices_of_ops(follower_operators, map_var_id_to_new_follower_var_id, map_var_id_to_new_follower_var_id);
 
-        adjust_var_indices_of_ops(follower_operators_with_fix_vars_preconds, map_var_id_to_new_fix_var_id, map_var_id_to_new_follower_var_id);
+        adjust_var_indices_of_ops(follower_operators_with_leader_vars_preconds, map_var_id_to_new_leader_var_id, map_var_id_to_new_follower_var_id);
 
         // Save the fix var stuff locally and clean g_variable_domain, g_variable_name and g_fact_names
         int num_vars_temp = num_vars;
         int var = 0;
         for (int i = 0; i < num_vars_temp; i++) {
-            if (fix_vars[var]) {
+            if (leader_vars[var]) {
                 // This is a fix var
                 // Save it to local vectors
-                fix_variable_domain.push_back(g_variable_domain[i]);
-                fix_variable_name.push_back(g_variable_name[i]);
-                fix_fact_names.push_back(g_fact_names[i]);
-                fix_initial_state_data.push_back(g_initial_state_data[i]);
+                leader_variable_domain.push_back(g_variable_domain[i]);
+                leader_variable_name.push_back(g_variable_name[i]);
+                leader_fact_names.push_back(g_fact_names[i]);
+                leader_initial_state_data.push_back(g_initial_state_data[i]);
 
                 /* FIXME REMOVED DIVIDING VARIABLES, so we don't remove the fix actions from the global stuff
                 // Erase it from vectors
@@ -276,11 +271,6 @@ namespace stackelberg {
             */
         }
 
-        // Creating two new state_registries, one locally only for fix variables and one globally only for attack variables
-        IntPacker *fix_vars_state_packer = new IntPacker(fix_variable_domain);
-        fix_vars_state_registry = new StateRegistry(fix_vars_state_packer,
-                                                    fix_initial_state_data);
-
         /* FIXME REMOVED DIVIDING VARIABLES
            delete g_state_packer;
            g_state_packer = new IntPacker(g_variable_domain);
@@ -309,27 +299,27 @@ namespace stackelberg {
         }
     }
 
-    void StackelbergTask::check_fix_vars_attacker_preconditioned()
+    void StackelbergTask::check_leader_vars_follower_preconditioned()
     {
-        cout << "Begin check_fix_vars_attacker_preconditioned()..." << endl;
+        cout << "Begin check_leader_vars_follower_preconditioned()..." << endl;
 
-        vector<bool> is_fix_var_attacker_preconditioned(fix_variable_domain.size(),
+        vector<bool> is_leader_var_follower_preconditioned(leader_variable_domain.size(),
                                                         false);
 
-        for (size_t op_no = 0; op_no < follower_operators_with_fix_vars_preconds.size();
+        for (size_t op_no = 0; op_no < follower_operators_with_leader_vars_preconds.size();
              op_no++) {
             const vector<GlobalCondition> &conditions =
-                follower_operators_with_fix_vars_preconds[op_no].get_preconditions();
+                follower_operators_with_leader_vars_preconds[op_no].get_preconditions();
 
             for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
                 int var = conditions[cond_no].var;
-                is_fix_var_attacker_preconditioned[var] = true;
+                is_leader_var_follower_preconditioned[var] = true;
             }
         }
 
-        for (size_t var = 0; var < fix_variable_domain.size(); var++) {
-            if (is_fix_var_attacker_preconditioned[var]) {
-                fix_vars_attacker_preconditioned.push_back(var);
+        for (size_t var = 0; var < leader_variable_domain.size(); var++) {
+            if (is_leader_var_follower_preconditioned[var]) {
+                leader_vars_follower_preconditioned.push_back(var);
             }
         }
     }
@@ -339,7 +329,7 @@ namespace stackelberg {
 
         sort_operators();
 
-        if (num_leader_operators == 0) {
+        if (leader_operators.size() == 0) {
             // If there are no fix actions, exit with an error
             cerr << "Error: running stackelberg search on a task without fix actions" << endl;
             exit_with(EXIT_INPUT_ERROR);
@@ -351,19 +341,65 @@ namespace stackelberg {
 
         create_new_variable_indices();
 
-        check_fix_vars_attacker_preconditioned();
+        check_leader_vars_follower_preconditioned();
 
         dump_statistics();
+
+	g_all_attack_operators.insert(g_all_attack_operators.begin(),
+					follower_operators.begin(), follower_operators.end());
+
     }
+    
 
     void StackelbergTask::dump_statistics() const {
-
-        
-        cout << "fix_variable_domain.size() = " << fix_variable_domain.size() << endl;
-        cout << "fix_vars_attacker_preconditioned.size() = " << fix_vars_attacker_preconditioned.size() << endl;
+        cout << "leader_variable_domain.size() = " << leader_variable_domain.size() << endl;
+        cout << "leader_vars_follower_preconditioned.size() = " << leader_vars_follower_preconditioned.size() << endl;
         
         cout << "follower_operators.size() = " << follower_operators.size() << endl;
         cout << "leader_operators.size() = " << leader_operators.size() << endl;
+    }
+
+
+
+    int StackelbergTask::max_leader_action_cost() const {
+	int max_leader_action_cost = 0;
+	for (const auto & op : leader_operators) {
+	    max_leader_action_cost = max(max_leader_action_cost, op.get_cost());
+	}
+
+	return max_leader_action_cost;
+    }
+
+    
+    string StackelbergTask::leader_state_to_string(const GlobalState &state) {
+	string res = "";
+	for (size_t i = 0; i < leader_variable_domain.size(); i++) {
+	    res += to_string(state[i]);
+	}
+	return res;
+    }
+
+
+    std::unique_ptr<StateRegistry> StackelbergTask::get_leader_state_registry() const{
+	IntPacker *leader_vars_state_packer = new IntPacker(leader_variable_domain);
+        return std::make_unique <StateRegistry> (leader_vars_state_packer, leader_initial_state_data);
+    }
+
+
+    int StackelbergTask::parse_success_prob_cost(string prob)
+    {
+        size_t backslash = prob.find("/");
+        if (backslash == string::npos) {
+            cout << "No correct success probability suffix found! Error in PDDL file?" <<
+                endl;
+            return -1;
+        }
+
+        string numerator_string = prob.substr(0, backslash);
+        string denominator_string = prob.substr(backslash + 1);
+        double numerator = (double) stoi(numerator_string);
+        double denominator = (double) stoi(denominator_string);
+        return (int)(fabs(log2(numerator / denominator)) * 1000);
     }
 
 }

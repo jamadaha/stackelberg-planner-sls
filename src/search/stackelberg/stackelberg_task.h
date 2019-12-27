@@ -1,18 +1,19 @@
 /*
- * stackelberg_search is a copy of fix action search to introduce modifications in the way
- * that we call the search engine so that it is compatible with symbolic search engines.
- * 
- * I'm also removing optional stuff that is currently unnecessary here to simplify the
- * code and understand it better. We can re-add those options later on.
+ * stackelberg_task represents the leader+follower tasks. 
  */
 #ifndef STACKELBERG_TASK_H
 #define STACKELBERG_TASK_H
 
 #include <vector>
+#include <limits>
+#include <memory>
+
+#include "../global_operator.h"
 
 namespace stackelberg {
 
     class StackelbergTask {
+	
         std::vector<GlobalOperator> leader_operators;
         std::vector<GlobalOperator> follower_operators;
         std::vector<GlobalOperator> follower_operators_with_all_preconds;
@@ -36,7 +37,7 @@ namespace stackelberg {
         std::vector<int> leader_variable_domain;
         std::vector<std::string> leader_variable_name;
         std::vector<std::vector<std::string> > leader_fact_names;
-        std::vector<int> leader_vars_attacker_preconditioned;
+        std::vector<int> leader_vars_follower_preconditioned;
 
         std::vector<int> leader_initial_state_data;
 
@@ -48,20 +49,63 @@ namespace stackelberg {
         void clean_follower_actions();
         void create_new_variable_indices();
         void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops, const std::vector<int> &map_precond_var_id_to_new_var_id, const std::vector<int> &map_eff_var_id_to_new_var_id);
-        void check_leader_vars_attacker_preconditioned();
+        void check_leader_vars_follower_preconditioned();
 
     public:
+	static const int FOLLOWER_TASK_UNSOLVABLE = std::numeric_limits<int>::max();
+
         StackelbergTask();
         
         void dump_statistics() const ;
 
-        const std::vector<int> & get_leader_vars_attacker_preconditioned() {
-            return leader_vars_attacker_preconditioned;
+
+	const std::vector<GlobalOperator> & get_leader_operators() const {
+	    return leader_operators;
+	}
+
+	const std::vector<GlobalOperator> & get_follower_operators_with_all_preconds() const {
+	    return follower_operators_with_all_preconds;    
+	}
+
+	const std::vector<GlobalOperator> & get_follower_operators_with_leader_vars_preconds () const {
+	    return follower_operators_with_leader_vars_preconds;    
+	}
+
+	
+	
+        const std::vector<int> & get_leader_vars_follower_preconditioned() {
+            return leader_vars_follower_preconditioned;
         }
 
         const GlobalOperator & get_follower_operator(int i) const {
             return follower_operators[i];
         }
+
+	int max_leader_action_cost() const;
+
+
+	std::string leader_state_to_string(const GlobalState &state);
+
+	std::unique_ptr<StateRegistry> get_leader_state_registry() const;
+	
+	const std::vector<int> & get_leader_variable_domain() const {
+	    return leader_variable_domain;
+	}
+
+	int get_num_leader_vars() const  {
+	    return num_leader_vars;
+	}
+
+
+	const std::vector<int> &  get_map_leader_var_id_to_orig_var_id() const {
+	    return map_leader_var_id_to_orig_var_id;
+	}
+
+	const std::vector<int> & get_follower_vars_indizes() const {
+	    return follower_vars_indizes;
+	}
+
+	
     };
 }
 #endif
