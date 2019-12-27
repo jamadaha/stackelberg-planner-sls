@@ -10,6 +10,34 @@ using namespace std;
 namespace stackelberg {
 
 
+    
+    StackelbergTask::StackelbergTask() {
+
+        sort_operators();
+
+        if (leader_operators.size() == 0) {
+            // If there are no fix actions, exit with an error
+            cerr << "Error: running stackelberg search on a task without fix actions" << endl;
+            exit_with(EXIT_INPUT_ERROR);
+        }
+
+        divide_variables();
+
+        clean_follower_actions();
+
+        create_new_variable_indices();
+
+        check_leader_vars_follower_preconditioned();
+
+        compute_leader_facts_ops_sets();
+
+        dump_statistics();
+
+	g_all_attack_operators.insert(g_all_attack_operators.begin(),
+                                      follower_operators.begin(), follower_operators.end());
+
+    }
+
     void StackelbergTask::sort_operators()
     {
         cout << "Begin sort_operators()..." << endl;
@@ -325,31 +353,6 @@ namespace stackelberg {
         }
     }
 
-
-    StackelbergTask::StackelbergTask() {
-
-        sort_operators();
-
-        if (leader_operators.size() == 0) {
-            // If there are no fix actions, exit with an error
-            cerr << "Error: running stackelberg search on a task without fix actions" << endl;
-            exit_with(EXIT_INPUT_ERROR);
-        }
-
-        divide_variables();
-
-        clean_follower_actions();
-
-        create_new_variable_indices();
-
-        check_leader_vars_follower_preconditioned();
-
-        dump_statistics();
-
-	g_all_attack_operators.insert(g_all_attack_operators.begin(),
-					follower_operators.begin(), follower_operators.end());
-
-    }
     
 
     void StackelbergTask::dump_statistics() const {

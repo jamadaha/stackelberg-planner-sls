@@ -62,6 +62,8 @@ namespace stackelberg {
         auto t1 = chrono::high_resolution_clock::now();
 
         task = make_unique<StackelbergTask> ();
+
+        leader_vars_state_registry = task->get_leader_state_registry();
 	
         // Creating two new state_registries, one locally only for the leader search and one globally only for attack variables	
         if(check_parent_follower_plan_applicable) {
