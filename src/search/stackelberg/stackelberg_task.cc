@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include "../globals.h"
+#include "../state_registry.h"
 
 using namespace std;
 
@@ -379,7 +380,60 @@ namespace stackelberg {
 	return res;
     }
 
+    void StackelbergTask::compute_leader_facts_ops_sets() {
+	cout << "Begin compute_leader_facts_ops_sets()..." << endl;
+	deleting_leader_facts_ops.resize(num_leader_vars);
+	achieving_leader_facts_ops.resize(num_leader_vars);
 
+	for (int var = 0; var < num_leader_vars; var++) {
+            int domain_size = leader_variable_domain[var];
+            deleting_leader_facts_ops[var].resize(domain_size);
+            achieving_leader_facts_ops[var].resize(domain_size);
+        }
+
+	for (size_t op_no = 0; op_no < leader_operators.size(); op_no++) {
+            const GlobalOperator *op = &leader_operators[op_no];
+
+            const vector<GlobalEffect> &effects = op->get_effects();
+            for (size_t eff_no = 0; eff_no < effects.size(); eff_no++) {
+		int var = effects[eff_no].var;
+		int effect_val = effects[eff_no].val;
+
+		achieving_leader_facts_ops[var][effect_val].push_back(op);
+
+		for (int other_val = 0; other_val < leader_variable_domain[var]; other_val++) {
+		    if (other_val != effect_val) {
+			deleting_leader_facts_ops[var][other_val].push_back(op);
+		    }
+		}
+	    }
+        }
+    }
+
+
+    void StackelbergTask::compute_always_applicable_follower_ops(vector<GlobalOperator> &ops) const {
+        for (const auto & op : follower_operators_with_leader_vars_preconds) {
+            bool always_applicable = true;
+            const vector<GlobalCondition> &preconditions = op.get_preconditions();
+            for (size_t precond_no = 0; precond_no < preconditions.size(); precond_no++) {
+                int precond_var = preconditions[precond_no].var;
+                int precond_val = preconditions[precond_no].val;
+                const vector< const GlobalOperator *> &deleting_ops =
+                    deleting_leader_facts_ops[precond_var][precond_val];
+
+                if(deleting_ops.size() > 0) {
+                    always_applicable = false;
+                    break;
+                }
+            }
+
+            if (always_applicable) {
+                ops.push_back(follower_operators_with_all_preconds[op.get_op_id()]);
+            }
+        }
+    }
+
+    
     std::unique_ptr<StateRegistry> StackelbergTask::get_leader_state_registry() const{
 	IntPacker *leader_vars_state_packer = new IntPacker(leader_variable_domain);
         return std::make_unique <StateRegistry> (leader_vars_state_packer, leader_initial_state_data);

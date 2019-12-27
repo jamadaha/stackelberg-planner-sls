@@ -21,7 +21,6 @@
 #include "../successor_generator.h"
 #include "../attack_success_prob_reuse_heuristic.h"
 #include "../per_fix_state_information.h"
-#include "../sort_fixactions_by_attacker_reward.h"
 #include "../delrax_search.h"
 
 template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
@@ -44,6 +43,7 @@ namespace stackelberg {
             already_in_frontier(_already_in_frontier){ }
     };
 
+    class PartialOrderReduction;
 
 
     class StackelbergSearch: public SearchEngine {
@@ -62,15 +62,12 @@ namespace stackelberg {
         const bool upper_bound_pruning;
 
         std::unique_ptr<StackelbergTask> task;
+
+        std::unique_ptr<PartialOrderReduction> por;
         
         std::unique_ptr<SuccessorGeneratorSwitch> leader_operators_successor_generator;
 
 	std::unique_ptr<StateRegistry> leader_vars_state_registry;
-
-	std::vector<std::vector<bool>> commutative_leader_ops;
-	std::vector<std::vector<bool>> dependent_leader_ops;
-	std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_leader_facts_ops;
-	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_leader_facts_ops;
 
 	std::vector<std::vector<int>> dominated_follower_op_ids;
 
@@ -94,9 +91,7 @@ namespace stackelberg {
 
 	int follower_cost_upper_bound;
 	int leader_action_costs_for_follower_upper_bound = std::numeric_limits<int>::max();
-
-	SortFixActionsByAttackerReward *sortFixActionsByAttackerReward = NULL;
-
+        
 	int num_recursive_calls = 0;
 	int num_follower_searches = 0;
 	long follower_search_duration_sum = 0;
@@ -114,15 +109,7 @@ namespace stackelberg {
         virtual void initialize();
         virtual SearchStatus step();
         SuccessorGeneratorSwitch * create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
-        void compute_commutative_and_dependent_leader_ops_matrices();
-        void compute_op_dominance_relation(const std::vector<GlobalOperator> &ops, std::vector<std::vector<int>> &dominated_op_ids);
-        void compute_leader_facts_ops_sets();
-        void get_all_dependent_ops(const GlobalOperator *op, std::vector<const GlobalOperator *> &result);
-        void prune_applicable_leader_ops_sss (const GlobalState &state, const std::vector<int> &follower_plan, const std::vector<const GlobalOperator *> &applicable_ops, std::vector<const GlobalOperator *> &result);
-        void prune_dominated_ops(std::vector<const GlobalOperator*> &ops, std::vector<std::vector<int>> dominated_op_ids);
-        void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops);
-
-        std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
+        
         int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &leader_ops_sequence, int leader_actions_cost, const std::vector<int> &parent_follower_plan, int parent_follower_plan_cost, std::vector<int> &sleep, bool recurse);
         
     public:

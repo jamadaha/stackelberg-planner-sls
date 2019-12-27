@@ -41,6 +41,9 @@ namespace stackelberg {
 
         std::vector<int> leader_initial_state_data;
 
+        std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_leader_facts_ops;
+	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_leader_facts_ops;
+
 
         void sort_operators();
         int parse_success_prob_cost(std::string prob);
@@ -49,6 +52,8 @@ namespace stackelberg {
         void clean_follower_actions();
         void create_new_variable_indices();
         void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops, const std::vector<int> &map_precond_var_id_to_new_var_id, const std::vector<int> &map_eff_var_id_to_new_var_id);
+        void compute_leader_facts_ops_sets();
+
         void check_leader_vars_follower_preconditioned();
 
     public:
@@ -105,7 +110,9 @@ namespace stackelberg {
 	    return follower_vars_indizes;
 	}
 
-	
+        void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops) const;
+
+        friend class PartialOrderReduction;	
     };
 }
 #endif

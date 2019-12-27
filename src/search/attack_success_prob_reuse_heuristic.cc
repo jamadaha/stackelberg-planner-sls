@@ -123,19 +123,8 @@ void AttackSuccessProbReuseHeuristic::reset() {
 }
 
 static Heuristic *_parse(OptionParser &parser) {
-  /*  parser.document_synopsis("Blind heuristic",
-                             "Returns cost of cheapest action for "
-                             "non-goal states, "
-                             "0 for goal states");
-    parser.document_language_support("action costs", "supported");
-    parser.document_language_support("conditional effects", "supported");
-    parser.document_language_support("axioms", "supported");
-    parser.document_property("admissible", "yes");
-    parser.document_property("consistent", "yes");
-    parser.document_property("safe", "yes");
-    parser.document_property("preferred operators", "no");*/
 
-	parser.add_option<Heuristic*>("default_heuristic");
+    parser.add_option<Heuristic*>("default_heuristic");
     Heuristic::add_options_to_parser(parser);
 
     Options opts = parser.parse();
