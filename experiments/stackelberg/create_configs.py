@@ -54,7 +54,7 @@ ATTRIBUTES = ['search_time', 'reopened', 'memory', 'evaluations', 'total_time', 
 
 LIMITS={{'search_time': 1800,  'search_memory' : 4096}}
 
-COMBINATIONS = [(Translator(repo=REPO, rev=REVISION), Preprocessor(repo=REPO, rev=REVISION), Planner(repo=REPO, rev=REVISION))]
+COMBINATIONS = [(TranslatorGit(repo=REPO, rev=REVISION), PreprocessorGit(repo=REPO, rev=REVISION), PlannerGit(repo=REPO, rev=REVISION))]
 
 SUITE = {SUITE}
 exp = DownwardExperiment(path=EXPPATH, repo=REPO, environment=ENV, combinations=COMBINATIONS, limits=LIMITS, cache_dir='/mnt/data_server/torralba/stackelberg/lab-data/')
