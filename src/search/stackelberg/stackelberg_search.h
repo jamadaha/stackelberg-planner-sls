@@ -16,14 +16,9 @@
 #include "pareto_frontier.h"
 #include "stackelberg_task.h"
 
-
 #include "../search_engine.h"
 #include "../successor_generator.h"
-#include "../attack_success_prob_reuse_heuristic.h"
 #include "../per_fix_state_information.h"
-#include "../delrax_search.h"
-
-template<typename T1, typename T2, typename T3> using triple = std::tuple<T1, T2, T3>;
 
 namespace stackelberg {
     
@@ -81,13 +76,9 @@ namespace stackelberg {
 	int max_leader_actions_budget = UNLTD_BUDGET;
 	int curr_leader_actions_budget = UNLTD_BUDGET;
 
-
 	bool returned_somewhere_bc_of_budget = false;
 
-
 	double ids_leader_budget_factor = 1.5;
-
-	int max_leader_action_cost = 0; // The cost of the most expensive fix action
 
 	int follower_cost_upper_bound;
 	int leader_action_costs_for_follower_upper_bound = std::numeric_limits<int>::max();
@@ -108,9 +99,13 @@ namespace stackelberg {
     protected:
         virtual void initialize();
         virtual SearchStatus step();
-        SuccessorGeneratorSwitch * create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
-        
-        int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &leader_ops_sequence, int leader_actions_cost, const std::vector<int> &parent_follower_plan, int parent_follower_plan_cost, std::vector<int> &sleep, bool recurse);
+                
+        int compute_pareto_frontier(const GlobalState &state,
+                                    std::vector<const GlobalOperator*> &leader_ops_sequence,
+                                    int leader_actions_cost,
+                                    const std::vector<int> &parent_follower_plan,
+                                    int parent_follower_plan_cost,
+                                    std::vector<int> &sleep, bool recurse);
         
     public:
         StackelbergSearch(const Options &opts);

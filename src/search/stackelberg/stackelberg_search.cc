@@ -1,5 +1,7 @@
 #include "stackelberg_search.h"
 
+#include "util.h"
+
 #include <vector>
 #include "../option_parser.h"
 #include "../plugin.h"
@@ -122,88 +124,6 @@ namespace stackelberg {
         leader_search_initialize_duration = duration;
     }
 
-
-
-/**
- * returns a SuccessorGeneratorSwitch based on the preconditions of the ops in pre_cond_ops and entailing the ops from ops vector in the leaves
- */
-    SuccessorGeneratorSwitch * StackelbergSearch::create_successor_generator(
-        const vector<int> &variable_domain,
-        const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops)
-    {
-#ifdef LEADER_SEARCH_DEBUG
-        cout << "Begin create_successor_generator..." << endl;
-#endif
-
-        int root_var_index = 0;
-
-        auto root_node = new SuccessorGeneratorSwitch (root_var_index, variable_domain[root_var_index]);
-
-        for (size_t op_no = 0; op_no < pre_cond_ops.size(); op_no++) {
-            /*#ifdef LEADER_SEARCH_DEBUG
-              cout << "Consider op " << op_no << endl;
-              pre_cond_ops[op_no].dump();
-              #endif*/
-            vector<GlobalCondition> conditions = pre_cond_ops[op_no].get_preconditions();
-
-            if (conditions.size() == 0) {
-		// This op has no preconditions, add it immediately to the root node
-		if (root_node->immediate_ops == NULL) {
-		    root_node->immediate_ops = new SuccessorGeneratorGenerate();
-		}
-		((SuccessorGeneratorGenerate *) root_node->immediate_ops)->add_op(&ops[op_no]);
-		continue;
-	    }
-
-            SuccessorGeneratorSwitch *current_node = root_node;
-            for (size_t cond_no = 0; cond_no < conditions.size(); cond_no++) {
-		int var = conditions[cond_no].var;
-		int val = conditions[cond_no].val;
-		//cout << "Consider precond with var: " << var << ", val: " << val << endl;
-
-		while (var != current_node->switch_var) {
-		    if (current_node->default_generator == NULL) {
-			int next_var_index = current_node->switch_var + 1;
-			current_node->default_generator = new SuccessorGeneratorSwitch(next_var_index,
-										       variable_domain[next_var_index]);
-		    }
-
-		    current_node = (SuccessorGeneratorSwitch *) current_node->default_generator;
-		}
-
-		// Here: var == current_node->switch_var
-
-		int next_var_index = current_node->switch_var + 1;
-		if (next_var_index >= (int) variable_domain.size()) {
-		    if (current_node->generator_for_value[val] == NULL) {
-			current_node->generator_for_value[val] = new SuccessorGeneratorGenerate();
-		    }
-		    ((SuccessorGeneratorGenerate *) current_node->generator_for_value[val])->add_op(
-			&ops[op_no]);
-
-		} else {
-		    if (current_node->generator_for_value[val] == NULL) {
-			current_node->generator_for_value[val] = new SuccessorGeneratorSwitch(
-			    next_var_index,
-			    variable_domain[next_var_index]);
-		    }
-
-		    current_node = (SuccessorGeneratorSwitch *)
-			current_node->generator_for_value[val];
-		    if (cond_no == (conditions.size() - 1)) {
-			// This was the last cond.
-			if (current_node->immediate_ops == NULL) {
-			    current_node->immediate_ops = new SuccessorGeneratorGenerate();
-			}
-			((SuccessorGeneratorGenerate *) current_node->immediate_ops)->add_op(
-			    &ops[op_no]);
-		    }
-		}
-	    }
-        }
-
-	return root_node;
-    }
 
 
 int StackelbergSearch::compute_pareto_frontier(const GlobalState &state, vector<const GlobalOperator *> &leader_ops_sequence,
@@ -581,7 +501,7 @@ SearchStatus StackelbergSearch::step() {
     cout << "Starting fix-actions IDS..." << endl;
 
     if(use_IDS) {
-        curr_leader_actions_budget = max(2, max_leader_action_cost);
+        curr_leader_actions_budget = max(2, task->max_leader_action_cost());
     } else {
         curr_leader_actions_budget = max_leader_actions_budget;
     }
