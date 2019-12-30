@@ -52,7 +52,7 @@ ENV = {QUEUES}
 
 ATTRIBUTES = ['search_time', 'reopened', 'memory', 'evaluations', 'total_time', 'expansions', 'error', 'generated', 'initial_h_values', 'coverage', 'plan_length', 'max_number_dups', 'cost']
 
-LIMITS={'search_time': 1800,  'search_memory' : 4096}
+LIMITS={{'search_time': 1800,  'search_memory' : 4096}}
 
 COMBINATIONS = [(Translator(repo=REPO, rev=REVISION), Preprocessor(repo=REPO, rev=REVISION), Planner(repo=REPO, rev=REVISION))]
 
