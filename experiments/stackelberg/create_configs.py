@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 import sys
-sys.append('./config')
+sys.path.append('./config')
 
 import errno
 import os
