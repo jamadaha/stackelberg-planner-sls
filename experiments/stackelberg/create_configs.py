@@ -61,7 +61,7 @@ exp = DownwardExperiment(path=EXPPATH, repo=REPO, environment=ENV, combinations=
 
 exp.add_search_parser(REPO + '/lab_parser.py')
 
-exp.add_config('{config.nick}' + REVISION, {str(config.config)})
+exp.add_config('{config.nick}' + REVISION, {config.config})
 
 exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pentest-what-if/benchmarks')
 
