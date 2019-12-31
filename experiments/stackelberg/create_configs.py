@@ -36,7 +36,7 @@ import subprocess
 import suites
 
 from lab.steps import Step
-from downward.checkouts import Translator, Preprocessor, Planner
+from downward.checkouts import TranslatorGit, PreprocessorGit, PlannerGit
 from downward.experiment import DownwardExperiment
 from downward.reports.absolute import AbsoluteReport
 
