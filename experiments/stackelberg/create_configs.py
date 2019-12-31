@@ -63,7 +63,7 @@ exp.add_search_parser(REPO + '/lab_parser.py')
 
 exp.add_config('{config.nick}' + REVISION, {config.config})
 
-exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pentest-what-if/benchmarks')
+exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pentest-what-if/robustness-benchmark')
 
 
 def remove_work_tag(run):
