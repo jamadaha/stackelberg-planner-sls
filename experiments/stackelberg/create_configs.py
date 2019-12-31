@@ -46,7 +46,7 @@ REVISION = '{config.revision}'
 
 EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{config.machines}/{config.revision}/{config.folder}'
 
-REPO = '/mnt/data_server/torralba/dominance-journal/stackelberg/sim-pentest-what-if'
+REPO = '/mnt/data_server/torralba/stackelberg/sim-pentest-what-if'
 
 ENV = {QUEUES}
 
