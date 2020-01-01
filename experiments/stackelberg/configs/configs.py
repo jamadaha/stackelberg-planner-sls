@@ -5,7 +5,7 @@ class Config:
     def __init__(self, folder, nick, config, revision, machines):
         self.folder = folder
         self.nick = nick
-        self.config = ["--search", config]
+        self.config = config
         self.revision = revision
         self.machines = machines
 
