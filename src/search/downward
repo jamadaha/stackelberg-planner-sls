@@ -1,0 +1,8 @@
+#! /bin/bash
+BASEDIR="$(dirname "$0")"
+PLANNER="$BASEDIR/downward-release"
+
+$BASEDIR/downward-release "$@"
+
+EXITCODE=$?
+exit $EXITCODE
