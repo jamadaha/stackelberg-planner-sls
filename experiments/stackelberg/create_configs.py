@@ -44,6 +44,7 @@ from downward.reports.absolute import AbsoluteReport
 from lab.environments import OracleGridEngineEnvironment
 
 REVISION = '{config.revision}'
+REVISION_PREPROCESS = 'deded832114387249bf4b9989cc5923978f43c0e'
 
 EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{config.machines}/{config.revision}/{config.folder}'
 
@@ -55,7 +56,7 @@ ATTRIBUTES = ['search_time', 'reopened', 'memory', 'evaluations', 'total_time', 
 
 LIMITS={{'search_time': 1800,  'search_memory' : 4096}}
 
-COMBINATIONS = [(TranslatorGit(repo=REPO, rev=REVISION), PreprocessorGit(repo=REPO, rev=REVISION), PlannerGit(repo=REPO, rev=REVISION))]
+COMBINATIONS = [(TranslatorGit(repo=REPO, rev=REVISION_PREPROCESS), PreprocessorGit(repo=REPO, rev=REVISION_PREPROCESS), PlannerGit(repo=REPO, rev=REVISION))]
 
 SUITE = {SUITE}
 exp = DownwardExperiment(path=EXPPATH, repo=REPO, environment=ENV, combinations=COMBINATIONS, limits=LIMITS, cache_dir='/mnt/data_server/torralba/stackelberg/lab-data/')
