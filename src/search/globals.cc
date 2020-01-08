@@ -164,6 +164,10 @@ void read_variables(istream &in) {
             getline(in, fact_names[j]);
         g_fact_names.push_back(fact_names);
         check_magic(in, "end_variable");
+        //Alvaro, Vidal: Important set id_facts
+        g_id_first_fact.push_back(g_num_facts);
+        g_num_facts += range;
+
     }
 }
 

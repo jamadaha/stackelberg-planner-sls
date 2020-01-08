@@ -10,8 +10,9 @@ MutexGroup::MutexGroup(istream &in) : detected_fw(false), exactly_one(false) {
   int num_facts;
   in >> exactly_one_str;
   string dir;
-  // in >> dir;
-  in >> num_facts;
+  in >> dir;
+  in >> num_facts;  
+  
   facts.reserve(num_facts);
   for (int j = 0; j < num_facts; ++j) {
     int var, val;
@@ -20,7 +21,7 @@ MutexGroup::MutexGroup(istream &in) : detected_fw(false), exactly_one(false) {
   }
   check_magic(in, "end_mutex_group");
   exactly_one = (exactly_one_str == "exactly_one");
-  // detected_fw = (dir == "fw");
+  detected_fw = (dir == "fw");
   
 }
  
