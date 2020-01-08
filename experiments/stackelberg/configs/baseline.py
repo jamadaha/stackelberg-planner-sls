@@ -1,5 +1,4 @@
 import configs
-from configs_simulation import *
 
 import sys
 
