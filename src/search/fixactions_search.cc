@@ -81,6 +81,10 @@ void FixActionsSearch::initialize()
     if (fix_operators.size() < 1) {
         // If there are no fix actions, just do one attacker search
         search_engine->search();
+        search_engine->save_plan_if_necessary();
+        for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
+        	g_plan[op_no]->dump();
+        }
         exit(0);
     }
 
