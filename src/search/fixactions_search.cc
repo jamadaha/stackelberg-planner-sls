@@ -80,11 +80,25 @@ void FixActionsSearch::initialize()
 
     if (fix_operators.size() < 1) {
         // If there are no fix actions, just do one attacker search
+    	 cout << "There are no fix actions. Just do one attacker search..." << endl;
         search_engine->search();
         search_engine->save_plan_if_necessary();
+
+        vector<int> attack_plan;
+
         for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
         	g_plan[op_no]->dump();
+
+        	attack_plan.push_back(g_plan[op_no]->get_op_id());
         }
+
+        int attack_plan_cost = search_engine->calculate_plan_cost();
+
+		quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> node = make_tuple(
+				0, attack_plan_cost, vector<vector<const GlobalOperator *>>(), attack_plan);
+		add_node_to_pareto_frontier(node);
+		dump_pareto_frontier();
+
         exit(0);
     }
 
