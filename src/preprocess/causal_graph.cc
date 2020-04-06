@@ -33,7 +33,7 @@
 #include <cassert>
 using namespace std;
 
-bool g_do_not_prune_variables = false;
+bool g_do_not_prune_variables = true;
 
 void CausalGraph::weigh_graph_from_ops(const vector<Variable *> &,
                                        const vector<Operator> &operators,
@@ -291,20 +291,27 @@ void CausalGraph::get_strongly_connected_components(const vector <Variable *> &v
     }
 }
 void CausalGraph::calculate_important_vars() {
-    for (auto var : ordering) {
-        var->reset_necessary();
-    }
-    for (const auto &goal : goals) {
-        if (!goal.first->is_necessary()) {
-            goal.first->set_necessary();
-            dfs(goal.first);
+    if(g_do_not_prune_variables) {
+        for (auto var : ordering) {
+            var->reset_necessary();
+            var->set_necessary();
+        }
+    } else {
+        for (auto var : ordering) {
+            var->reset_necessary();
+        }
+        for (const auto &goal : goals) {
+            if (!goal.first->is_necessary()) {
+                goal.first->set_necessary();
+                dfs(goal.first);
+            }
         }
     }
     // change ordering to leave out unimportant vars
     vector<Variable *> new_ordering;
     int old_size = ordering.size();
     for (Variable *var : ordering)
-        if (var->is_necessary() || g_do_not_prune_variables)
+        if (var->is_necessary())
             new_ordering.push_back(var);
     ordering = new_ordering;
     int new_size = ordering.size();

@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include <limits>
 #include <string>
@@ -193,8 +194,11 @@ void generate_cpp_input(bool /*solvable_in_poly_time*/,
         mutex.generate_cpp_input(outfile);
 
     outfile << "begin_state" << endl;
-    for (Variable *var : ordered_vars)
+    for (Variable *var : ordered_vars) {
+        assert (initial_state[var] >= 0 && initial_state[var]  < var->get_range());
+
         outfile << initial_state[var] << endl;  // for axioms default value
+    }
     outfile << "end_state" << endl;
 
     vector<int> ordered_goal_values;
