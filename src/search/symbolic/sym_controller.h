@@ -34,6 +34,8 @@ protected:
     SymSolution solution; 
 public:
     SymController(const Options &opts);
+    SymController(std::shared_ptr<SymVariables> vars,
+                  const SymParamsMgr &pMgr, const SymParamsSearch & pSearch);
     virtual ~SymController() {}
 
     virtual void new_solution(const SymSolution & sol);

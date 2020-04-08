@@ -11,28 +11,21 @@ using namespace std;
 
 namespace stackelberg {
 
-    void ParetoFrontier::add_node_at_end(ParetoFrontierNode && node) {
-#ifdef FIX_SEARCH_DEBUG
-        cout << "added node with fix cost: " << node.leader_cost << " and attack cost: " <<
-            node.follower_cost << " to frontier" << endl;
-#endif
-        frontier.push_back(std::move(node));
-    }
-
-
     void ParetoFrontier::add_node(int leader_cost, int follower_cost,
                                   const vector<const GlobalOperator *> & leader_plan,
                                   const vector<int> & follower_plan) {
 
+        cout << "ParetoFrontier::add_node " << leader_cost << endl;
+        cout << "ParetoFrontier::add_node " << follower_cost << endl;
         if (frontier.empty()) {
-            add_node_at_end(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan,follower_plan));
+            frontier.push_back(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan,follower_plan));
             return;
         }
 
         auto last_item = frontier.rbegin();
         if (leader_cost > last_item->leader_cost) {
             if( follower_cost > last_item->follower_cost) {
-                add_node_at_end(ParetoFrontierNode(leader_cost, follower_cost, leader_plan, follower_plan));
+                frontier.push_back(ParetoFrontierNode(leader_cost, follower_cost, leader_plan, follower_plan));
             }
             return;
         }
@@ -43,7 +36,6 @@ namespace stackelberg {
                                   return n1.leader_cost < n2.leader_cost;
                               }
             );
-
 
         // First check whether follower_prob_costs == Intmax and fix_actions_cost <
         // fix_action_costs_for_attacker_upper_bound
@@ -161,7 +153,6 @@ namespace stackelberg {
              << ", \"sequences\": [";
         dump_op_sequence_sequence(leader_plans, json);
         json << "]";
-
         cout << "\t attacker plan: " << endl;
         json << ", \"attacker plan\": ";
         dump_follower_op_sequence(follower_plan, task, json);

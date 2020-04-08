@@ -22,6 +22,9 @@ class Heuristic;
 class ScalarEvaluator;
 class Synergy;
 class SearchEngine;
+namespace stackelberg {
+class FollowerSearchEngine;
+}
 class OptionParser;
 template<class Entry>
 class OpenList;
@@ -296,6 +299,16 @@ struct TypeNamer<MergeStrategy *> {
         return "MergeStrategy";
     }
 };
+
+
+template <>
+struct TypeNamer<stackelberg::FollowerSearchEngine *> {
+    static std::string name()
+    {
+        return "FollowerSearchEngine";
+    }
+};
+
 
 template <>
 struct TypeNamer<PruningMethod *> {

@@ -99,11 +99,11 @@ void FixActionsSearch::initialize()
     }
 
 
-    fix_operators_successor_generator = create_successor_generator(
+    fix_operators_successor_generator = create_fix_successor_generator(
                                             fix_variable_domain, fix_operators, fix_operators);
 
     /* FIXME REMOVED DIVIDING VARIABLES
-    attack_operators_for_fix_vars_successor_generator = create_successor_generator(
+    attack_operators_for_fix_vars_successor_generator = create_fix_successor_generator(
                 fix_variable_domain,
                 attack_operators_with_fix_vars_preconds, attack_operators);
     */
@@ -146,7 +146,7 @@ void FixActionsSearch::initialize()
     		compute_always_applicable_attack_ops(g_operators);
     		cout << "number of always applicable attack ops: " << g_operators.size() << endl;
     	    delete g_successor_generator;
-    	    g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+    	    g_successor_generator = create_fix_successor_generator(g_variable_domain, g_operators, g_operators);
     	    search_engine->reset();
     	    g_state_registry->reset();
     	    if(attack_heuristic) {
@@ -169,7 +169,7 @@ void FixActionsSearch::initialize()
         g_operators.push_back(attack_operators_with_all_preconds[op_no]);
     }
     delete g_successor_generator;
-    g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+    g_successor_generator = create_fix_successor_generator(g_variable_domain, g_operators, g_operators);
     if(attack_heuristic) {
         attack_heuristic->reset();
     }
@@ -523,7 +523,7 @@ void FixActionsSearch::check_fix_vars_attacker_preconditioned()
 /**
  * returns a SuccessorGeneratorSwitch based on the preconditions of the ops in pre_cond_ops and entailing the ops from ops vector in the leaves
  */
-SuccessorGeneratorSwitch *FixActionsSearch::create_successor_generator(
+SuccessorGeneratorSwitch *FixActionsSearch::create_fix_successor_generator(
     const vector<int> &variable_domain,
     const vector<GlobalOperator> &pre_cond_ops, const vector<GlobalOperator> &ops)
 {
@@ -983,11 +983,6 @@ void FixActionsSearch::compute_always_applicable_attack_ops(vector<GlobalOperato
     }
 }
 
-bool op_ptr_name_comp(const GlobalOperator *op1, const GlobalOperator *op2)
-{
-    return op1->get_name() < op2->get_name();
-}
-
 string FixActionsSearch::fix_state_to_string(const GlobalState &state) {
 	string res = "";
 	for (size_t i = 0; i < fix_variable_domain.size(); i++) {
@@ -996,8 +991,12 @@ string FixActionsSearch::fix_state_to_string(const GlobalState &state) {
 	return res;
 }
 
-string FixActionsSearch::ops_to_string(vector<const GlobalOperator *> &ops) {
-	sort(ops.begin(), ops.end(), op_ptr_name_comp);
+string FixActionsSearch::fix_ops_to_string(vector<const GlobalOperator *> &ops) {
+    sort(ops.begin(), ops.end(), [] (const GlobalOperator * op1, const GlobalOperator * op2) {
+            return op1->get_name() < op2->get_name();
+        });
+
+           
 	string res = "";
 	for (size_t i = 0; i < ops.size(); i++) {
 		if(i > 0) {
@@ -1134,7 +1133,7 @@ int FixActionsSearch::compute_pareto_frontier(const GlobalState &state,
         }
 
         delete g_successor_generator;
-        g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
+        g_successor_generator = create_fix_successor_generator(g_variable_domain, g_operators, g_operators);
         //g_successor_generator->dump();
         //cout << "Attacker dump everything: " << endl;
         //dump_everything();

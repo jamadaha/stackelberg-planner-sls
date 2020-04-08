@@ -1,0 +1,60 @@
+#ifndef STACKELBERG_FOLLOWER_SEARCH_ENGINE_H
+#define STACKELBERG_FOLLOWER_SEARCH_ENGINE_H
+
+#include "../symbolic/sym_enums.h"
+#include "../symbolic/sym_state_space_manager.h"
+
+#include "../symbolic/sym_params_search.h"
+
+#include <memory>
+
+namespace symbolic {
+    class SymVariables;
+}
+
+class Options;
+namespace stackelberg {
+    class FollowerTask;
+
+
+    class FollowerSearchEngine {
+
+    public: 
+        //Desired bound means: you can return as soon as you have a solution of this
+        //quality or less. But the method should return the cost of the best solution
+        //found independently of whether it is larger or lower than desired bound
+        virtual int solve (const FollowerTask & ftask, int desired_bound = 0) = 0;
+
+        virtual int solve_minimum_ftask () = 0;        
+    };
+
+    class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
+        virtual int solve (const FollowerTask & ftask, int desired_bound = 0) override;
+        virtual int solve_minimum_ftask () override;
+    };
+
+    class SymbolicFollowerSearchEngine : public FollowerSearchEngine {
+
+        std::shared_ptr<symbolic::SymVariables> vars;
+        
+        symbolic::SymParamsMgr mgrParams; //Parameters for SymStateSpaceManager configuration.
+        symbolic::SymParamsSearch searchParams; //Parameters to search the original state space
+
+
+    public:
+        SymbolicFollowerSearchEngine(const Options &opts);
+        virtual int solve (const FollowerTask & ftask, int desired_bound = 0) override;
+        virtual int solve_minimum_ftask () override;
+       
+    }; 
+
+}
+
+
+
+
+
+
+
+
+#endif

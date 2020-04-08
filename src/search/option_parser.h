@@ -45,6 +45,10 @@ class LandmarkGraph;
 template<class Entry>
 class OpenList;
 class SearchEngine;
+
+namespace stackelberg {
+    class FollowerSearchEngine;
+}
 class MergeStrategy;
 class ShrinkStrategy;
 class PruningMethod;
@@ -138,6 +142,13 @@ class TokenParser<SearchEngine *>
 {
 public:
     static inline SearchEngine *parse(OptionParser &p);
+};
+
+template <>
+class TokenParser<stackelberg::FollowerSearchEngine *>
+{
+public:
+    static inline stackelberg::FollowerSearchEngine *parse(OptionParser &p);
 };
 
 template <>
@@ -462,6 +473,11 @@ ScalarEvaluator *TokenParser<ScalarEvaluator *>::parse(OptionParser &p)
 SearchEngine *TokenParser<SearchEngine *>::parse(OptionParser &p)
 {
     return lookup_in_registry<SearchEngine>(p);
+}
+
+stackelberg::FollowerSearchEngine *TokenParser<stackelberg::FollowerSearchEngine *>::parse(OptionParser &p)
+{
+    return lookup_in_registry<stackelberg::FollowerSearchEngine>(p);
 }
 
 MergeStrategy *TokenParser<MergeStrategy *>::parse(OptionParser &p)

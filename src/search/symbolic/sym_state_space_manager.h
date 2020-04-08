@@ -39,6 +39,8 @@ public:
 
     SymParamsMgr();
     SymParamsMgr(const Options &opts);
+    SymParamsMgr(const SymParamsMgr & other) = default;
+    
     static void add_options_to_parser(OptionParser &parser);
     void print_options() const;
 };

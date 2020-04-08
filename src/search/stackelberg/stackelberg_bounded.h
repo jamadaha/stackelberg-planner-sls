@@ -9,111 +9,99 @@
 #include "stackelberg_task.h"
 
 
+
+#include "../g_evaluator.h"
+
 #include "../search_engine.h"
 #include "../successor_generator.h"
 #include "../attack_success_prob_reuse_heuristic.h"
 #include "../per_fix_state_information.h"
 
+typedef std::pair<StateID, const GlobalOperator *> OpenListEntryLazy;
+
 namespace stackelberg {
+
+    class FollowerSearchEngine;
     
-    class FollowerTaskInfo {               
-    public:
-        int follower_plan_cost; //upper bound provided by the following plan
-        std::vector<int> follower_plan;
-        int lower_bound;
-        int minimum_leader_cost;
-        
-
-        bool is_optimal() const {
-            assert (lower_bound <= upper_bound);
-            return lower_bound == upper_bound;
-        }
-        
-        FollowerTaskInfo () :
-        follower_plan_cost(std::numeric_limits<int>::max()),
-            lower_bound (0),
-            minimum_leader_cost (std::numeric_limits<int>::max());
-    }
-
-    struct FixSearchInfoFixSequence {
+    struct LeaderSearchNode {
         int leader_actions_cost;
         bool already_in_frontier;
-    FixSearchInfoFixSequence(int _leader_actions_cost = -1, bool _already_in_frontier = false)
+    LeaderSearchNode(int _leader_actions_cost = -1, bool _already_in_frontier = false)
     : leader_actions_cost(_leader_actions_cost),
             already_in_frontier(_already_in_frontier){ }
     };
 
     class PartialOrderReduction;
 
-    class StackelbergBounded: public SearchEngine {
-    private:
-        const double follower_budget_factor;
-        const double leader_budget_factor;
-    
+    class StackelbergBounded : public SearchEngine {
+    protected:
         const bool use_partial_order_reduction;
-        const bool check_parent_follower_plan_applicable;
-        const bool check_leader_state_already_known;
-        const bool do_follower_op_dom_pruning;
-        const bool use_IDS;
-        //disabled: const bool sort_leader_ops_stupid;
-        const bool sort_leader_ops_advanced;
-        // disabled: const bool greedy_leader_search;
-        const bool upper_bound_pruning;
 
         std::unique_ptr<StackelbergTask> task;
-
         std::unique_ptr<PartialOrderReduction> por;
-        
         std::unique_ptr<SuccessorGeneratorSwitch> leader_operators_successor_generator;
-
 	std::unique_ptr<StateRegistry> leader_vars_state_registry;
 
-	std::vector<std::vector<int>> dominated_follower_op_ids;
-
-	SearchEngine* search_engine;
-	Heuristic* follower_heuristic;
+        std::unique_ptr<FollowerSearchEngine> optimal_engine;
+        std::unique_ptr<FollowerSearchEngine> cost_bounded_engine;
+        std::unique_ptr<FollowerSearchEngine> plan_repair;
+        
 
 	ParetoFrontier pareto_frontier;
         
-	PerFixStateInformation<FollowerTaskInfo> follower_task_info;
-	PerStateInformation<FixSearchInfoFixSequence> leader_search_node_infos_leader_sequence;
-	int max_leader_actions_budget = UNLTD_BUDGET;
-	int curr_leader_actions_budget = UNLTD_BUDGET;
+	PerFixStateInformation<FollowerTask> follower_task_info;
 
+        PerStateInformation<LeaderSearchNode> leader_search_node_info;
 
-	bool returned_somewhere_bc_of_budget = false;
-
-
-	double ids_leader_budget_factor = 1.5;
-
-	int max_leader_action_cost = 0; // The cost of the most expensive fix action
-
-	int follower_cost_upper_bound;
+        int follower_cost_upper_bound;
 	int leader_action_costs_for_follower_upper_bound = std::numeric_limits<int>::max();
         
-	int num_recursive_calls = 0;
-	int num_follower_searches = 0;
-	long follower_search_duration_sum = 0;
+
+        int num_follower_searches = 0;
+        int num_follower_searches_optimal = 0;
+        int num_follower_searches_cost_bounded = 0;
+        int num_follower_searches_plan_repair = 0;
+        
+        long follower_search_duration_sum = 0;
 	long reset_and_initialize_duration_sum = 0;
 	long leader_search_initialize_duration = 0;
 	int all_follower_states = 0;
-	int spared_follower_searches_because_leader_state_already_seen = 0;
-	int spared_follower_searches_because_parent_plan_applicable = 0;
 	int num_leader_op_paths = 0;
-	int num_recursive_calls_for_sorting = 0;
-
-	void iterate_applicable_ops(const std::vector<const GlobalOperator*>& applicable_ops_after_pruning, const GlobalState& state, const std::vector<int> &follower_plan, int follower_plan_cost, std::vector<const GlobalOperator*>& leader_ops_sequence, std::vector<int>& sleep, AttackSearchSpace* follower_heuristic_search_space, bool recurse, std::vector<int> &recursive_follower_costs);
 
     protected:
         virtual void initialize();
         virtual SearchStatus step();
-        
-        int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &leader_ops_sequence, int leader_actions_cost, const std::vector<int> &parent_follower_plan, int parent_follower_plan_cost, std::vector<int> &sleep, bool recurse);
-        
+
+        virtual std::vector<FollowerTask *> gather_follower_tasks(int leader_cost, int follower_cost_bound) = 0;  
+
+        virtual int get_next_L() = 0;
     public:
         StackelbergBounded(const Options &opts);
         virtual ~StackelbergBounded() = default;
     };
 
+
+    class StackelbergBoundedBFS : public StackelbergBounded {
+        std::unique_ptr<GlobalState> current_state;
+        StateID current_predecessor_id;
+        const GlobalOperator *current_operator;
+        int current_g;
+
+        GEvaluator g_evaluator;
+        std::unique_ptr<OpenList<OpenListEntryLazy>> open_list;
+
+    public:
+        StackelbergBoundedBFS(const Options &opts);
+        virtual ~StackelbergBoundedBFS() = default;
+
+
+        virtual void initialize() override;
+        virtual std::vector<FollowerTask *> gather_follower_tasks(int leader_cost, int follower_cost_bound) override;
+
+        virtual int get_next_L() override {
+            return current_g;
+        }
+    }; 
+
 }
-#endif /* STACKELBERG_SEARCH_H */
+#endif /* STACKELBERG_BOUNDED_H */

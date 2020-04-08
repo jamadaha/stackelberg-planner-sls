@@ -26,3 +26,26 @@ namespace stackelberg {
 
 
 }
+
+
+
+
+
+    bool parent_follower_plan_applicable = false;
+    if (check_parent_follower_plan_applicable && parent_follower_plan.size() > 0) {
+        /*cout << "parent attack plan: " << endl;
+          for (size_t op_no = 0; op_no < parent_follower_plan.size(); op_no++) {
+          follower_operators_with_leader_vars_preconds[parent_follower_plan[op_no]].dump();
+          }*/
+
+        parent_follower_plan_applicable = true;
+        // Check whether parent_follower_plan is still applicable in current fix-state
+        for (size_t op_no = 0; op_no < parent_follower_plan.size(); op_no++) {
+            if (!follower_operators_with_leader_vars_preconds[parent_follower_plan[op_no]].is_applicable(state)) {
+                parent_follower_plan_applicable = false;
+                break;
+            }
+        }
+
+        //TODO: One should check if the previous plan still satisfies the goal!
+    }

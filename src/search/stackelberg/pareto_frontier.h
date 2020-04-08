@@ -17,7 +17,6 @@ namespace stackelberg {
         std::vector<int> follower_plan;
 
     public:
-
         ParetoFrontierNode (int leader_cost_, int follower_cost_,
                             const std::vector<const GlobalOperator* > &leader_plan_,
                             const std::vector<int> & follower_plan_) : leader_cost(leader_cost_),
@@ -38,10 +37,7 @@ namespace stackelberg {
 
     class ParetoFrontier {    
         std::vector<ParetoFrontierNode> frontier;
-
         int complete_up_to;
-    
-        void add_node_at_end(ParetoFrontierNode && node) ;
     
     public:
         void add_node(int leader_cost, int follower_cost,

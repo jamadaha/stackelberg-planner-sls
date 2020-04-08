@@ -16,27 +16,31 @@
 using namespace std;
 
 namespace symbolic {
-SymController::SymController(const Options &opts)
-    : vars(make_shared<SymVariables>(opts)), 
-      mgrParams(opts), searchParams(opts), lower_bound(0), upper_bound(std::numeric_limits<int>::max()){
-    mgrParams.print_options();
-    searchParams.print_options();
 
-    //TODO: This should be done before computing the var order and
-    //initializing vars. Done here to avoid memory errors
-    // if(abstractionBuilder) {
-    //  unique_ptr<LDSimulation> ldSim;
-    //  std::vector<std::unique_ptr<Abstraction> > abstractions;
-    //  // TODO: This irrelevance pruning is only safe for detecting unsolvability
-    //  abstractionBuilder->build_abstraction
-    //      (true, OperatorCost::ZERO, ldSim, abstractions);
-    //  cout << "LDSimulation finished" << endl;
+    SymController::SymController(std::shared_ptr<SymVariables> v,
+                                 const SymParamsMgr &pMgr, const SymParamsSearch & pSearch) : vars(v), mgrParams(pMgr), searchParams(pSearch) {}
 
-    //  ldSim->release_memory();
-    // }
+    SymController::SymController(const Options &opts)
+        : vars(make_shared<SymVariables>(opts)), 
+          mgrParams(opts), searchParams(opts), lower_bound(0), upper_bound(std::numeric_limits<int>::max()){
+        mgrParams.print_options();
+        searchParams.print_options();
 
-    vars->init();
-}
+        //TODO: This should be done before computing the var order and
+        //initializing vars. Done here to avoid memory errors
+        // if(abstractionBuilder) {
+        //  unique_ptr<LDSimulation> ldSim;
+        //  std::vector<std::unique_ptr<Abstraction> > abstractions;
+        //  // TODO: This irrelevance pruning is only safe for detecting unsolvability
+        //  abstractionBuilder->build_abstraction
+        //      (true, OperatorCost::ZERO, ldSim, abstractions);
+        //  cout << "LDSimulation finished" << endl;
+
+        //  ldSim->release_memory();
+        // }
+
+        vars->init();
+    }
 
 
     void SymController::add_options_to_parser(OptionParser &parser, int maxStepTime, int maxStepNodes) {

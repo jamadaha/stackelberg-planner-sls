@@ -12,6 +12,8 @@
 
 namespace stackelberg {
 
+    class FollowerTask;
+
     class StackelbergTask {
 	
         std::vector<GlobalOperator> leader_operators;
@@ -45,6 +47,8 @@ namespace stackelberg {
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_leader_facts_ops;
 
 
+        /* std::unique_ptr<FollowerTask> minimal_follower_task; */
+        
         void sort_operators();
         int parse_success_prob_cost(std::string prob);
         double prob_cost_to_prob(int prob_cost);
@@ -88,7 +92,6 @@ namespace stackelberg {
 
 	int max_leader_action_cost() const;
 
-
 	std::string leader_state_to_string(const GlobalState &state);
 
 	std::unique_ptr<StateRegistry> get_leader_state_registry() const;
@@ -110,8 +113,8 @@ namespace stackelberg {
 	    return follower_vars_indizes;
 	}
 
-        void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops) const;
-
+        void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops) const;                
+        
         friend class PartialOrderReduction;	
     };
 }

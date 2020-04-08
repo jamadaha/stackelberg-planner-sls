@@ -141,7 +141,7 @@ protected:
     void create_new_variable_indices();
     void adjust_var_indices_of_ops(std::vector<GlobalOperator> &ops, const std::vector<int> &map_precond_var_id_to_new_var_id, const std::vector<int> &map_eff_var_id_to_new_var_id);
     void check_fix_vars_attacker_preconditioned();
-    SuccessorGeneratorSwitch* create_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
+    SuccessorGeneratorSwitch* create_fix_successor_generator(const std::vector<int> &variable_domain, const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops);
     void compute_commutative_and_dependent_fix_ops_matrices();
     void compute_op_dominance_relation(const std::vector<GlobalOperator> &ops, std::vector<std::vector<int>> &dominated_op_ids);
     void compute_fix_facts_ops_sets();
@@ -150,7 +150,7 @@ protected:
     void prune_dominated_ops(std::vector<const GlobalOperator*> &ops, std::vector<std::vector<int>> dominated_op_ids);
     void compute_always_applicable_attack_ops(std::vector<GlobalOperator> &ops);
     std::string fix_state_to_string(const GlobalState &state);
-    std::string ops_to_string(std::vector<const GlobalOperator *> &ops);
+    std::string fix_ops_to_string(std::vector<const GlobalOperator *> &ops);
     int compute_pareto_frontier(const GlobalState &state, std::vector<const GlobalOperator*> &fix_ops_sequence, int fix_actions_cost, const std::vector<int> &parent_attack_plan, int parent_attack_plan_cost, std::vector<int> &sleep, bool recurse);
     void add_node_to_pareto_frontier(quadruple<int, int, std::vector<std::vector<const GlobalOperator*>>, std::vector<int>> &node);
 
