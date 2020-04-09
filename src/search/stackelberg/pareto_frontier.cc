@@ -163,7 +163,13 @@ namespace stackelberg {
     {
         std::ostringstream json;
         json << "[";
-        cout << "Resulting Pareto-frontier: " << endl;
+        cout << "Resulting Pareto-frontier: ";
+        for (const auto  &  node : frontier) {
+            cout << "(" << node.leader_cost << "," << node.follower_cost << ") ";
+        }                
+        
+        cout << endl;
+        
         for (size_t i = 0; i < frontier.size(); ++i) {
             if(i > 0) {
     		json << ",\n";

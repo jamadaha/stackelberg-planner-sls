@@ -113,7 +113,11 @@ namespace stackelberg {
 	    return follower_vars_indizes;
 	}
 
-        void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops) const;                
+        void compute_always_applicable_follower_ops(std::vector<GlobalOperator> &ops) const;
+
+        int get_map_leader_var_id_to_orig_var_id(int leader_var_id) {
+            return map_leader_var_id_to_orig_var_id[leader_var_id];
+        }
         
         friend class PartialOrderReduction;	
     };

@@ -107,7 +107,6 @@ namespace stackelberg {
     	    cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << endl;
         }
 
-        /* FIXME Because of REMOVED DIVIDING VARIABLES, we added this: */
         g_operators.clear();
         for (const auto & op :task->get_follower_operators_with_all_preconds()) {
             g_operators.push_back(op);
