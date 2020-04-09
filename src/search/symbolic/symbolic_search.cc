@@ -31,6 +31,8 @@ namespace symbolic_search {
     }
 
     void SymbolicBidirectionalUniformCostSearch::initialize() {
+
+        cout << "SymbolicBidirectionalUniformCostSearch::initialize" << endl;
 	mgr = make_shared<OriginalStateSpace> (vars.get(), mgrParams, OperatorCostFunction::get_cost_function());
 	auto fw_search = std::make_unique <UniformCostSearch> (this, searchParams);
 	auto bw_search = make_unique <UniformCostSearch> (this, searchParams);
@@ -39,6 +41,8 @@ namespace symbolic_search {
 	
 	search = make_unique<BidirectionalSearch> (this, searchParams, move(fw_search), move(bw_search));
     }
+
+
 
 
     SymbolicUniformCostSearch::SymbolicUniformCostSearch(const Options &opts, bool _fw) :

@@ -95,7 +95,7 @@ namespace symbolic {
 		closed->setFNotClosed(numeric_limits<int>::max());
 		if(isOriginal()) engine->setLowerBound(getF());
 
-                cout << "Search finished" << endl;
+                // cout << "Search finished" << endl;
 
                 // cout << ">> Step: " << *mgr << (fw ? " fw " : " bw ") << ", g=" << frontier.g()
                 //      << " frontierNodes: " << frontier.nodes() << " [" << frontier.buckets() << "]" 

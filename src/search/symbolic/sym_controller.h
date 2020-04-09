@@ -41,6 +41,12 @@ public:
     virtual void new_solution(const SymSolution & sol);
     void setLowerBound(int lower);
 
+    void reset_bounds () {
+        lower_bound = 0;
+        upper_bound = std::numeric_limits<int>::max();
+        solution = SymSolution();
+    }
+
     int getUpperBound() const {
 	if(solution.solved()) return std::min(solution.getCost(), upper_bound);
 	else return upper_bound;

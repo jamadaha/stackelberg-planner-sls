@@ -7,6 +7,12 @@
 #include "../global_operator.h"
 #include "../successor_generator.h"
 
+//#ifndef LEADER_SEARCH_DEBUG
+//#define LEADER_SEARCH_DEBUG 0
+//#endif
+
+
+
 namespace stackelberg {
 
     inline std::string ops_to_string(std::vector<const GlobalOperator *> &ops) {
@@ -33,7 +39,7 @@ inline SuccessorGeneratorSwitch * create_successor_generator(
     const std::vector<GlobalOperator> &pre_cond_ops, const std::vector<GlobalOperator> &ops)
     {
 #ifdef LEADER_SEARCH_DEBUG
-        cout << "Begin create_successor_generator..." << endl;
+        std::cout << "Begin create_successor_generator..." << std::endl;
 #endif
 
         int root_var_index = 0;

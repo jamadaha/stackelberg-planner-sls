@@ -20,7 +20,6 @@
 class Options;
 class OptionParser;
 
-
 namespace symbolic {
 /*
  * BDD-Variables for a symbolic exploration.
@@ -46,7 +45,7 @@ class SymVariables {
 
     //The variable order must be complete.
     std::vector <int> var_order; //Variable(FD) order in the BDD
-    std::vector <std::vector <int>> bdd_index_pre, bdd_index_eff, bdd_index_abs; //vars(BDD) for each var(FD)
+    std::vector <std::vector <int>> bdd_index_pre, bdd_index_eff; //vars(BDD) for each var(FD)
     
     std::vector <std::vector <BDD>> preconditionBDDs; // BDDs associated with the precondition of a predicate
     std::vector <std::vector <BDD>> effectBDDs;      // BDDs associated with the effect of a predicate
@@ -87,9 +86,6 @@ public:
     inline const std::vector<int> &vars_index_eff(int variable) const {
         return bdd_index_eff[variable];
     }
-    inline const std::vector<int> &vars_index_abs(int variable) const {
-        return bdd_index_abs[variable];
-    }
 
     inline const BDD &preBDD(int variable, int value) const {
         return preconditionBDDs [variable] [value];
@@ -114,15 +110,6 @@ public:
         return getCube(vars, bdd_index_eff);
     }
 
-
-    inline BDD getCubeAbs(int var) const {
-        return getCube(var, bdd_index_abs);
-    }
-    inline BDD getCubeAbs(const std::set <int> &vars) const {
-        return getCube(vars, bdd_index_abs);
-    }
-
-
     inline const BDD &biimp(int variable) const {
         return biimpBDDs[variable];
     }
@@ -137,17 +124,11 @@ public:
     inline std::vector <BDD> getBDDVarsEff() const {
         return getBDDVars(var_order, bdd_index_eff);
     }
-    inline std::vector <BDD> getBDDVarsAbs() const {
-        return getBDDVars(var_order, bdd_index_abs);
-    }
     inline std::vector <BDD> getBDDVarsPre(const std::vector <int> &vars) const {
         return getBDDVars(vars, bdd_index_pre);
     }
     inline std::vector <BDD> getBDDVarsEff(const std::vector <int> &vars) const {
         return getBDDVars(vars, bdd_index_eff);
-    }
-    inline std::vector <BDD> getBDDVarsAbs(const std::vector <int> &vars) const {
-        return getBDDVars(vars, bdd_index_abs);
     }
 
     inline unsigned long totalMemory() const {

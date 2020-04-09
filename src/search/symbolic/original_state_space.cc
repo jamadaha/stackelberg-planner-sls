@@ -15,7 +15,7 @@ OriginalStateSpace::OriginalStateSpace(SymVariables *v,
     SymStateSpaceManager(v, params) {
 
     initialState = vars->getStateBDD(g_initial_state_data);
-     goal = vars->getPartialStateBDD(g_goal);
+    goal = vars->getPartialStateBDD(g_goal);
 
     init_mutex(g_mutex_groups);
 

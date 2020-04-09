@@ -13,7 +13,6 @@ namespace stackelberg {
                         bool genMutexBDD, bool genMutexBDDByFluent, bool fw);
 
     public:
-
         SymbolicStackelbergManager(symbolic::SymVariables *v,
                                    const symbolic::SymParamsMgr &params,
                                    std::shared_ptr<OperatorCostFunction> cost_type_,

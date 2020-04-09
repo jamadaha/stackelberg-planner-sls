@@ -49,16 +49,7 @@ void SymVariables::init(const vector <int> &v_order) {
     numBDDVars = 0;
     bdd_index_pre = vector<vector<int>>(v_order.size());
     bdd_index_eff = vector<vector<int>>(v_order.size());
-    bdd_index_abs = vector<vector<int>>(v_order.size());
 
-    //for each variable in the ordering, set the associated binary variables
-    // for(int var : var_order){
-    //   int var_len = ceil(log2(g_variable_domain[var]));
-    //   for(int j = 0; j < var_len; j++){
-    //     bdd_index_abs[var].push_back(numBDDVars);
-    //     ++numBDDVars;
-    //   }
-    // }
     int _numBDDVars = 0;// numBDDVars;
     for (int var : var_order) {
         int var_len = ceil(log2(g_variable_domain[var]));
@@ -70,11 +61,6 @@ void SymVariables::init(const vector <int> &v_order) {
         }
     }
     cout << "Num variables: " << var_order.size() << " => " << numBDDVars << endl;
-
-    /*  Numbddvars += kdflafklajfkljafjsak.
-    for (each abstract state){
-      numBDD
-      }*/
 
     //Initialize manager
     cout << "Initialize Symbolic Manager(" << _numBDDVars << ", "

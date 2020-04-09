@@ -38,7 +38,7 @@ int SymbolicFollowerSearchEngine::solve (const GlobalState & leader_state, int d
         search->step();
     }
 
-    cout << "Search finished: " << search->finished() << endl;
+    cout << "Follower Search finished: " << search->finished() << endl;
     cout << "Controller upper bound: " << controller->getUpperBound() << endl;
     cout << "Desired bound: " << desired_bound << endl;
     

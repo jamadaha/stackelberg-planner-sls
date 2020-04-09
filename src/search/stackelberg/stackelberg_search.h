@@ -79,9 +79,6 @@ namespace stackelberg {
 	bool returned_somewhere_bc_of_budget = false;
 
 	double ids_leader_budget_factor = 1.5;
-
-	int follower_cost_upper_bound;
-	int leader_action_costs_for_follower_upper_bound = std::numeric_limits<int>::max();
         
 	int num_recursive_calls = 0;
 	int num_follower_searches = 0;

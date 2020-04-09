@@ -15,8 +15,12 @@ namespace stackelberg {
                                   const vector<const GlobalOperator *> & leader_plan,
                                   const vector<int> & follower_plan) {
 
-        cout << "ParetoFrontier::add_node " << leader_cost << endl;
-        cout << "ParetoFrontier::add_node " << follower_cost << endl;
+
+        if (follower_cost >= follower_cost_upper_bound) {
+            leader_action_costs_for_follower_upper_bound = leader_cost;
+        }
+       
+        cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
         if (frontier.empty()) {
             frontier.push_back(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan,follower_plan));
             return;

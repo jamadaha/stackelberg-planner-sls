@@ -19,6 +19,11 @@
 #include <fstream>
 #include "../utils/timer.h"
 
+//#ifndef LEADER_SEARCH_DEBUG
+//#define LEADER_SEARCH_DEBUG 0
+//#endif
+
+
 using namespace std;
 
 namespace stackelberg {
@@ -100,11 +105,8 @@ namespace stackelberg {
     	    search_engine->search();
     	    if (search_engine->found_solution()) {
                 search_engine->save_plan_if_necessary();
-                follower_cost_upper_bound = search_engine->calculate_plan_cost();
-    	    } else {
-                follower_cost_upper_bound = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE;
-    	    }
-    	    cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << endl;
+                pareto_frontier.set_follower_cost_upper_bound(search_engine->calculate_plan_cost());
+            }
         }
 
         g_operators.clear();
@@ -125,7 +127,8 @@ namespace stackelberg {
 
 
 
-int StackelbergSearch::compute_pareto_frontier(const GlobalState &state, vector<const GlobalOperator *> &leader_ops_sequence,
+int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
+                                               vector<const GlobalOperator *> &leader_ops_sequence,
                                                int leader_actions_cost,
                                                const vector<int> &parent_follower_plan,
                                                int parent_follower_plan_cost,
@@ -137,11 +140,8 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state, vector<
 #ifdef LEADER_SEARCH_DEBUG
     if ((num_recursive_calls % 50) == 0) {
         cout << num_recursive_calls << " num recursive calls until now." << endl;
-        pareto_frontier.dump();
+        // pareto_frontier.dump();
     }
-#endif
-
-#ifdef LEADER_SEARCH_DEBUG
     cout << "in call of compute_pareto_frontier for state: " << endl;
     //state.dump_fdr(leader_variable_domain, leader_variable_name);
     cout << "with id: " << state.get_id().hash() << endl;
@@ -232,6 +232,8 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state, vector<
         num_follower_searches++;
 
         /* FIXME Because REMOVED DIVIDING VARIABLES, adjust follower initial state w.r.t leader variables: */
+
+        cout << "Setting initial state in globals" << endl;
 	const auto & leader_variable_domain = task->get_leader_variable_domain();
         for (size_t leader_var = 0; leader_var < leader_variable_domain.size(); leader_var++) {
             int orig_var_id = task->get_map_leader_var_id_to_orig_var_id()[leader_var];
@@ -323,13 +325,13 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state, vector<
         }
     }
 
-    if (!recurse) {
-        return follower_plan_cost;
-    }
-
     if (!info_leader_sequence.already_in_frontier) {
         pareto_frontier.add_node(leader_actions_cost, follower_plan_cost, leader_ops_sequence, parent_follower_plan_applicable ? parent_follower_plan : follower_plan);
         info_leader_sequence.already_in_frontier = true;
+    }
+
+    if (!recurse) {
+        return follower_plan_cost;
     }
 
     if (follower_plan_cost == StackelbergTask::FOLLOWER_TASK_UNSOLVABLE) {
@@ -444,10 +446,9 @@ void StackelbergSearch::iterate_applicable_ops(const
             returned_somewhere_bc_of_budget = true;
             continue;
         }
-        if (upper_bound_pruning && new_leader_actions_cost > leader_action_costs_for_follower_upper_bound) {
-            //cout
-            //       << "Do not continue with this op, because the new leader_action_cost is already greater than leader_action_costs_for_follower_upper_bound"
-            //        << endl;
+        if (new_leader_actions_cost >=
+            pareto_frontier.get_leader_action_costs_for_follower_upper_bound()) {
+            cout << "Do not continue with this op, because the new leader_action_cost is already greater than leader_action_costs_for_follower_upper_bound" << endl;
             leader_ops_sequence.pop_back();
             continue;
         }

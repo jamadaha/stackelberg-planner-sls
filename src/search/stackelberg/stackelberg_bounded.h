@@ -46,16 +46,11 @@ namespace stackelberg {
         std::unique_ptr<FollowerSearchEngine> cost_bounded_engine;
         std::unique_ptr<FollowerSearchEngine> plan_repair;
         
-
 	ParetoFrontier pareto_frontier;
         
 	PerFixStateInformation<FollowerTask> follower_task_info;
 
-        PerStateInformation<LeaderSearchNode> leader_search_node_info;
-
-        int follower_cost_upper_bound;
-	int leader_action_costs_for_follower_upper_bound = std::numeric_limits<int>::max();
-        
+        PerStateInformation<LeaderSearchNode> leader_search_node_info;        
 
         int num_follower_searches = 0;
         int num_follower_searches_optimal = 0;

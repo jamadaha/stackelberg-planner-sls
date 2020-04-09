@@ -33,6 +33,10 @@ namespace symbolic_search {
 	virtual ~SymbolicSearch() = default;
 
 	virtual void new_solution(const symbolic::SymSolution & sol) override;
+        
+        virtual void reset() override {
+            reset_bounds();    
+        }
     };
 
 
@@ -43,6 +47,7 @@ namespace symbolic_search {
     public:
 	SymbolicBidirectionalUniformCostSearch(const Options &opts);
 	virtual ~SymbolicBidirectionalUniformCostSearch() = default;
+
     };
 
     
