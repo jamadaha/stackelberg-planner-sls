@@ -16,11 +16,11 @@ namespace stackelberg {
     SymbolicStackelbergManager::SymbolicStackelbergManager(SymVariables *v,
                                                            const SymParamsMgr &params,
                                                            shared_ptr<OperatorCostFunction> cost_type,
-                                                           FollowerTask // task
+                                                           const GlobalState & leader_state
         ) :
         SymStateSpaceManager(v, params) {
         
-        initialState = vars->getStateBDD(g_initial_state_data);
+        initialState = vars->getStateBDD(leader_state); // BUG: We cannot pass a leader state to sym variables yet.
         goal = vars->getPartialStateBDD(g_goal);
 
     init_mutex(g_mutex_groups);

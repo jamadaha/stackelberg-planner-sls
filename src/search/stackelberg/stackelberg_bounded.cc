@@ -72,7 +72,9 @@ namespace stackelberg {
             if (plan_repair) {
                 //Remove any task whose upper bound is below or equal to the best lower bound
                 follower_tasks.erase(std::remove_if(follower_tasks.begin(), follower_tasks.end(),
-                                                    [&](const auto * f_task) { return plan_repair->solve(*f_task, F) <= F;}),
+                                                    [&](const auto * f_task) {
+                                                        auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
+                                                        return plan_repair->solve(leader_state, F) <= F;}),
                                      follower_tasks.end());
             }
 
@@ -93,12 +95,13 @@ namespace stackelberg {
                 if (f_task->upper_bound <= F) {
                     continue;
                 }
-            
-                if (cost_bounded_engine && cost_bounded_engine->solve(*f_task, F)) {
+
+                auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
+                if (cost_bounded_engine && cost_bounded_engine->solve(leader_state, F)) {
                     continue; 
                 }
             
-                int new_bound = optimal_engine->solve(*f_task, maxF);
+                int new_bound = optimal_engine->solve(leader_state, maxF);
                 cout << "MY new bound is " << new_bound <<  " and the previous one is " << F << endl;
                 if (new_bound > F) {
                     cout << "SET NEW BOUND" << endl;

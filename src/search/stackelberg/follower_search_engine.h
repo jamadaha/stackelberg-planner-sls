@@ -12,24 +12,41 @@ namespace symbolic {
     class SymVariables;
 }
 
+class SearchEngine;
+class Heuristic;
 class Options;
 namespace stackelberg {
     class FollowerTask;
+    class StackelbergTask;
 
 
     class FollowerSearchEngine {
 
-    public: 
+    protected:
+        StackelbergTask * task;
+        
+            
+    public:
+
+        void initialize(StackelbergTask * _task) {
+            task = _task;
+        }
+        
         //Desired bound means: you can return as soon as you have a solution of this
         //quality or less. But the method should return the cost of the best solution
         //found independently of whether it is larger or lower than desired bound
-        virtual int solve (const FollowerTask & ftask, int desired_bound = 0) = 0;
+        virtual int solve (const GlobalState & leader_state, int desired_bound = 0) = 0;
 
         virtual int solve_minimum_ftask () = 0;        
     };
 
     class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
-        virtual int solve (const FollowerTask & ftask, int desired_bound = 0) override;
+        SearchEngine* search_engine;
+        Heuristic * follower_heuristic; //We need a pointer to the heuristic to reset it!
+        
+    public:
+        ExplicitFollowerSearchEngine(const Options &opts);
+        virtual int solve (const GlobalState & leader_state, int desired_bound = 0) override;
         virtual int solve_minimum_ftask () override;
     };
 
@@ -43,7 +60,7 @@ namespace stackelberg {
 
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
-        virtual int solve (const FollowerTask & ftask, int desired_bound = 0) override;
+        virtual int solve (const GlobalState & leader_state, int desired_bound = 0) override;
         virtual int solve_minimum_ftask () override;
        
     }; 

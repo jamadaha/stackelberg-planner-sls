@@ -3,8 +3,6 @@
 
 #include "../symbolic/sym_state_space_manager.h"
 
-#include "follower_task.h"
-
 class MutexGroup; 
 namespace stackelberg {
     
@@ -19,7 +17,7 @@ namespace stackelberg {
         SymbolicStackelbergManager(symbolic::SymVariables *v,
                                    const symbolic::SymParamsMgr &params,
                                    std::shared_ptr<OperatorCostFunction> cost_type_,
-                                   FollowerTask task);
+                                   const GlobalState & leader_state);
 
         //Individual TRs: Useful for shrink and plan construction
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
