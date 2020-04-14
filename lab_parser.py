@@ -9,7 +9,8 @@ eval = Parser()
 
 
 regexps = [re.compile("Optimally solved follower subproblems: (?P<optimally_solved_subproblems>(\d+))"),
-           re.compile("Resulting Pareto-frontier: (?P<pareto_frontier>(.*))s"),
+           re.compile("Pareto-frontier: (?P<pareto_frontier>(.*))"),
+           re.compile("Pareto-frontier size: (?P<pareto_frontier_size>(\d+))"),
            re.compile("Follower search time: (?P<follower_time>(.*))s"), 
            re.compile("Leader search time: (?P<leader_time>(.*))"), 
 ]
