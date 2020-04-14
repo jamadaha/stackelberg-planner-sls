@@ -233,7 +233,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
 
         /* FIXME Because REMOVED DIVIDING VARIABLES, adjust follower initial state w.r.t leader variables: */
 
-        cout << "Setting initial state in globals" << endl;
+        // cout << "Setting initial state in globals" << endl;
 	const auto & leader_variable_domain = task->get_leader_variable_domain();
         for (size_t leader_var = 0; leader_var < leader_variable_domain.size(); leader_var++) {
             int orig_var_id = task->get_map_leader_var_id_to_orig_var_id()[leader_var];
@@ -448,7 +448,7 @@ void StackelbergSearch::iterate_applicable_ops(const
         }
         if (new_leader_actions_cost >=
             pareto_frontier.get_leader_action_costs_for_follower_upper_bound()) {
-            cout << "Do not continue with this op, because the new leader_action_cost is already greater than leader_action_costs_for_follower_upper_bound" << endl;
+            // cout << "Do not continue with this op, because the new leader_action_cost is already greater than leader_action_costs_for_follower_upper_bound" << endl;
             leader_ops_sequence.pop_back();
             continue;
         }
@@ -540,37 +540,43 @@ SearchStatus StackelbergSearch::step() {
     }
 
     auto t2 = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
+    auto duration = chrono::duration_cast<chrono::microseconds>( t2 - t1 ).count();
 
-    cout << "total time: " << g_timer << endl;
-    cout << "FixSearch initialize took: " << leader_search_initialize_duration << "ms"
-         << endl;
-    cout << "Complete Fixsearch took: " << duration << "ms" << endl;
-    cout << "Search in Follower Statespace took " << (follower_search_duration_sum/1000) <<
-        "ms" << endl;
-    cout << "Search in Fixactions Statespace took " << (duration -
-                                                        (follower_search_duration_sum/1000)) << "ms" << endl;
-    cout << "reset_and_initialize_duration_sum: " <<
-        reset_and_initialize_duration_sum << "ms" << endl;
-    cout << "They were in total " << num_recursive_calls <<
-        " calls to compute_pareto_frontier." << endl;
-    cout << "thereof because of sorting fix actions: " <<
-        num_recursive_calls_for_sorting << endl;
-    cout << "and " << (num_recursive_calls - num_recursive_calls_for_sorting) <<
-        " \"real\" calls" << endl;
-    cout << "They were " << num_follower_searches <<
-        " searches in Follower Statespace" << endl;
-    cout << "We spared " << (spared_follower_searches_because_leader_state_already_seen
-                             - (num_recursive_calls - num_recursive_calls_for_sorting) + 1)
-         << " follower searches, because the fix state was already known" << endl;
-    cout << "We spared " << spared_follower_searches_because_parent_plan_applicable
-         << " follower searches, because the fix parent state attack plan was still applicable"
-         << endl;
-    // cout << "Follower Searchspace had " << (all_follower_states / num_follower_searches) << " states on average" << endl;
-    // cout << "Follower Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
-    // cout << "Num fix action paths: " << num_leader_op_paths << endl; TODO This is currently not computed correctly
+    // cout << "total time: " << g_timer << endl;
+    // cout << "FixSearch initialize took: " << leader_search_initialize_duration << "ms"
+    //      << endl;
+    // cout << "Complete Fixsearch took: " << duration << "ms" << endl;
+    // cout << "Search in Follower Statespace took " << (follower_search_duration_sum/1000) <<
+    //     "ms" << endl;
+    // cout << "Search in Fixactions Statespace took " << (duration -
+    //                                                     (follower_search_duration_sum/1000)) << "ms" << endl;
+    // cout << "reset_and_initialize_duration_sum: " <<
+    //     reset_and_initialize_duration_sum << "ms" << endl;
+    // cout << "They were in total " << num_recursive_calls <<
+    //     " calls to compute_pareto_frontier." << endl;
+    // cout << "thereof because of sorting fix actions: " <<
+    //     num_recursive_calls_for_sorting << endl;
+    // cout << "and " << (num_recursive_calls - num_recursive_calls_for_sorting) <<
+    //     " \"real\" calls" << endl;
+    // cout << "They were " << num_follower_searches <<
+    //     " searches in Follower Statespace" << endl;
+    // cout << "We spared " << (spared_follower_searches_because_leader_state_already_seen
+    //                          - (num_recursive_calls - num_recursive_calls_for_sorting) + 1)
+    //      << " follower searches, because the fix state was already known" << endl;
+    // cout << "We spared " << spared_follower_searches_because_parent_plan_applicable
+    //      << " follower searches, because the fix parent state attack plan was still applicable"
+    //      << endl;
+
+    //Alvaro: Changed output to make it consistent with other stackelberg algorithms
+    cout << "Optimally solved follower subproblems: " << num_follower_searches << endl;
+    cout << "Search time: " << (duration/1000000.0) << "s" << endl;
+    cout << "Follower search time: " << (follower_search_duration_sum/1000000.0) << "s" << endl;
+    cout << "Leader search time: " << ((duration-follower_search_duration_sum)/1000000.0) << "s" << endl;
+    cout << "Total time: " << g_timer << endl;
+
     pareto_frontier.dump(*task);
-    exit(0);
+
+    exit_with(EXIT_PLAN_FOUND);
     return IN_PROGRESS;
 }
 

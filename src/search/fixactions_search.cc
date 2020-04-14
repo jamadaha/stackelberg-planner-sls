@@ -1590,8 +1590,6 @@ void FixActionsSearch::dump_pareto_frontier()
 {
     std::ostringstream json;
     json << "[";
-    cout << "Resulting Pareto-frontier: " << endl;
-
     cout << "Resulting Pareto-frontier: ";
     for (const auto  &  node : pareto_frontier) {
         cout << "(" << get<0>(node) << "," << get<1>(node) << ") ";
@@ -1658,37 +1656,41 @@ SearchStatus FixActionsSearch::step() {
 	}
 
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count();
+    auto duration = chrono::duration_cast<chrono::microseconds>( t2 - t1 ).count();
 
-    cout << "total time: " << g_timer << endl;
-    cout << "FixSearch initialize took: " << fix_search_initialize_duration << "ms"
-         << endl;
-    cout << "Complete Fixsearch took: " << duration << "ms" << endl;
-    cout << "Search in Attacker Statespace took " << (attack_search_duration_sum/1000) <<
-         "ms" << endl;
-    cout << "Search in Fixactions Statespace took " << (duration -
-            (attack_search_duration_sum/1000)) << "ms" << endl;
-    cout << "reset_and_initialize_duration_sum: " <<
-         reset_and_initialize_duration_sum << "ms" << endl;
-    cout << "They were in total " << num_recursive_calls <<
-         " calls to compute_pareto_frontier." << endl;
-    cout << "thereof because of sorting fix actions: " <<
-         num_recursive_calls_for_sorting << endl;
-    cout << "and " << (num_recursive_calls - num_recursive_calls_for_sorting) <<
-         " \"real\" calls" << endl;
-    cout << "They were " << num_attacker_searches <<
-         " searches in Attacker Statespace" << endl;
-    cout << "We spared " << (spared_attacker_searches_because_fix_state_already_seen
-                             - (num_recursive_calls - num_recursive_calls_for_sorting) + 1)
-         << " attacker searches, because the fix state was already known" << endl;
-    cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable
-         << " attacker searches, because the fix parent state attack plan was still applicable"
-         << endl;
+    // cout << "FixSearch initialize took: " << fix_search_initialize_duration << "ms"
+    //      << endl;
+    // cout << "Complete Fixsearch took: " << duration << "ms" << endl;
+    // cout << "Search in Attacker Statespace took " << (attack_search_duration_sum/1000) << "ms" << endl;
+    // cout << "Search in Fixactions Statespace took " << (duration - (attack_search_duration_sum/1000)) << "ms" << endl;
+    // cout << "reset_and_initialize_duration_sum: " <<
+    //      reset_and_initialize_duration_sum << "ms" << endl;
+    // cout << "They were in total " << num_recursive_calls <<
+    //      " calls to compute_pareto_frontier." << endl;
+    // cout << "thereof because of sorting fix actions: " <<
+    //      num_recursive_calls_for_sorting << endl;
+    // cout << "and " << (num_recursive_calls - num_recursive_calls_for_sorting) <<
+    //      " \"real\" calls" << endl;
+    // cout << "They were " << num_attacker_searches <<
+    //      " searches in Attacker Statespace" << endl;
+    // cout << "We spared " << (spared_attacker_searches_because_fix_state_already_seen
+    //                          - (num_recursive_calls - num_recursive_calls_for_sorting) + 1)
+    //      << " attacker searches, because the fix state was already known" << endl;
+    // cout << "We spared " << spared_attacker_searches_because_parent_plan_applicable
+    //      << " attacker searches, because the fix parent state attack plan was still applicable"
+    //      << endl;
     // cout << "Attacker Searchspace had " << (all_attacker_states / num_attacker_searches) << " states on average" << endl;
     // cout << "Attacker Searchspaces accumulated " << g_state_registry->size() << " states in state_registry" << endl;
     // cout << "Num fix action paths: " << num_fix_op_paths << endl; TODO This is currently not computed correctly
+
+    //Alvaro: Changed output to make it consistent with other stackelberg algorithms
+    cout << "Search time: " << (duration/1000000.0) << "s" << endl;
+    cout << "Follower search time: " << (attack_search_duration_sum/1000000.0) << "s" << endl;
+    cout << "Leader search time: " << ((duration-attack_search_duration_sum)/1000000.0) << "s" << endl;
+    cout << "Total time: " << g_timer << endl;
+    cout << "Optimally solved follower subproblems: " << num_attacker_searches << endl;
     dump_pareto_frontier();
-    exit(EXIT_CRITICAL_ERROR);
+    exit_with(EXIT_PLAN_FOUND);
     return IN_PROGRESS;
 }
 

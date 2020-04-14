@@ -103,7 +103,9 @@ if __name__ == '__main__':
     except OSError as exc:
         if exc.errno == errno.EEXIST and os.path.isdir(folder):
             pass
-        else: raise
+        else:
+            raise
+        
     CONFIGS_TO_PROCESS = configs.get_configs(experiment)
     for config in CONFIGS_TO_PROCESS:
         print config

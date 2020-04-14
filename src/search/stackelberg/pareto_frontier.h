@@ -63,8 +63,8 @@ namespace stackelberg {
 
         void set_follower_cost_upper_bound(int upper_bound) {
             if (upper_bound < follower_cost_upper_bound) {
-                std::cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << std::endl;
                 follower_cost_upper_bound = upper_bound;
+                std::cout << "Follower cost upper bound: " << upper_bound << std::endl;
             }
         }
 
