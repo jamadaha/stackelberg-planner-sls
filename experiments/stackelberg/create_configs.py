@@ -52,7 +52,7 @@ REPO = '/mnt/data_server/torralba/stackelberg/sim-pentest-what-if'
 
 ENV = {QUEUES}
 
-ATTRIBUTES = ['search_time', 'reopened', 'memory', 'evaluations', 'total_time', 'expansions', 'error', 'generated', 'initial_h_values', 'coverage', 'plan_length', 'max_number_dups', 'cost']
+ATTRIBUTES = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'leader_time']
 
 LIMITS={{'search_time': 1800,  'search_memory' : 4096}}
 
