@@ -82,6 +82,8 @@ void SymVariables::init(const vector <int> &v_order) {
     _manager->setHandler(exceptionError);
     _manager->setTimeoutHandler(exceptionError);
     _manager->setNodesExceededHandler(exceptionError);
+    _manager->RegisterOutOfMemoryCallback(exitOutOfMemory);
+
 
     cout << "Generating binary variables" << endl;
     //Generate binary_variables
@@ -252,6 +254,13 @@ exceptionError(string /*message*/) {
     throw BDDError();
 }
 
+    
+void
+exitOutOfMemory(size_t) {
+    exit_with(EXIT_OUT_OF_MEMORY);
+}
+
+
 
 void SymVariables::print() {
     ofstream file("variables.txt");
@@ -294,3 +303,4 @@ void SymVariables::add_options_to_parser(OptionParser &parser) {
     parser.add_option<bool> ("gamer_ordering", "Use Gamer ordering optimization", "true");
 }
 }
+

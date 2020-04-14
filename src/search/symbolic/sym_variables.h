@@ -26,8 +26,11 @@ namespace symbolic {
  * This information is global for every class using symbolic search.
  * The only decision fixed here is the variable ordering, which is assumed to be always fixed.
  */
-struct BDDError {};
+struct BDDError
+{};
 extern void exceptionError(std::string message);
+extern void exitOutOfMemory(size_t memory);
+
 
 class SymVariables {
     // Var order used by the algorithm.
