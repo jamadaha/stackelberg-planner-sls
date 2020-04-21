@@ -16,7 +16,7 @@ namespace stackelberg {
         SymbolicStackelbergManager(symbolic::SymVariables *v,
                                    const symbolic::SymParamsMgr &params,
                                    std::shared_ptr<OperatorCostFunction> cost_type_,
-                                   const GlobalState & leader_state);
+                                   const std::vector<int> & leader_state);
 
         //Individual TRs: Useful for shrink and plan construction
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;

@@ -21,20 +21,23 @@
 using namespace stackelberg;
 using namespace symbolic;
 
-int SymbolicFollowerSearchEngine::solve (const GlobalState & leader_state, int desired_bound) {
+int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, int desired_bound) {
+    auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
+    cout << "My new controller lower bound is " << controller->getLowerBound();
+    auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+    auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
 
     auto mgr = make_shared<SymbolicStackelbergManager> (vars.get(), mgrParams, OperatorCostFunction::get_cost_function(), leader_state);
 
-    auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
     
-    auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-    auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
     fw_search->init(mgr, true, bw_search->getClosedShared());
     bw_search->init(mgr, false, fw_search->getClosedShared());
 	
     auto search = make_unique<BidirectionalSearch> (controller.get(), searchParams, move(fw_search), move(bw_search));
 
-    while(!search->finished() && controller->getUpperBound() > desired_bound) {
+    while(!search->finished() &&
+          (desired_bound == std::numeric_limits<int>::max() ||
+           controller->getUpperBound() > desired_bound)) {
         search->step();
     }
 
@@ -96,7 +99,7 @@ int ExplicitFollowerSearchEngine::solve_minimum_ftask () {
 }
 
 
-int ExplicitFollowerSearchEngine::solve (const GlobalState & leader_state, int /*desired_bound*/){
+int ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, int /*desired_bound*/){
 
     for (int leader_var = 0; leader_var < task->get_num_leader_vars(); leader_var++) {
         int orig_var_id = task-> get_map_leader_var_id_to_orig_var_id(leader_var);

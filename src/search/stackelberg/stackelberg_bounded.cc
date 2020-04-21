@@ -58,7 +58,6 @@ namespace stackelberg {
         auto t1 = chrono::high_resolution_clock::now();
 
         int maxF = optimal_engine->solve_minimum_ftask();
-
         cout << "Solved minimum task: " << maxF << endl;
         
         int L = 0;
@@ -67,6 +66,7 @@ namespace stackelberg {
         while (!pareto_frontier.is_complete(maxF) && L < std::numeric_limits<int>::max()) {
             cout << "Leader action budget: " << L << endl;
             auto follower_tasks = gather_follower_tasks(L, F);
+            cout << "There are " << follower_tasks.size()<< " follower tasks with L=" << L <<" F=" <<F << endl;
         
             //We do plan repair 
             if (plan_repair) {
@@ -74,7 +74,8 @@ namespace stackelberg {
                 follower_tasks.erase(std::remove_if(follower_tasks.begin(), follower_tasks.end(),
                                                     [&](const auto * f_task) {
                                                         auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
-                                                        return plan_repair->solve(leader_state, F) <= F;}),
+                                                        auto follower_state = task->get_follower_state(leader_state);
+                                                        return plan_repair->solve(follower_state, F) <= F;}),
                                      follower_tasks.end());
             }
 
@@ -97,11 +98,21 @@ namespace stackelberg {
                 }
 
                 auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
-                if (cost_bounded_engine && cost_bounded_engine->solve(leader_state, F)) {
-                    continue; 
+                auto follower_state = task->get_follower_state(leader_state);
+                if (cost_bounded_engine) {
+                    if (cost_bounded_engine->solve(follower_state, F)) {
+                        num_follower_searches_cost_bounded++;
+                        continue;
+                    }
                 }
-            
-                int new_bound = optimal_engine->solve(leader_state, maxF);
+
+                cout << "Solving leader state with L=" <<L  << " and F=" << F  << endl;
+
+                int new_bound = optimal_engine->solve(follower_state, maxF);
+                num_follower_searches++;
+                num_follower_searches_optimal++;
+                
+                
                 cout << "MY new bound is " << new_bound <<  " and the previous one is " << F << endl;
                 if (new_bound > F) {
                     cout << "SET NEW BOUND" << endl;
@@ -164,10 +175,11 @@ namespace stackelberg {
         assert (leader_cost == current_g);
     
         while (leader_cost == current_g) {
-            cout << "Current g: " << current_g <<  " " << leader_cost << endl;
+          //  cout << "Pop node with g=" << current_g <<  flush;
             SearchNode node = search_space.get_node(*current_state);
             bool reopen = (current_g < node.get_g()) && !node.is_dead_end() && !node.is_new();
 
+          //  cout << " is new: " << node.is_new() << "   reopen " << reopen << endl;
             if (node.is_new() || reopen) {
                 FollowerTask * task = &(follower_task_info[*current_state]);
 
@@ -185,7 +197,7 @@ namespace stackelberg {
 
                 StateID dummy_id = current_predecessor_id;
                 if (dummy_id != StateID::no_state) {
-                    GlobalState parent_state = g_state_registry->lookup_state(dummy_id);
+                    GlobalState parent_state = leader_vars_state_registry->lookup_state(dummy_id);
                     SearchNode parent_node = search_space.get_node(parent_state);
 
                     int h = 0;
@@ -196,6 +208,7 @@ namespace stackelberg {
                         node.open(h, parent_node, current_operator);
                     }
                 }else {
+               //     cout << "We had dummy_id" << endl;
                     node.open_initial(0);
                     search_progress.get_initial_h_values();
                 }
@@ -203,7 +216,8 @@ namespace stackelberg {
                 node.close();
 
                 vector<const GlobalOperator *> operators;
-            
+
+              //  cout << "Successor generator" << endl;
                 leader_operators_successor_generator->
                     generate_applicable_ops(*current_state, operators);
 
@@ -228,10 +242,9 @@ namespace stackelberg {
                 OpenListEntryLazy next = open_list->remove_min();
                 current_predecessor_id = next.first;
                 current_operator = next.second;
-                g_state_registry->get_initial_state();
-                GlobalState current_predecessor = g_state_registry->lookup_state(current_predecessor_id);
+                GlobalState current_predecessor = leader_vars_state_registry->lookup_state(current_predecessor_id);
                 assert(current_operator->is_applicable(current_predecessor));
-                current_state = make_unique<GlobalState>(g_state_registry->get_successor_state(current_predecessor, *current_operator));
+                current_state = make_unique<GlobalState>(leader_vars_state_registry->get_successor_state(current_predecessor, *current_operator));
 
                 SearchNode pred_node = search_space.get_node(current_predecessor);
                 current_g = pred_node.get_real_g() + current_operator->get_cost();

@@ -79,8 +79,6 @@ namespace stackelberg {
 	const std::vector<GlobalOperator> & get_follower_operators_with_leader_vars_preconds () const {
 	    return follower_operators_with_leader_vars_preconds;    
 	}
-
-	
 	
         const std::vector<int> & get_leader_vars_follower_preconditioned() {
             return leader_vars_follower_preconditioned;
@@ -89,6 +87,8 @@ namespace stackelberg {
         const GlobalOperator & get_follower_operator(int i) const {
             return follower_operators[i];
         }
+
+        std::vector<int> get_follower_state(const GlobalState &leader_state) const;
 
 	int max_leader_action_cost() const;
 

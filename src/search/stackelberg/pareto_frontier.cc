@@ -87,6 +87,8 @@ namespace stackelberg {
         } else {
             it = frontier.insert(it, node);
             it++;
+            cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
+
 #ifdef FIX_SEARCH_DEBUG
             cout << "added node with fix cost: " << leader_cost << " and attack cost: " <<
                 follower_cost << " to frontier" << endl;

@@ -16,28 +16,28 @@ namespace stackelberg {
     SymbolicStackelbergManager::SymbolicStackelbergManager(SymVariables *v,
                                                            const SymParamsMgr &params,
                                                            shared_ptr<OperatorCostFunction> cost_type,
-                                                           const GlobalState & leader_state
+                                                           const vector<int> & leader_state
         ) :
         SymStateSpaceManager(v, params) {
-        
+
         initialState = vars->getStateBDD(leader_state); // BUG: We cannot pass a leader state to sym variables yet.
         goal = vars->getPartialStateBDD(g_goal);
 
-    init_mutex(g_mutex_groups);
+        init_mutex(g_mutex_groups);
 
-    for (size_t i = 0; i < g_operators.size(); i++) {
-        const GlobalOperator *op = &(g_operators[i]);
-        int cost = cost_type->get_adjusted_cost(i);
-        DEBUG_MSG(cout << "Creating TR of op " << i << " of cost " << cost << endl;
-	    );
-        indTRs[cost].push_back(TransitionRelation(vars, op, cost));
-        if (p.mutex_type == MutexType::MUTEX_EDELETION) {
-            indTRs[cost].back().edeletion(notMutexBDDsByFluentFw, notMutexBDDsByFluentBw, exactlyOneBDDsByFluent);
+        for (size_t i = 0; i < g_operators.size(); i++) {
+            const GlobalOperator *op = &(g_operators[i]);
+            int cost = cost_type->get_adjusted_cost(i);
+            DEBUG_MSG(cout << "Creating TR of op " << i << " of cost " << cost << endl;
+                );
+            indTRs[cost].push_back(TransitionRelation(vars, op, cost));
+            if (p.mutex_type == MutexType::MUTEX_EDELETION) {
+                indTRs[cost].back().edeletion(notMutexBDDsByFluentFw, notMutexBDDsByFluentBw, exactlyOneBDDsByFluent);
+            }
         }
-    }
 
 
-    init_transitions(indTRs);
+        init_transitions(indTRs);
 }
 
 void SymbolicStackelbergManager::init_mutex(const std::vector<MutexGroup> &mutex_groups) {

@@ -103,6 +103,7 @@ namespace stackelberg {
     	    }
             
     	    search_engine->search();
+            
     	    if (search_engine->found_solution()) {
                 search_engine->save_plan_if_necessary();
                 pareto_frontier.set_follower_cost_upper_bound(search_engine->calculate_plan_cost());
@@ -270,6 +271,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
         cout.rdbuf(old);   			// <-- restore
 #endif
 
+        //cout << "Returned from search" << endl;
         SearchSpace *search_space = search_engine->get_search_space();
         all_follower_states += search_space->get_num_search_node_infos();
 
@@ -355,8 +357,11 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
 
     vector<const GlobalOperator *> applicable_ops_after_pruning;
     if (use_partial_order_reduction) {
+        //cout << "parent_follower_plan_applicable: " << parent_follower_plan_applicable << endl;
+        //cout << "Follower plan" << follower_plan.size() << endl;
         por->prune_applicable_leader_ops_sss(state,
-                                             parent_follower_plan_applicable ? parent_follower_plan : follower_plan,
+                                             parent_follower_plan_applicable ?
+                                             parent_follower_plan : follower_plan,
                                              applicable_ops, applicable_ops_after_pruning);
     } else {
         applicable_ops_after_pruning.swap(applicable_ops);
@@ -397,7 +402,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
 
     vector<int> dummy;
 
-    // cerr << leader_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
+//    cout << "XXX: " << leader_state_to_string(state) << ": " << ops_to_string(applicable_ops_after_pruning) << endl;
 
     iterate_applicable_ops(applicable_ops_after_pruning, state,
                            parent_follower_plan_applicable ? parent_follower_plan : follower_plan,

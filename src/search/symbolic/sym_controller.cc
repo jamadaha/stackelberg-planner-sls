@@ -18,7 +18,7 @@ using namespace std;
 namespace symbolic {
 
     SymController::SymController(std::shared_ptr<SymVariables> v,
-                                 const SymParamsMgr &pMgr, const SymParamsSearch & pSearch) : vars(v), mgrParams(pMgr), searchParams(pSearch) {}
+                                 const SymParamsMgr &pMgr, const SymParamsSearch & pSearch) : vars(v), mgrParams(pMgr), searchParams(pSearch), lower_bound(0), upper_bound(std::numeric_limits<int>::max()) {}
 
     SymController::SymController(const Options &opts)
         : vars(make_shared<SymVariables>(opts)), 

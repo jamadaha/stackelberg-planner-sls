@@ -64,7 +64,7 @@ HEADERS = \
           option_parser_util.h \
           segmented_vector.h \
           per_state_information.h \
-		  per_fix_state_information.h \
+	  per_fix_state_information.h \
           pref_evaluator.h \
           relaxation_heuristic.h \
           rng.h \
@@ -225,13 +225,11 @@ HEADERS +=  stackelberg/stackelberg_search.h \
 	    stackelberg/follower_task.h \
 	    stackelberg/follower_search_engine.h \
 	    stackelberg/util.h \
-	    stackelberg/symbolic_stackelberg_manager.h 
-
-
+	    stackelberg/symbolic_stackelberg_manager.h  
 
 # stackelberg/bound_library.h
 # stackelberg/dominance_relation.h
-# stackelberg/per_fix_state_information.h
+
 # stackelberg/perimeter_plan.h
 # stackelberg/plan_reuse.h
 

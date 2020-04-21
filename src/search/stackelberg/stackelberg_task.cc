@@ -459,4 +459,23 @@ namespace stackelberg {
         return (int)(fabs(log2(numerator / denominator)) * 1000);
     }
 
+
+    std::vector<int> StackelbergTask::get_follower_state(const GlobalState & leader_state) const {
+        auto result = g_initial_state_data;
+        for (size_t i = 0; i < leader_vars_indizes.size(); ++i) {
+            result[leader_vars_indizes[i]] = leader_state[i];
+        }
+
+/*        for (size_t i = 0; i < g_variable_domain.size(); ++i) {
+            const string &fact_name = g_fact_names[i][result [i]];
+            if (fact_name != "<none of those>") {
+                cout << fact_name << endl;
+            }
+        }*/
+
+        
+        return result;
+    }
+
+
 }

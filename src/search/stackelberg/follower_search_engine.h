@@ -35,7 +35,7 @@ namespace stackelberg {
         //Desired bound means: you can return as soon as you have a solution of this
         //quality or less. But the method should return the cost of the best solution
         //found independently of whether it is larger or lower than desired bound
-        virtual int solve (const GlobalState & leader_state, int desired_bound = 0) = 0;
+        virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) = 0;
 
         virtual int solve_minimum_ftask () = 0;        
     };
@@ -46,7 +46,7 @@ namespace stackelberg {
         
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
-        virtual int solve (const GlobalState & leader_state, int desired_bound = 0) override;
+        virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
         virtual int solve_minimum_ftask () override;
     };
 
@@ -60,7 +60,7 @@ namespace stackelberg {
 
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
-        virtual int solve (const GlobalState & leader_state, int desired_bound = 0) override;
+        virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
         virtual int solve_minimum_ftask () override;
        
     }; 
