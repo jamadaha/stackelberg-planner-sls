@@ -58,6 +58,7 @@ FixActionsSearch::FixActionsSearch(const Options &opts) :
 	sort_fix_ops_advanced = opts.get<bool>("sort_fix_ops");
 	greedy_fix_search = opts.get<bool>("greedy");
 	upper_bound_pruning = opts.get<bool>("upper_bound_pruning");
+	prob_action_name = opts.get<bool>("prob_action_name");
 
 	if(greedy_fix_search && use_ids) {
 		cout << "greedy fix search and IDS makes no sense!!!! Deactivating IDS!" << endl;
@@ -225,20 +226,23 @@ void FixActionsSearch::sort_operators()
 		}
 		string everything_before_whitespace = op_name.substr(0, whitespace);
 		size_t underscore = everything_before_whitespace.find_last_of("_");
-		if (underscore == string::npos) {
-			cout << "No cost suffix found! Error in PDDL file?" << endl;
-			exit(EXIT_INPUT_ERROR);
-		}
 
 		if (op_name.find("attack") == 0) {
-			string prob = everything_before_whitespace.substr(underscore + 1);
-			int success_prob_cost = parse_success_prob_cost(prob);
-			if (success_prob_cost == -1) {
-				g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
-			} else {
-				// Note that cost and cost2 are swapped here on purpose!
-				g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
-				g_operators[op_no].set_cost(success_prob_cost);
+			if(prob_action_name) {
+				if (underscore == string::npos) {
+					cout << "No cost suffix found! Error in PDDL file?" << endl;
+					exit(EXIT_INPUT_ERROR);
+				}
+
+				string prob = everything_before_whitespace.substr(underscore + 1);
+				int success_prob_cost = parse_success_prob_cost(prob);
+				if (success_prob_cost == -1) {
+					g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
+				} else {
+					// Note that cost and cost2 are swapped here on purpose!
+					g_operators[op_no].set_cost2(g_operators[op_no].get_cost());
+					g_operators[op_no].set_cost(success_prob_cost);
+				}
 			}
 
 			g_operators[op_no].set_op_id(attack_action_op_id);
@@ -285,9 +289,8 @@ int FixActionsSearch::parse_success_prob_cost(string prob)
 {
     size_t backslash = prob.find("/");
     if (backslash == string::npos) {
-        cout << "No correct success probability suffix found! Error in PDDL file?" <<
-             endl;
-        return -1;
+        cout << "No correct success probability suffix found! Error in PDDL file?" << endl;
+        exit(EXIT_INPUT_ERROR);
     }
 
     string numerator_string = prob.substr(0, backslash);
@@ -1598,11 +1601,21 @@ void FixActionsSearch::dump_pareto_frontier_node(
     quadruple<int, int, vector<vector<const GlobalOperator *>>, vector<int>> &node, std::ostringstream &json)
 {
     cout << "\t fix ops costs: " << get<0>(node) << ", attacker cost: " <<
-             get<1>(node) << ": " << endl;
+             get<1>(node);
+
+    if(prob_action_name) {
+    	cout << ", attacker prob: " << setprecision(3) << prob_cost_to_prob(get<1>(node)) << ": " << endl;
+    } else {
+    	cout << ": " << endl;
+    }
+
     cout << "\t fix action sequences: " << endl;
     json << "{"
-         << "\"attacker cost\": " << abs(get<1>(node))
-         << ", \"defender cost\": " << get<0>(node)
+         << "\"attacker cost\": " << abs(get<1>(node));
+    if(prob_action_name) {
+    	json << ", \"attacker prob\": " << setprecision(3) << prob_cost_to_prob(get<1>(node));
+    }
+    json << ", \"defender cost\": " << get<0>(node)
          << ", \"sequences\": [";
     dump_op_sequence_sequence(get<2>(node), json);
     json << "]";
@@ -1747,6 +1760,7 @@ SearchEngine *_parse(OptionParser &parser)
     parser.add_option<bool>("ids", "use iterative deepening search", "true");
     parser.add_option<bool>("greedy", "Only makes sense in combination with sort_fix_ops=true. Basically only greedily recurse with best op w.r.t. to fix-op sorting and do not consider the others ", "false");
     parser.add_option<bool>("upper_bound_pruning", "Prune fix action sequences with higher costs then already known sequences leading to a state with upper bound attacker costs", "true");
+    parser.add_option<bool>("prob_action_name", "Parse attack success probability in names of attacker actions and print frontier with attacker probability", "true");
     Options opts = parser.parse();
     if (!parser.dry_run()) {
         return new FixActionsSearch(opts);
