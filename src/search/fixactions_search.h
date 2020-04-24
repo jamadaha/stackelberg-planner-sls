@@ -52,7 +52,7 @@ private:
 	bool sort_fix_ops_advanced = true;
 	bool greedy_fix_search = false;
 	bool upper_bound_pruning = true;
-	bool prob_action_name = true;
+	bool prob_action_name = false;
 
 	std::vector<GlobalOperator> fix_operators;
 	std::vector<GlobalOperator> attack_operators;
