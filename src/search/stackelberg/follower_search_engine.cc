@@ -49,7 +49,31 @@ int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
 }
 
 int SymbolicFollowerSearchEngine::solve_minimum_ftask () {
-    return std::numeric_limits<int>::max();
+/*
+    auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
+    auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+    auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+
+    auto mgr = make_shared<SymbolicStackelbergManager> (vars.get(),
+                                                        mgrParams,
+                                                        OperatorCostFunction::get_cost_function());
+    
+    fw_search->init(mgr, true, bw_search->getClosedShared());
+    bw_search->init(mgr, false, fw_search->getClosedShared());
+	
+    auto search = make_unique<BidirectionalSearch> (controller.get(),
+                                                    searchParams,
+                                                    move(fw_search),
+                                                    move(bw_search));
+
+    while(!search->finished()) {
+        search->step();
+    }
+
+    cout << "Follower Search finished: " << search->finished() << endl;
+    cout << "Controller upper bound: " << controller->getUpperBound() << endl;
+    
+    return controller->getUpperBound();*/
 }
 
 

@@ -35,10 +35,7 @@ namespace stackelberg {
 
     class StackelbergBounded : public SearchEngine {
     protected:
-        const bool use_partial_order_reduction;
-
         std::unique_ptr<StackelbergTask> task;
-        std::unique_ptr<PartialOrderReduction> por;
         std::unique_ptr<SuccessorGeneratorSwitch> leader_operators_successor_generator;
 	std::unique_ptr<StateRegistry> leader_vars_state_registry;
 

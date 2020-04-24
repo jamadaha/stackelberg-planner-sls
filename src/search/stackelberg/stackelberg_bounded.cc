@@ -9,8 +9,6 @@
 #include "../eager_search.h"
 #include "../budget_dead_end_heuristic.h"
 
-#include "partial_order_reduction.h"
-
 #include <cassert>
 #include <algorithm>
 #include <chrono>
@@ -29,7 +27,6 @@ namespace stackelberg {
 
     StackelbergBounded::StackelbergBounded(const Options &opts) :
         SearchEngine(opts),
-        use_partial_order_reduction (opts.get<bool>("partial_order_reduction")),
         optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")) {
     }
 
@@ -46,8 +43,6 @@ namespace stackelberg {
         leader_operators_successor_generator.reset(
 	    create_successor_generator(
 		task->get_leader_variable_domain(), task->get_leader_operators(), task->get_leader_operators()));
-
-        por = make_unique<PartialOrderReduction>(task.get());
 
         chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
         leader_search_initialize_duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
@@ -111,7 +106,6 @@ namespace stackelberg {
                 int new_bound = optimal_engine->solve(follower_state, maxF);
                 num_follower_searches++;
                 num_follower_searches_optimal++;
-                
                 
                 cout << "MY new bound is " << new_bound <<  " and the previous one is " << F << endl;
                 if (new_bound > F) {
@@ -269,7 +263,6 @@ namespace stackelberg {
     
         parser.add_option<FollowerSearchEngine *>("optimal_engine");
         parser.add_option<Heuristic *>("follower_heuristic", "The heuristic used for search in FollowerStateSpace", "", OptionFlags(false));
-        parser.add_option<bool>("partial_order_reduction", "use partial order reduction for fix ops", "true");
     
         Options opts = parser.parse();
         if (!parser.dry_run()) {
