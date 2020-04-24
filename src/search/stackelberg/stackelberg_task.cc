@@ -17,8 +17,9 @@ namespace stackelberg {
 
         if (leader_operators.size() == 0) {
             // If there are no fix actions, exit with an error
-            cerr << "Error: running stackelberg search on a task without fix actions" << endl;
-            exit_with(EXIT_INPUT_ERROR);
+            cerr << "Warning: running stackelberg search on a task without fix actions" << endl;
+            return;
+            //exit_with(EXIT_INPUT_ERROR);
         }
 
         divide_variables();

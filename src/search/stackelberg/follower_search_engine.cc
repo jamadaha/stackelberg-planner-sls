@@ -74,6 +74,8 @@ int SymbolicFollowerSearchEngine::solve_minimum_ftask () {
     cout << "Controller upper bound: " << controller->getUpperBound() << endl;
     
     return controller->getUpperBound();*/
+
+    return std::numeric_limits<int>::max();
 }
 
 

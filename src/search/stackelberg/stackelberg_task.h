@@ -64,6 +64,10 @@ namespace stackelberg {
 	static const int FOLLOWER_TASK_UNSOLVABLE = std::numeric_limits<int>::max();
 
         StackelbergTask();
+
+        bool is_stackelberg_task() const {
+            return !leader_operators.empty();
+        }
         
         void dump_statistics() const ;
 

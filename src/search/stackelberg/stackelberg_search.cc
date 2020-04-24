@@ -70,6 +70,36 @@ namespace stackelberg {
 
         task = make_unique<StackelbergTask> ();
 
+
+        if (task->is_stackelberg_task() < 1) {
+            // If there are no fix actions, just do one attacker search
+            cout << "There are no fix actions. Just do one attacker search..." << endl;
+            search_engine->search();
+            search_engine->save_plan_if_necessary();
+
+            vector<int> follower_plan;
+            for (size_t op_no = 0; op_no < g_plan.size(); op_no++) {
+        	g_plan[op_no]->dump();
+        	follower_plan.push_back(g_plan[op_no]->get_op_id());
+            }
+
+            int follower_plan_cost = search_engine->calculate_plan_cost();
+            
+            pareto_frontier.add_node(0, follower_plan_cost, vector<const GlobalOperator *>(), follower_plan);
+            auto t2 = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::milliseconds>(t2 - t1).count();
+            cout << "Optimally solved follower subproblems: 1"  << endl;
+            cout << "Search time: " << (duration/1000000.0) << "s" << endl;
+            cout << "Follower search time: " << (duration/1000000.0) << "s" << endl;
+            cout << "Leader search time: 0s" << endl;
+            cout << "Total time: " << g_timer << endl;
+
+            pareto_frontier.dump(*task);
+
+            exit(0);
+        }
+
+
         leader_vars_state_registry = task->get_leader_state_registry();
 	
         // Creating two new state_registries, one locally only for the leader search and one globally only for attack variables	
