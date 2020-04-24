@@ -45,7 +45,7 @@ def parse_regexps (content, props):
 eval.add_function(parse_regexps)
 
 def set_coverage (content, props):
-    if 'pareto_front' in props:
+    if 'pareto_frontier' in props:
         props['coverage'] = 1
         
         
