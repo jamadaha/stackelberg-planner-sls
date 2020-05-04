@@ -23,7 +23,7 @@ class Config:
 
 
     def with_soft_goals(self):
-        return Config (self.folder + "-soft", self.nick + "-soft", ["--translate-options", "--soft 100000", "--search-options"] + self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
+        return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
 
 
 import baseline
