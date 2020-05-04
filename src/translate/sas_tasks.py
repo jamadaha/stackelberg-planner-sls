@@ -44,6 +44,18 @@ class SASTask:
             task_size += axiom.get_encoding_size()
         return task_size
 
+    def add_soft_goals(self,soft_goal_price):
+        var_soft_goals = self.variables.add_soft_goals()
+        self.init.add_soft_goals()
+        for op in self.operators:
+            op.add_soft_goals(var_soft_goals)
+
+        for i, goal in enumerate(self.goal.pairs):
+            prevail = []
+            pre_post = [(var_soft_goals, -1, 1, [])]
+            self.operators.append(SASOperator("_attack_soft_goal-{}_".format(i), prevail, pre_post, soft_goal_price))
+
+
 class SASVariables:
     def __init__(self, ranges, axiom_layers, value_names):
         self.ranges = ranges
@@ -73,6 +85,13 @@ class SASVariables:
         # variable itself some weight.
         return len(self.ranges) + sum(self.ranges)
 
+    def add_soft_goals(self):  
+        self.ranges.append(2)
+        self.axiom_layers.append(-1)
+        self.value_names.append(["soft-goals-false", "soft-goals-true"])
+        return len(self.ranges) - 1
+      
+
 class SASMutexGroup:
     def __init__(self, facts):
         self.facts = facts
@@ -100,6 +119,9 @@ class SASInit:
         for val in self.values:
             print(val, file=stream)
         print("end_state", file=stream)
+
+    def add_soft_goals(self):
+        self.values.append(0)
 
 class SASGoal:
     def __init__(self, pairs):
@@ -155,6 +177,9 @@ class SASOperator:
             if pre != -1:
                 size += 1
         return size
+
+    def add_soft_goals(self, var):
+        self.prevail.append((var, 0))
 
 class SASAxiom:
     def __init__(self, condition, effect):

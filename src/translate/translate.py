@@ -657,7 +657,7 @@ def main():
 
     timer = timers.Timer()
     with timers.timing("Parsing", True):
-        task = pddl_parser.open(task_filename=args.task, domain_filename=args.domain, add_soft_goals=args.soft)
+        task = pddl_parser.open(task_filename=args.task, domain_filename=args.domain)
 
     with timers.timing("Normalizing task"):
         normalize.normalize(task)
@@ -670,6 +670,9 @@ def main():
                     del action.effects[index]
 
     sas_task = pddl_to_sas(task)
+    if args.soft:
+        sas_task.add_soft_goals(args.soft)
+        
     dump_statistics(sas_task)
 
     with timers.timing("Writing output"):
