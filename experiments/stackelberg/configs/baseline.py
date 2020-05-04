@@ -4,7 +4,7 @@ import sys
 
 from collections import defaultdict
 
-REVISION = "330772b12e179020ba004a6247c9c22bfbce2dbf"
+REVISION = "a5b3f7d215c3eaffb2b9337653b39fbc96b6b050"
 SERVERS = "all_servers" 
 
 CONFIGS = defaultdict(list)
@@ -14,5 +14,6 @@ CONFIGS["baseline"] += [configs.Config('original-lmcut', 'original-lmcut', ["--h
                         configs.Config('baseline-sbd', 'baseline-sbd', ["--search", "stackelberg(search_engine=sbd())"], REVISION, SERVERS)
 
 ]
+
 
 
