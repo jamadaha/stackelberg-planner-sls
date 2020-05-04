@@ -646,7 +646,7 @@ def parse_args():
         help="output relaxed task (no delete effects)")
 
     argparser.add_argument("--soft",dest="soft",
-                           type=int,
+                           type=int, default=100000,
                            help="soft goal compilation where each goal can be obtained via a high cost")
 
     return argparser.parse_args()
