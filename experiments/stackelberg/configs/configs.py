@@ -3,20 +3,27 @@
 
 from collections import defaultdict
 
+
+PREPROCESS_REVISION_DEFAULT = "f503350c800543392b4054ca91b074252776dd34"
+
+PREPROCESS_REVISION_SOFT = "a5b3f7d215c3eaffb2b9337653b39fbc96b6b050"
+
+
 class Config:    
-    def __init__(self, folder, nick, config, revision, machines):
+    def __init__(self, folder, nick, config, revision, machines, preprocess_revision=PREPROCESS_REVISION_DEFAULT):
         self.folder = folder
         self.nick = nick
         self.config = config
         self.revision = revision
         self.machines = machines
+        self.preprocess_revision = preprocess_revision
 
     def __repr__(self):
         return ", ".join(map(str, [self.folder, self.nick, self.config,  self.revision, self.machines]))
 
 
     def with_soft_goals(self):
-        return Config (self.folder + "-soft", self.nick + "-soft", ["--translate-options", "--soft 100000", "--search-options"] + self.config, self.revision, self.machines)
+        return Config (self.folder + "-soft", self.nick + "-soft", ["--translate-options", "--soft 100000", "--search-options"] + self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
 
 
 import baseline

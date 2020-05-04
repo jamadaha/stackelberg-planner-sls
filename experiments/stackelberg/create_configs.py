@@ -45,7 +45,7 @@ from downward.reports.absolute import AbsoluteReport
 from lab.environments import OracleGridEngineEnvironment
 
 REVISION = '{config.revision}'
-REVISION_PREPROCESS = 'a5b3f7d215c3eaffb2b9337653b39fbc96b6b050'
+REVISION_PREPROCESS = '{config.preprocess_revision}'
 
 EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{config.machines}/{config.revision}/{config.folder}'
 
