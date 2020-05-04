@@ -303,7 +303,7 @@ def parse_axiom(alist, type_dict, predicate_dict):
                       len(predicate.arguments), condition)
 
 
-def parse_task(domain_pddl, task_pddl):
+def parse_task(domain_pddl, task_pddl, add_soft_goals=0):
     domain_name, domain_requirements, types, type_dict, constants, predicates, predicate_dict, functions, actions, axioms \
                  = parse_domain_pddl(domain_pddl)
     task_name, task_domain_name, task_requirements, objects, init, goal, use_metric = parse_task_pddl(task_pddl, type_dict, predicate_dict)
@@ -318,6 +318,33 @@ def parse_task(domain_pddl, task_pddl):
         errmsg="error: duplicate object %r",
         finalmsg="please check :constants and :objects definitions")
     init += [pddl.Atom("=", (obj.name, obj.name)) for obj in objects]
+
+
+    if add_soft_goals:
+        unit_cost = pddl.CostEffect(pddl.Increase(parse_expression('total-cost'), pddl.NumericConstant(float(1))))
+        unit_cost = unit_cost.normalize()
+
+        if not use_metric:
+            use_metric= True
+            for a in actions:
+                a.cost = unit_cost.effect
+
+
+        for a in actions:
+            a.precondition.parts = tuple(list(a.precondition.parts) + [pddl.Atom("aux-soft-goals", ())])
+
+        soft_cost = pddl.CostEffect(pddl.Increase(parse_expression('total-cost'), pddl.NumericConstant(float(add_soft_goals))))
+        soft_cost = soft_cost.normalize()
+
+        
+
+        
+        
+        for i, literal in enumerate(goal.parts):
+            actions += [pddl.Action("attack_soft-goal-{}".format(i), [], 0, pddl.Truth(), [pddl.Effect([],pddl.Truth(),literal),
+                                                                                           pddl.Effect([],pddl.Truth(),pddl.NegatedAtom("aux-soft-goals", ()))], soft_cost.effect)]
+
+        init += [pddl.Atom("aux-soft-goals", ())]
 
     return pddl.Task(
         domain_name, task_name, requirements, types, objects,

@@ -23,7 +23,7 @@ def parse_pddl_file(type, filename):
     except lisp_parser.ParseError as e:
         raise SystemExit("Error: Could not parse %s file: %s\n" % (type, filename))
 
-def open(task_filename=None, domain_filename=None):
+def open(task_filename=None, domain_filename=None, add_soft_goals=0):
     if task_filename is None:
         if len(sys.argv) not in (2, 3):
             raise SystemExit("Error: Need exactly one or two command line arguments.\n"
@@ -50,7 +50,7 @@ def open(task_filename=None, domain_filename=None):
 
     domain_pddl = parse_pddl_file("domain", domain_filename)
     task_pddl = parse_pddl_file("task", task_filename)
-    return parsing_functions.parse_task(domain_pddl, task_pddl)
+    return parsing_functions.parse_task(domain_pddl, task_pddl, add_soft_goals)
 
 if __name__ == "__main__":
     open().dump()

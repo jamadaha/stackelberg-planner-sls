@@ -644,6 +644,11 @@ def parse_args():
     argparser.add_argument(
         "--relaxed", dest="generate_relaxed_task", action="store_true",
         help="output relaxed task (no delete effects)")
+
+    argparser.add_argument("--soft",dest="soft",
+                           type=int,
+                           help="soft goal compilation where each goal can be obtained via a high cost")
+
     return argparser.parse_args()
 
 
@@ -652,7 +657,7 @@ def main():
 
     timer = timers.Timer()
     with timers.timing("Parsing", True):
-        task = pddl_parser.open(task_filename=args.task, domain_filename=args.domain)
+        task = pddl_parser.open(task_filename=args.task, domain_filename=args.domain, add_soft_goals=args.soft)
 
     with timers.timing("Normalizing task"):
         normalize.normalize(task)
