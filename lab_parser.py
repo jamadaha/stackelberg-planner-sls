@@ -42,14 +42,27 @@ def parse_regexps (content, props):
                     props[item] = type_atr[item](data[item])
                 break
             
-eval.add_function(parse_regexps)
+
+
+
+def change_domain(content, props):
+
+    if "-rs42-" in props["domain"]:
+        new_domain_name, problem_appendix = props["domain"].split("-rs42-")    
+        props["domain"] = new_domain_name
+
+        assert problem_appendix.startswith("tc") and not "tc" in props["problem"]
+        props["problem"] = "{}-{}".format(props["problem"], problem_appendix)
+
+     
 
 def set_coverage (content, props):
     if 'pareto_frontier' in props:
         props['coverage'] = 1
-        
-        
-eval.add_function(set_coverage) 
+
+eval.add_function(parse_regexps)        
+eval.add_function(set_coverage)
+eval.add_function(change_domain) 
 
 
 eval.parse()
