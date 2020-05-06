@@ -50,9 +50,17 @@ class SASTask:
         for op in self.operators:
             op.add_soft_goals(var_soft_goals)
 
+        if not self.metric:
+            self.metric = True
+
+            for op in self.operators:
+                op.cost = 1
+
         for i, goal in enumerate(self.goal.pairs):
             prevail = []
-            pre_post = [(var_soft_goals, -1, 1, [])]
+            pre_post = [(var_soft_goals, -1, 1, []), (goal[0], -1, goal[1], [])]
+
+
             self.operators.append(SASOperator("_attack_soft_goal-{}_".format(i), prevail, pre_post, soft_goal_price))
 
 
