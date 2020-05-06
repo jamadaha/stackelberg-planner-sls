@@ -284,6 +284,7 @@ void Operator::remove_unreachable_facts(const vector<Variable *> &variables) {
     for (PrePost &effect : pre_post) {
         effect.remove_unreachable_facts();
     }
+
     for (const pair<int, int> &augmented_precondition : augmented_preconditions) {
         int var = augmented_precondition.first;
         int val = augmented_precondition.second;
@@ -294,8 +295,7 @@ void Operator::remove_unreachable_facts(const vector<Variable *> &variables) {
     for (const pair<int, int> &potential_precondition : potential_preconditions) {
         int var = potential_precondition.first;
         int val = potential_precondition.second;
-
-        if (variables[var]->is_necessary()) {
+        if (variables[var]->is_necessary() && variables[var]->is_reachable(val)) {
             potential_preconditions_var.push_back(pair<Variable *, int> (variables[var], variables[var]->get_new_id(val)));
         }
     }
