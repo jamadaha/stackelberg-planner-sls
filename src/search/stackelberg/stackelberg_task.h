@@ -7,6 +7,8 @@
 #include <vector>
 #include <limits>
 #include <memory>
+  #include <set>
+
 
 #include "../global_operator.h"
 
@@ -15,7 +17,11 @@ namespace stackelberg {
     class FollowerTask;
 
     class StackelbergTask {
-	
+
+        std::vector<int> global_operator_id_leader_ops;
+        std::vector<int> global_operator_id_follower_ops;
+
+                
         std::vector<GlobalOperator> leader_operators;
         std::vector<GlobalOperator> follower_operators;
         std::vector<GlobalOperator> follower_operators_with_all_preconds;
@@ -27,10 +33,15 @@ namespace stackelberg {
         std::vector<bool> leader_vars;
         std::vector<int> leader_vars_indizes;
 
+        std::vector<bool> follower_precondition_vars;
+
+
         int num_vars;
         int num_follower_vars;
         int num_leader_vars;
 
+
+          
         std::vector<int> map_var_id_to_new_follower_var_id; // Vector indexed by old id, encloses new attack var id
         std::vector<int> map_var_id_to_new_leader_var_id; // Vector indexed by old id, encloses new attack var id
         std::vector<int> map_leader_var_id_to_orig_var_id; // Vector indexed by fix var id, encloses original id
@@ -45,8 +56,7 @@ namespace stackelberg {
 
         std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_leader_facts_ops;
 	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_leader_facts_ops;
-
-
+        
         /* std::unique_ptr<FollowerTask> minimal_follower_task; */
         
         void sort_operators();
@@ -122,7 +132,12 @@ namespace stackelberg {
         int get_map_leader_var_id_to_orig_var_id(int leader_var_id) {
             return map_leader_var_id_to_orig_var_id[leader_var_id];
         }
-        
+
+        const std::vector<int> & get_global_operator_id_leader_ops () const {
+            return global_operator_id_leader_ops;
+        }
+
+        std::set<int> get_leader_only_vars () const;        
         friend class PartialOrderReduction;	
     };
 }

@@ -31,11 +31,14 @@ protected:
 
     int lower_bound;
     int upper_bound;
-    SymSolution solution; 
+    SymSolution solution;
+
+    bool print_bound; 
 public:
     SymController(const Options &opts);
     SymController(std::shared_ptr<SymVariables> vars,
                   const SymParamsMgr &pMgr, const SymParamsSearch & pSearch);
+    
     virtual ~SymController() {}
 
     virtual void new_solution(const SymSolution & sol);

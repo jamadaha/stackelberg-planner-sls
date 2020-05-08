@@ -61,7 +61,7 @@ public:
         return !closedTotal;
     }
 
-    inline std::map<int, BDD> getClosedList() const {
+    inline const std::map<int, BDD> & getClosedList() const {
         return closed;
     }
 

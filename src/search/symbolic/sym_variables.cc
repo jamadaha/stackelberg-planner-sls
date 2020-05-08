@@ -179,8 +179,8 @@ bool SymVariables::isIn(const GlobalState &state, const BDD &bdd) const {
     return !((sBDD * bdd).IsZero());
 }
 
-double SymVariables::numStates(const BDD &bdd) const {
-    return bdd.CountMinterm(numBDDVars);
+double SymVariables::numStates(const BDD &bdd, int relevant_vars) const {
+    return bdd.CountMinterm(relevant_vars);
 }
 
 double SymVariables::numStates() const {

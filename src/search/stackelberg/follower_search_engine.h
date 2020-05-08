@@ -19,17 +19,20 @@ namespace stackelberg {
     class FollowerTask;
     class StackelbergTask;
 
+    class SymbolicStackelbergManager;
 
     class FollowerSearchEngine {
-
     protected:
         StackelbergTask * task;
         
+        std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
+
+        virtual void initialize_follower_search_engine() = 0; 
             
     public:
-
         void initialize(StackelbergTask * _task) {
             task = _task;
+            initialize_follower_search_engine();
         }
         
         //Desired bound means: you can return as soon as you have a solution of this
@@ -43,7 +46,9 @@ namespace stackelberg {
     class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
         SearchEngine* search_engine;
         Heuristic * follower_heuristic; //We need a pointer to the heuristic to reset it!
-        
+
+        virtual void initialize_follower_search_engine() override; 
+
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
         virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
@@ -51,18 +56,17 @@ namespace stackelberg {
     };
 
     class SymbolicFollowerSearchEngine : public FollowerSearchEngine {
-
         std::shared_ptr<symbolic::SymVariables> vars;
         
         symbolic::SymParamsMgr mgrParams; //Parameters for SymStateSpaceManager configuration.
         symbolic::SymParamsSearch searchParams; //Parameters to search the original state space
 
-
+        virtual void initialize_follower_search_engine() override;
+        
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
         virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
         virtual int solve_minimum_ftask () override;
-       
     }; 
 
 }

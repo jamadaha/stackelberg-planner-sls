@@ -52,6 +52,8 @@ namespace stackelberg {
 
             string op_name = g_operators[op_no].get_name();
 
+            // cout << op_name << " " << g_operators[op_no].get_cost() << endl;
+
             size_t whitespace = op_name.find(" ");
             if (whitespace == string::npos) {
                 whitespace = op_name.size();
@@ -75,10 +77,13 @@ namespace stackelberg {
                         g_operators[op_no].set_cost(success_prob_cost);
 			}
                 */
-                g_operators[op_no].set_op_id(follower_action_op_id);
-                follower_action_op_id++;
 
                 follower_operators.push_back(g_operators[op_no]);
+                global_operator_id_follower_ops.push_back(op_no);
+                
+                follower_operators.back().set_op_id(follower_action_op_id);
+                follower_action_op_id++;
+
 
             } else if (op_name.find("fix") == 0) {
                 /* We removed the invention cost and id from fix action names
@@ -95,14 +100,17 @@ namespace stackelberg {
                    int id = stoi(id_string);
                 */
 
-                g_operators[op_no].set_cost2(0);
-                g_operators[op_no].set_conds_variable_name(leader_variable_name);
-                g_operators[op_no].set_effs_variable_name(leader_variable_name);
-                g_operators[op_no].set_scheme_id(0);
-                g_operators[op_no].set_op_id(leader_action_op_id);
+                leader_operators.push_back(g_operators[op_no]);
+
+                global_operator_id_leader_ops.push_back(op_no);
+                
+                leader_operators.back().set_cost2(0);
+                leader_operators.back().set_conds_variable_name(leader_variable_name);
+                leader_operators.back().set_effs_variable_name(leader_variable_name);
+                leader_operators.back().set_scheme_id(0);
+                leader_operators.back().set_op_id(leader_action_op_id);
                 leader_action_op_id++;
 
-                leader_operators.push_back(g_operators[op_no]);
 
             } else {
                 cout << "No op prefix found! Error in PDDL file?" << endl;
@@ -124,6 +132,9 @@ namespace stackelberg {
         cout << "Begin divide_ariables()..." << endl;
         num_vars = g_variable_domain.size();
 
+
+        follower_precondition_vars.resize(g_variable_domain.size(), false);
+        
         num_follower_vars = 0;
         follower_vars.assign(g_variable_domain.size(), false);
 
@@ -142,6 +153,11 @@ namespace stackelberg {
                     num_follower_vars++;
                 }
             }
+            const auto &precondition = follower_operators[op_no].get_preconditions();
+            for (auto pre : precondition) {
+                follower_precondition_vars[pre.var] = true;
+            }
+
         }
 
         for (size_t op_no = 0; op_no < leader_operators.size(); op_no++) {
@@ -169,7 +185,6 @@ namespace stackelberg {
                 }
             }
         }
-
     }
 
     bool cond_comp_func(GlobalCondition cond1, GlobalCondition cond2)
@@ -477,6 +492,15 @@ namespace stackelberg {
         
         return result;
     }
+
+    std::set<int> StackelbergTask::get_leader_only_vars () const {
+            std::set<int> leader_only_vars;
+            for (int i = 0; i < num_vars; ++i) {
+                if (!follower_vars[i] && !follower_precondition_vars[i]) leader_only_vars.insert(i);
+            }
+            return leader_only_vars;
+        }
+
 
 
 }

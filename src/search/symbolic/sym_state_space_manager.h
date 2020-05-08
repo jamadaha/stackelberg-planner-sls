@@ -89,6 +89,11 @@ public:
     SymStateSpaceManager(SymVariables *v, const SymParamsMgr &params, 
 			 const std::set<int> & relevant_vars_ = std::set<int> ());
 
+    SymStateSpaceManager(SymVariables *v, const SymParamsMgr &params, BDD initialState, BDD goal,
+                         std::map<int, std::vector <TransitionRelation>> transitions,
+                         std::vector<BDD> validStates,
+			 const std::set<int> & relevant_vars_ = std::set<int> ());
+
     inline bool isAbstracted() const {
         return !isOriginal();
     }

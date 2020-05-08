@@ -182,10 +182,13 @@ namespace symbolic {
 			  " after truncating with " << sTime() << " seconds" << endl;);
 	    }
 	    stats.step_time += sTime();
+
 	    return false;    
 	} 
 	DEBUG_MSG(cout << "... bucket prepared. " << endl;);
-	if(engine->solved()) return true; //Skip image if we are done
+	if(engine->solved()) {
+            return true; //Skip image if we are done
+        }
 
 	int stepNodes = frontier.nodes();
 

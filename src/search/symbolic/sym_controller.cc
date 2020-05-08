@@ -18,11 +18,12 @@ using namespace std;
 namespace symbolic {
 
     SymController::SymController(std::shared_ptr<SymVariables> v,
-                                 const SymParamsMgr &pMgr, const SymParamsSearch & pSearch) : vars(v), mgrParams(pMgr), searchParams(pSearch), lower_bound(0), upper_bound(std::numeric_limits<int>::max()) {}
+                                 const SymParamsMgr &pMgr, const SymParamsSearch & pSearch) : vars(v), mgrParams(pMgr), searchParams(pSearch), lower_bound(0), upper_bound(std::numeric_limits<int>::max()),
+                                                                                              print_bound(false) {}
 
     SymController::SymController(const Options &opts)
         : vars(make_shared<SymVariables>(opts)), 
-          mgrParams(opts), searchParams(opts), lower_bound(0), upper_bound(std::numeric_limits<int>::max()){
+          mgrParams(opts), searchParams(opts), lower_bound(0), upper_bound(std::numeric_limits<int>::max()), print_bound(true){
         mgrParams.print_options();
         searchParams.print_options();
 
@@ -52,8 +53,11 @@ namespace symbolic {
 	if(!solution.solved() || 
 	   sol.getCost() < solution.getCost()){
 	    solution = sol;
-	    std::cout << "BOUND: " << lower_bound << " < " << getUpperBound()
-		      << ", total time: " << g_timer << std::endl;
+
+            if (print_bound) {
+                std::cout << "BOUND: " << lower_bound << " < " << getUpperBound()
+                          << ", total time: " << g_timer << std::endl;
+            }
 
 	}
     }   
@@ -66,9 +70,11 @@ namespace symbolic {
 
 	if(lower > lower_bound) {
 	    lower_bound = lower;
-	    
-	    std::cout << "BOUND: " << lower_bound << " < " << getUpperBound()
-		  << ", total time: " << g_timer << std::endl;
+
+            if (print_bound) {
+                std::cout << "BOUND: " << lower_bound << " < " << getUpperBound()
+                          << ", total time: " << g_timer << std::endl;
+            }
 
 	}
 	

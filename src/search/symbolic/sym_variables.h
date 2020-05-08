@@ -72,7 +72,11 @@ public:
     BDD getStateBDD(const std::vector<int> &state) const;
 
     BDD getPartialStateBDD(const std::vector<std::pair<int, int>> &state) const;
-    double numStates(const BDD &bdd) const; //Returns the number of states in a BDD
+ //Returns the number of states in a BDD
+    double numStates(const BDD & bdd, int relevant_vars) const;
+    double numStates(const BDD &bdd) const {
+        return numStates(bdd, numBDDVars); 
+    }
     double numStates() const;
     double numStates(const Bucket &bucket) const;
 
@@ -219,6 +223,10 @@ public:
     void print_options() const;
 
 
+    inline int getNumBDDVars() const {
+        return numBDDVars;
+    }
+
 private:
     //Auxiliar function helping to create precondition and effect BDDs
     //Generates value for bddVars.
@@ -237,9 +245,6 @@ private:
         return generateBDDVar(bdd_index_eff[variable], value);
     }
 
-    inline int getNumBDDVars() const {
-        return numBDDVars;
-    }
 };
 }
 

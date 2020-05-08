@@ -27,9 +27,11 @@ int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
     auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
     auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
 
-    auto mgr = make_shared<SymbolicStackelbergManager> (vars.get(), mgrParams, OperatorCostFunction::get_cost_function(), leader_state);
+    auto mgr = stackelberg_mgr->get_follower_manager(leader_state);
 
-    
+        // make_shared<SymbolicStackelbergManager> (vars.get(), mgrParams,
+        // , leader_state);
+
     fw_search->init(mgr, true, bw_search->getClosedShared());
     bw_search->init(mgr, false, fw_search->getClosedShared());
 	
@@ -49,35 +51,37 @@ int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
 }
 
 int SymbolicFollowerSearchEngine::solve_minimum_ftask () {
-/*
-    auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
-    auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-    auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
 
-    auto mgr = make_shared<SymbolicStackelbergManager> (vars.get(),
-                                                        mgrParams,
-                                                        OperatorCostFunction::get_cost_function());
+    // auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
+    // auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+    // auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+
+    // auto mgr = make_shared<SymbolicStackelbergManager> (vars.get(),
+    //                                                     mgrParams,
+    //                                                     OperatorCostFunction::get_cost_function());
     
-    fw_search->init(mgr, true, bw_search->getClosedShared());
-    bw_search->init(mgr, false, fw_search->getClosedShared());
+    // fw_search->init(mgr, true, bw_search->getClosedShared());
+    // bw_search->init(mgr, false, fw_search->getClosedShared());
 	
-    auto search = make_unique<BidirectionalSearch> (controller.get(),
-                                                    searchParams,
-                                                    move(fw_search),
-                                                    move(bw_search));
+    // auto search = make_unique<BidirectionalSearch> (controller.get(),
+    //                                                 searchParams,
+    //                                                 move(fw_search),
+    //                                                 move(bw_search));
 
-    while(!search->finished()) {
-        search->step();
-    }
+    // while(!search->finished()) {
+    //     search->step();
+    // }
 
-    cout << "Follower Search finished: " << search->finished() << endl;
-    cout << "Controller upper bound: " << controller->getUpperBound() << endl;
+    // cout << "Follower Search finished: " << search->finished() << endl;
+    // cout << "Controller upper bound: " << controller->getUpperBound() << endl;
     
-    return controller->getUpperBound();*/
+    // return controller->getUpperBound();
 
     return std::numeric_limits<int>::max();
 }
 
+void ExplicitFollowerSearchEngine::initialize_follower_search_engine() {
+}
 
 ExplicitFollowerSearchEngine::ExplicitFollowerSearchEngine(const Options &opts) :
     search_engine (opts.get<SearchEngine *>("search_engine"))  {
@@ -170,8 +174,11 @@ int ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
 SymbolicFollowerSearchEngine::SymbolicFollowerSearchEngine(const Options &opts) :
     vars(make_shared<SymVariables>(opts)), mgrParams(opts), searchParams(opts) {
     vars->init();
-
 }
+
+void SymbolicFollowerSearchEngine::initialize_follower_search_engine() {
+}
+
 
 static FollowerSearchEngine *_parse_symbolic(OptionParser &parser) {
    

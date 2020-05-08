@@ -225,8 +225,9 @@ HEADERS +=  stackelberg/stackelberg_search.h \
 	    stackelberg/follower_task.h \
 	    stackelberg/follower_search_engine.h \
 	    stackelberg/util.h \
-	    stackelberg/symbolic_stackelberg_manager.h  
-
+	    stackelberg/symbolic_stackelberg_manager.h  \
+	    stackelberg/stackelberg_statistics.h \
+	    stackelberg/symbolic_leader_search.h 
 # stackelberg/bound_library.h
 # stackelberg/dominance_relation.h
 
