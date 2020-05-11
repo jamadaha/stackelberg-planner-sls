@@ -15,14 +15,14 @@ namespace stackelberg {
 
         sort_operators();
 
+        divide_variables();
+        
         if (leader_operators.size() == 0) {
             // If there are no fix actions, exit with an error
             cerr << "Warning: running stackelberg search on a task without fix actions" << endl;
             return;
             //exit_with(EXIT_INPUT_ERROR);
         }
-
-        divide_variables();
 
         clean_follower_actions();
 
@@ -133,7 +133,8 @@ namespace stackelberg {
         num_vars = g_variable_domain.size();
 
 
-        follower_precondition_vars.resize(g_variable_domain.size(), false);
+
+        follower_precondition_vars.resize(num_vars, false);
         
         num_follower_vars = 0;
         follower_vars.assign(g_variable_domain.size(), false);
@@ -495,8 +496,11 @@ namespace stackelberg {
 
     std::set<int> StackelbergTask::get_leader_only_vars () const {
             std::set<int> leader_only_vars;
+
             for (int i = 0; i < num_vars; ++i) {
-                if (!follower_vars[i] && !follower_precondition_vars[i]) leader_only_vars.insert(i);
+                if (!follower_vars[i] && !follower_precondition_vars[i]) {
+                    leader_only_vars.insert(i);
+                }
             }
             return leader_only_vars;
         }
