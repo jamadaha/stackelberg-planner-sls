@@ -506,5 +506,11 @@ namespace stackelberg {
         }
 
 
+    
+    bool StackelbergTask::is_leader_only_var (int v) const {    
+        return !follower_vars[v] && !follower_precondition_vars[v];
+    }
+
+
 
 }

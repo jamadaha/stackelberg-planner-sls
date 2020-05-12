@@ -35,27 +35,44 @@ namespace stackelberg {
 
     std::shared_ptr<StackelbergSS>
     SymbolicStackelbergManager::get_follower_manager(const std::vector<int> & leader_state) {
-  
+        
         BDD initialState = vars->getStateBDD(leader_state);
         BDD goal = vars->getPartialStateBDD(g_goal);
 
         vector<BDD> validStates;
         validStates.push_back(vars->oneBDD());
 
+      
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
-        std::map<int, std::vector <symbolic::TransitionRelation>> trs;
 
         for (int op_no : task->get_global_operator_id_follower_ops()) {
             const GlobalOperator *op = &(g_operators[op_no]);
+
+            bool failed = false;
+            for (const auto & prevail : op->get_preconditions()) { //Put precondition of label
+                if(leader_state[prevail.var] != prevail.val &&
+                   task->is_leader_only_var(prevail.var)) {
+                    failed = true;
+                    break;
+                }
+            }
+            if (failed) {
+                continue;
+            }
+                                                       
             int cost = cost_type->get_adjusted_cost(op);
             indTRs[cost].push_back(TransitionRelation(vars.get(), op, cost));
-            trs[cost].push_back(TransitionRelation(vars.get(), op, cost));
         }
 
-        return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, trs, validStates);
-
-
+        std::map<int, std::vector <symbolic::TransitionRelation>> transitions = indTRs;
         
+        for (map<int, vector<TransitionRelation>>::iterator it = transitions.begin();
+             it != transitions.end(); ++it) {
+            merge(vars.get(), it->second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
+        }
+
+        return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions, validStates);
+       
     }
     // Obtains the follower manager where all actions that have been disabled
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_follower_manager_minimal() {
