@@ -6,6 +6,7 @@
 
 #include "../utils/debug_macros.h"
 #include "../mutex_group.h"
+#include "../symbolic/sym_util.h"
 
 #include <limits>
 #include <algorithm>
@@ -32,7 +33,8 @@ namespace stackelberg {
     }
     
 
-    std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_follower_manager(const std::vector<int> & leader_state) {
+    std::shared_ptr<StackelbergSS>
+    SymbolicStackelbergManager::get_follower_manager(const std::vector<int> & leader_state) {
   
         BDD initialState = vars->getStateBDD(leader_state);
         BDD goal = vars->getPartialStateBDD(g_goal);
@@ -42,16 +44,13 @@ namespace stackelberg {
 
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
         std::map<int, std::vector <symbolic::TransitionRelation>> trs;
-        
-        // for (size_t i = 0; i < g_operators.size(); i++) {
-        //     const GlobalOperator *op = &(g_operators[i]);
-        //     int cost = cost_type->get_adjusted_cost(i);
-        //     DEBUG_MSG(cout << "Creating TR of op " << i << " of cost " << cost << endl;);
-        //     indTRs[cost].push_back(TransitionRelation(vars, op, cost));
-        //     if (p.mutex_type == MutexType::MUTEX_EDELETION) {
-        //         indTRs[cost].back().edeletion(notMutexBDDsByFluentFw, notMutexBDDsByFluentBw, exactlyOneBDDsByFluent);
-        //     }
-        // }
+
+        for (int op_no : task->get_global_operator_id_follower_ops()) {
+            const GlobalOperator *op = &(g_operators[op_no]);
+            int cost = cost_type->get_adjusted_cost(op);
+            indTRs[cost].push_back(TransitionRelation(vars.get(), op, cost));
+            trs[cost].push_back(TransitionRelation(vars.get(), op, cost));
+        }
 
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, trs, validStates);
 
@@ -63,7 +62,6 @@ namespace stackelberg {
 
         BDD initialState = vars->zeroBDD();//getStateBDD(leader_state);
         BDD goal = vars->getPartialStateBDD(g_goal);
-
         
         vector<BDD> validStates;
         validStates.push_back(vars->oneBDD());
@@ -99,25 +97,24 @@ namespace stackelberg {
         validStates.push_back(vars->oneBDD());
 
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
-        std::map<int, std::vector <symbolic::TransitionRelation>> trs;
+
 
         for (int op_no : task->get_global_operator_id_leader_ops()) {
             const GlobalOperator *op = &(g_operators[op_no]);
             int cost = cost_type->get_adjusted_cost(op);
             indTRs[cost].push_back(TransitionRelation(vars.get(), op, cost));
-            trs[cost].push_back(TransitionRelation(vars.get(), op, cost));
         }
-        // for (size_t i = 0; i < g_operators.size(); i++) {
-        //     const GlobalOperator *op = &(g_operators[i]);
-        //     int cost = cost_type->get_adjusted_cost(i);
-        //     DEBUG_MSG(cout << "Creating TR of op " << i << " of cost " << cost << endl;);
-        //     if (p.mutex_type == MutexType::MUTEX_EDELETION) {
-        //         indTRs[cost].back().edeletion(notMutexBDDsByFluentFw, notMutexBDDsByFluentBw, exactlyOneBDDsByFluent);
-        //     }
-        // }
 
-        return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, trs, validStates);
+        std::map<int, std::vector <symbolic::TransitionRelation>> transitions = indTRs;
 
+        
+        for (map<int, vector<TransitionRelation>>::iterator it = transitions.begin();
+             it != transitions.end(); ++it) {
+            merge(vars.get(), it->second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
+        }
+
+    return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions, validStates);
+    
     }
 
 

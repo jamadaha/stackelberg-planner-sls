@@ -31,4 +31,9 @@ namespace stackelberg {
         cout << "Search initialized: " << time_search_initialization/1000.0 << "s" << endl;
     }
 
+
+    void StackelbergStatistics::search_finished() {
+    }
+
+
 }

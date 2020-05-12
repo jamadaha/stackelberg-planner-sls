@@ -77,8 +77,10 @@ namespace symbolic {
 	for (BDD & bucketBDD : bucket){
 	    SymSolution sol = perfectHeuristic->checkCut(this, bucketBDD, g_val, fw);
 	    if (sol.solved()){
-		cout << "Solution found with cost " << sol.getCost() << 
-		    " total time: " << g_timer <<  endl;
+                if (engine->get_print_info()){
+                    cout << "Solution found with cost " << sol.getCost() << 
+                        " total time: " << g_timer <<  endl;
+                }
 		// Solution found :)
 		engine->new_solution(sol);
 	    }

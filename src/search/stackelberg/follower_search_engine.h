@@ -30,8 +30,9 @@ namespace stackelberg {
         virtual void initialize_follower_search_engine() = 0; 
             
     public:
-        void initialize(StackelbergTask * _task) {
+        void initialize(StackelbergTask * _task, std::shared_ptr<SymbolicStackelbergManager> mgr) {
             task = _task;
+            stackelberg_mgr = mgr;
             initialize_follower_search_engine();
         }
         

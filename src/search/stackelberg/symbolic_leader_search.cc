@@ -34,7 +34,8 @@ namespace stackelberg {
         mgrParams(opts), searchParams(opts) {
 
         task = make_unique<StackelbergTask> ();
-        stackelberg_mgr = make_shared<SymbolicStackelbergManager> (task.get(), opts);        
+        stackelberg_mgr = make_shared<SymbolicStackelbergManager> (task.get(), opts);
+        optimal_engine->initialize(task.get(), stackelberg_mgr);
     }
 
     void SymbolicStackelberg::initialize() {
@@ -55,18 +56,54 @@ namespace stackelberg {
     SearchStatus SymbolicStackelberg::step() {
         cout << "Starting Stackelberg bounded search..." << endl;
 
+        BDD solved_follower_subproblems = vars->zeroBDD();
+        
         int maxF = std::numeric_limits<int>::max();
         int L = 0;
-        //int F = -1;
+        int F = -1;
 
         const auto & closed_list = leader_search->getClosed()->getClosedList();
-        while (!pareto_frontier.is_complete(maxF) && L < std::numeric_limits<int>::max()) {
+        while (!pareto_frontier.is_complete(maxF) && L < std::numeric_limits<int>::max() && F < maxF) {
             BDD leader_states = closed_list.at(L);
             BDD followerStates = stackelberg_mgr->get_follower_projection(leader_states);
             
-            cout << "L = " << L << " leader states: " << vars->numStates(leader_states)
-                 << "  follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << endl;
+            cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)
+                 << ", follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << flush;
 
+            followerStates *= !(solved_follower_subproblems);
+
+            int newF = F;
+            vector<int> current_best;
+            while(!followerStates.IsZero() && newF < maxF) {                
+                auto state = vars->sample_state(followerStates);           
+                assert( L > 0 || state == g_initial_state_data);
+ 
+                int follower_cost = optimal_engine->solve(state);
+
+                followerStates -= vars->getStateBDD(state);
+                
+                if (follower_cost > newF) {
+                    newF = follower_cost;
+                    current_best = state;
+                }
+            }
+
+
+            if (newF > F) {
+                F = newF;
+                
+                vector<const GlobalOperator *> leader_ops_sequence;
+                std::vector<int> follower_plan;
+                
+                leader_search->getClosed()->extract_path(vars->getStateBDD(current_best), L, true, leader_ops_sequence);
+
+                
+                pareto_frontier.add_node(L, F, leader_ops_sequence, follower_plan);
+                
+           }
+
+
+            cout << ",  F: " << F << endl;
 
             //Generate the next layer
             while(!leader_search->finished() && leader_search->getG() == L) {
@@ -77,15 +114,15 @@ namespace stackelberg {
             L = leader_search->getG();   
         }
 
-
-
-        cout << "Total number of leader states: " << vars->numStates(leader_search->getClosedTotal()) << endl;
+        statistics.search_finished();
         BDD followerStates = stackelberg_mgr->get_follower_projection(leader_search->getClosedTotal());
+        cout << "Total number of leader states: " << vars->numStates(leader_search->getClosedTotal()) << endl;
         cout << "Total number of follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << endl;
-        cout << "Leader Search finished" << endl;
+
+        statistics.dump();
+        pareto_frontier.dump(*task);
+
         exit(0);
-        //cout << "Controller upper bound: " << controller->getUpperBound() << endl;
-        //cout << "Desired bound: " << desired_bound << endl;
 
         return IN_PROGRESS;
     }

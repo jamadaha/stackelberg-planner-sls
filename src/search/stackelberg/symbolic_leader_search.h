@@ -31,10 +31,8 @@ namespace stackelberg {
 
     class SymbolicStackelberg : public SearchEngine {
     protected:
-        std::unique_ptr<StackelbergTask> task;
-        
+        std::unique_ptr<StackelbergTask> task;        
         std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
-
 
         std::unique_ptr<FollowerSearchEngine> optimal_engine;
 

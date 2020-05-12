@@ -7,7 +7,11 @@
 namespace stackelberg {
     class StackelbergStatistics {
 
+        std::chrono::high_resolution_clock::time_point t1;
+            
         long int time_search_initialization;
+        long int time_search;
+                
         
         int num_follower_searches = 0;
         int num_follower_searches_optimal = 0;
@@ -25,6 +29,7 @@ namespace stackelberg {
         void dump() const;
 
         void search_initialized(std::chrono::high_resolution_clock::time_point t1);
+        void search_finished();
     
     };
 

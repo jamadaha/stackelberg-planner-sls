@@ -227,6 +227,11 @@ vector <BDD> SymVariables::getBDDVars(const vector <int> &vars, const vector<vec
     return res;
 }
 
+vector<int> SymVariables::sample_state (const BDD &  bdd) const {
+    bdd.PickOneCube(&(binState[0]));
+    return getStateDescription(binState);
+}
+
 
 
 BDD SymVariables::getCube(int var, const vector<vector<int>> &v_index) const {
@@ -261,7 +266,24 @@ exitOutOfMemory(size_t) {
 }
 
 
+std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_state) const {
+    vector<int> state(var_order.size(), 0);
+    
+    for (int v : var_order) {       
+        for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {
+            int bdd_v = bdd_index_pre[v][j];
+            state[v] *= 2;
+            state[v] += binary_state[bdd_v];
+        }
+        
+        assert ((size_t)(state[v]) < g_fact_names[v].size());
+    }
 
+    return state;
+
+}
+
+    
 void SymVariables::print() {
     ofstream file("variables.txt");
 

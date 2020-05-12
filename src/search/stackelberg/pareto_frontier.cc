@@ -22,7 +22,7 @@ namespace stackelberg {
        
         if (frontier.empty()) {
             frontier.push_back(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan,follower_plan));
-            cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
+            //cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
 
             return;
         }
@@ -31,7 +31,7 @@ namespace stackelberg {
         if (leader_cost > last_item->leader_cost) {
             if( follower_cost > last_item->follower_cost) {
                 frontier.push_back(ParetoFrontierNode(leader_cost, follower_cost, leader_plan, follower_plan));
-                cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
+                //cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
             }
             return;
         }
@@ -61,7 +61,7 @@ namespace stackelberg {
             if (it->follower_cost < follower_cost) {
                 it = frontier.erase(it);
                 it = frontier.insert(it, node);
-                cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
+                //cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
 
 #ifdef FIX_SEARCH_DEBUG
                 cout << "added node with fix cost: " << leader_cost << " and attack cost: " <<
@@ -87,7 +87,7 @@ namespace stackelberg {
         } else {
             it = frontier.insert(it, node);
             it++;
-            cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
+            //cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
 
 #ifdef FIX_SEARCH_DEBUG
             cout << "added node with fix cost: " << leader_cost << " and attack cost: " <<

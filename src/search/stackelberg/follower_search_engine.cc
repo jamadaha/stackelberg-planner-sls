@@ -23,7 +23,7 @@ using namespace symbolic;
 
 int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, int desired_bound) {
     auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
-    cout << "My new controller lower bound is " << controller->getLowerBound();
+
     auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
     auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
 
@@ -37,15 +37,17 @@ int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
 	
     auto search = make_unique<BidirectionalSearch> (controller.get(), searchParams, move(fw_search), move(bw_search));
 
-    while(!search->finished() &&
+    // cout << "Follower search started" << endl;
+    
+    while(!search->finished() && !controller->solved() && 
           (desired_bound == std::numeric_limits<int>::max() ||
            controller->getUpperBound() > desired_bound)) {
         search->step();
     }
 
-    cout << "Follower Search finished: " << search->finished() << endl;
-    cout << "Controller upper bound: " << controller->getUpperBound() << endl;
-    cout << "Desired bound: " << desired_bound << endl;
+    // cout << "Follower Search finished: " << search->finished() << endl;
+    // cout << "Controller upper bound: " << controller->getUpperBound() << endl;
+    // cout << "Desired bound: " << desired_bound << endl;
     
     return controller->getUpperBound();
 }
@@ -172,11 +174,11 @@ int ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
 
 
 SymbolicFollowerSearchEngine::SymbolicFollowerSearchEngine(const Options &opts) :
-    vars(make_shared<SymVariables>(opts)), mgrParams(opts), searchParams(opts) {
-    vars->init();
+    mgrParams(opts), searchParams(opts) {
 }
 
 void SymbolicFollowerSearchEngine::initialize_follower_search_engine() {
+    vars = stackelberg_mgr->get_sym_vars();
 }
 
 

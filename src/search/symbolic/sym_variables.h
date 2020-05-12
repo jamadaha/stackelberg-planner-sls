@@ -59,7 +59,7 @@ class SymVariables {
 
     //Vector to store the binary description of an state
     //Avoid allocating memory during heuristic evaluation
-    std::vector <int> binState;
+    mutable std::vector <char> binState;
 
     void init(const std::vector <int> &v_order);
 
@@ -183,7 +183,7 @@ public:
     void print();
     
     template <class T> 
-    int *getBinaryDescription(const T &state) {
+    char *getBinaryDescription(const T &state) {
         int pos = 0;
         //  cout << "State " << endl;
         for (int v : var_order) {
@@ -203,6 +203,11 @@ public:
 
         return &(binState[0]);
     }
+
+
+    std::vector<int> getStateDescription(const std::vector<char> & binary_state) const;
+
+    std::vector<int> sample_state (const BDD &  bdd) const;
 
 
     inline ADD getADD(int value) {

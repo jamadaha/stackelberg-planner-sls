@@ -178,7 +178,7 @@ public:
     }
 
     //Update binState
-    inline int *getBinaryDescription(const GlobalState &state) const {
+    inline char *getBinaryDescription(const GlobalState &state) const {
         return vars->getBinaryDescription(state);
     }
 

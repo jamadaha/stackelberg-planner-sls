@@ -165,7 +165,7 @@ int SPHeuristic::compute_heuristic(int *inputs) const {
 }
 
 int SPMASHeuristic::compute_heuristic(const GlobalState &state) {
-    int *inputs = vars->getBinaryDescription(state);
+    char *inputs = vars->getBinaryDescription(state);
     for (const BDD &bdd : notMutexBDDs) {
         if (bdd.Eval(inputs).IsZero()) {
             return DEAD_END;

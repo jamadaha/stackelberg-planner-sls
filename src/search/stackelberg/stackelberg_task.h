@@ -137,6 +137,11 @@ namespace stackelberg {
             return global_operator_id_leader_ops;
         }
 
+        const std::vector<int> & get_global_operator_id_follower_ops () const {
+            return global_operator_id_follower_ops;
+        }
+        
+
         std::set<int> get_leader_only_vars () const;        
         friend class PartialOrderReduction;	
     };
