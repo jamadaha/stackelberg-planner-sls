@@ -67,7 +67,6 @@ namespace stackelberg {
         // If the leader preconditions are encoded, there will be a slightly innecessary
         // overhead on the symbolic searches.x
       
-
         /* std::map<int, std::vector <std::pair<int, symbolic::TransitionRelation>>> follower_transitions_by_leader_precondition;  */
         /* std::map<int, std::vector <symbolic::TransitionRelation>> transitions_by_leader_precondition; //TRs by cost */
         /* std::vector<std::pair<LeaderPrecondition, BDD>> validStatesFw, validStatesBw; */
@@ -86,6 +85,9 @@ namespace stackelberg {
         std::shared_ptr<StackelbergSS> get_follower_manager_minimal();
 
         std::shared_ptr<StackelbergSS> get_leader_manager();
+
+
+        std::map<int, BDD> regress_plan(const std::vector<const GlobalOperator *> & plan);
 
 
         BDD get_follower_projection(BDD leader_search_states) const;

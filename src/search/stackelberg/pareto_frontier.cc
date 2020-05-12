@@ -21,7 +21,7 @@ namespace stackelberg {
         }
        
         if (frontier.empty()) {
-            frontier.push_back(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan,follower_plan));
+            frontier.push_back(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan, follower_plan));
             //cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
 
             return;
@@ -135,6 +135,19 @@ namespace stackelberg {
             cout << "\t\t\t\t " << op_sequence[i]->get_name() << endl;
         }
         json << "]";
+    }
+
+
+    void ParetoFrontier::add_node(int leader_cost, int follower_cost,
+                                  const std::vector<const GlobalOperator *> & leader_plan,
+                                  const std::vector<const GlobalOperator *> & follower_plan) {
+        vector<int> follower_plan_int;
+            
+        for (const  GlobalOperator * op : follower_plan){
+            follower_plan_int.push_back(op->get_op_id());
+        }
+                
+        add_node(leader_cost, follower_cost, leader_plan, follower_plan_int);
     }
 
     void dump_op_sequence_sequence(const

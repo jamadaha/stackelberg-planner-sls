@@ -21,7 +21,21 @@
 using namespace stackelberg;
 using namespace symbolic;
 
-int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, int desired_bound) {
+
+        
+FollowerSolution::FollowerSolution(const SymSolution & sol) : upper_bound(sol.getCost()) {
+    sol.getPlan(plan);
+}
+
+int FollowerSolution::solution_cost() const {
+    return upper_bound;
+}
+        
+bool FollowerSolution::solved() const {
+    return upper_bound < std::numeric_limits<int>::max();
+}
+
+FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, int desired_bound) {
     auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
     auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
@@ -29,30 +43,28 @@ int SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
 
     auto mgr = stackelberg_mgr->get_follower_manager(leader_state);
 
-        // make_shared<SymbolicStackelbergManager> (vars.get(), mgrParams,
-        // , leader_state);
-
     fw_search->init(mgr, true, bw_search->getClosedShared());
     bw_search->init(mgr, false, fw_search->getClosedShared());
 	
-    auto search = make_unique<BidirectionalSearch> (controller.get(), searchParams, move(fw_search), move(bw_search));
-
-    // cout << "Follower search started" << endl;
-    
+    auto search = make_unique<BidirectionalSearch> (controller.get(),
+                                                    searchParams,
+                                                    move(fw_search),
+                                                    move(bw_search));
+ 
     while(!search->finished() && !controller->solved() && 
           (desired_bound == std::numeric_limits<int>::max() ||
            controller->getUpperBound() > desired_bound)) {
         search->step();
     }
 
-    // cout << "Follower Search finished: " << search->finished() << endl;
-    // cout << "Controller upper bound: " << controller->getUpperBound() << endl;
-    // cout << "Desired bound: " << desired_bound << endl;
-    
-    return controller->getUpperBound();
+    if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
+        return FollowerSolution(*(controller->get_solution()));
+    } else {
+        return FollowerSolution();
+    }
 }
 
-int SymbolicFollowerSearchEngine::solve_minimum_ftask () {
+FollowerSolution SymbolicFollowerSearchEngine::solve_minimum_ftask () {
 
     // auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
     // auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
@@ -79,7 +91,7 @@ int SymbolicFollowerSearchEngine::solve_minimum_ftask () {
     
     // return controller->getUpperBound();
 
-    return std::numeric_limits<int>::max();
+    return FollowerSolution();
 }
 
 void ExplicitFollowerSearchEngine::initialize_follower_search_engine() {
@@ -96,7 +108,7 @@ ExplicitFollowerSearchEngine::ExplicitFollowerSearchEngine(const Options &opts) 
 }
 
 
-int ExplicitFollowerSearchEngine::solve_minimum_ftask () {
+FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
     g_operators.clear();
     task->compute_always_applicable_follower_ops(g_operators);
     cout << "number of always applicable attack ops: " << g_operators.size() << endl;
@@ -126,12 +138,12 @@ int ExplicitFollowerSearchEngine::solve_minimum_ftask () {
     if(follower_heuristic) {
         follower_heuristic->reset();
     
-}
-    return follower_cost_upper_bound;
+    }
+    return FollowerSolution(); //follower_cost_upper_bound;
 }
 
 
-int ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, int /*desired_bound*/){
+FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, int /*desired_bound*/){
 
     for (int leader_var = 0; leader_var < task->get_num_leader_vars(); leader_var++) {
         int orig_var_id = task-> get_map_leader_var_id_to_orig_var_id(leader_var);
@@ -146,29 +158,29 @@ int ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, 
     // SearchSpace *search_space = search_engine->get_search_space();
     // all_attacker_states += search_space->get_num_search_node_infos();
 
-    int plan_cost = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE; 
-    if (search_engine->found_solution()) {
-        search_engine->save_plan_if_necessary();
-        plan_cost = search_engine->calculate_plan_cost();
+    // // int plan_cost = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE; 
+    // if (search_engine->found_solution()) {
+    //     search_engine->save_plan_if_necessary();
+    //     plan_cost = search_engine->calculate_plan_cost();
 
-        // if (follower_heuristic) {
-        //     follower_heuristic_search_space = new AttackSearchSpace();
-        //     free_follower_heuristic_per_state_info = true;
+    //     // if (follower_heuristic) {
+    //     //     follower_heuristic_search_space = new AttackSearchSpace();
+    //     //     free_follower_heuristic_per_state_info = true;
                 
-        //     OpenList<pair<StateID, int>> *open_list = ((EagerSearch *)
-        //                                                search_engine)->get_open_list();
-        //     const GlobalState *goal_state = search_engine->get_goal_state();
-        //     const int goal_state_budget = search_engine->get_goal_state_budget();
+    //     //     OpenList<pair<StateID, int>> *open_list = ((EagerSearch *)
+    //     //                                                search_engine)->get_open_list();
+    //     //     const GlobalState *goal_state = search_engine->get_goal_state();
+    //     //     const int goal_state_budget = search_engine->get_goal_state_budget();
 
-        //     follower_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(attack_vars_indizes);
+    //     //     follower_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(attack_vars_indizes);
 
-        //     follower_heuristic->reinitialize(follower_heuristic_search_space, search_space,
-        //                                      open_list, *goal_state,
-        //                                      goal_state_budget);
-        // }
-    }
+    //     //     follower_heuristic->reinitialize(follower_heuristic_search_space, search_space,
+    //     //                                      open_list, *goal_state,
+    //     //                                      goal_state_budget);
+    //     // }
+    // }
     
-    return plan_cost;
+    return FollowerSolution(); //plan_cost;
 }
 
 

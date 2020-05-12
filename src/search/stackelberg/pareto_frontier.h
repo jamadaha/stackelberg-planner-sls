@@ -58,6 +58,10 @@ namespace stackelberg {
                       const std::vector<const GlobalOperator *> & leader_plan,
                       const std::vector<int> & follower_plan);
 
+        void add_node(int leader_cost, int follower_cost,
+                      const std::vector<const GlobalOperator *> & leader_plan,
+                      const std::vector<const GlobalOperator *> & follower_plan); 
+
 
         void dump(const StackelbergTask & task);
 

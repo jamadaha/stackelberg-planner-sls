@@ -74,17 +74,20 @@ namespace stackelberg {
 
             int newF = F;
             vector<int> current_best;
+            FollowerSolution current_best_solution;
             while(!followerStates.IsZero() && newF < maxF) {                
                 auto state = vars->sample_state(followerStates);           
                 assert( L > 0 || state == g_initial_state_data);
- 
-                int follower_cost = optimal_engine->solve(state);
+
+                auto solution = optimal_engine->solve(state);
+                int follower_cost  = solution.solution_cost();
 
                 followerStates -= vars->getStateBDD(state);
                 
                 if (follower_cost > newF) {
                     newF = follower_cost;
                     current_best = state;
+                    current_best_solution = solution;
                 }
             }
 
@@ -92,16 +95,12 @@ namespace stackelberg {
             if (newF > F) {
                 F = newF;
                 
-                vector<const GlobalOperator *> leader_ops_sequence;
-                std::vector<int> follower_plan;
-                
+                vector<const GlobalOperator *> leader_ops_sequence;                
                 leader_search->getClosed()->extract_path(vars->getStateBDD(current_best), L, true, leader_ops_sequence);
 
-                
-                pareto_frontier.add_node(L, F, leader_ops_sequence, follower_plan);
+                pareto_frontier.add_node(L, F, leader_ops_sequence, current_best_solution.get_plan());
                 
            }
-
 
             cout << ",  F: " << F << endl;
 

@@ -3,19 +3,42 @@
 
 #include "../symbolic/sym_enums.h"
 #include "../symbolic/sym_state_space_manager.h"
-
+#include "../symbolic/sym_solution.h"
 #include "../symbolic/sym_params_search.h"
 
 #include <memory>
 
 namespace symbolic {
     class SymVariables;
+    class SymSolution;
 }
 
 class SearchEngine;
 class Heuristic;
 class Options;
 namespace stackelberg {
+
+
+    class FollowerSolution {
+        int upper_bound;
+        std::vector <const GlobalOperator *> plan;
+
+    public:
+        
+    FollowerSolution() :
+        upper_bound (std::numeric_limits<int>::max()) {}
+        
+        FollowerSolution (const symbolic::SymSolution & sol);
+
+        int solution_cost() const;
+        
+        bool solved() const;
+
+        const std::vector <const GlobalOperator *>  & get_plan() const{
+            return plan;
+        }
+    };
+    
     class FollowerTask;
     class StackelbergTask;
 
@@ -39,9 +62,9 @@ namespace stackelberg {
         //Desired bound means: you can return as soon as you have a solution of this
         //quality or less. But the method should return the cost of the best solution
         //found independently of whether it is larger or lower than desired bound
-        virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) = 0;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, int desired_bound = 0) = 0;
 
-        virtual int solve_minimum_ftask () = 0;        
+        virtual FollowerSolution solve_minimum_ftask () = 0;        
     };
 
     class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
@@ -52,8 +75,8 @@ namespace stackelberg {
 
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
-        virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
-        virtual int solve_minimum_ftask () override;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
+        virtual FollowerSolution solve_minimum_ftask () override;
     };
 
     class SymbolicFollowerSearchEngine : public FollowerSearchEngine {
@@ -66,8 +89,8 @@ namespace stackelberg {
         
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
-        virtual int solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
-        virtual int solve_minimum_ftask () override;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
+        virtual FollowerSolution solve_minimum_ftask () override;
     }; 
 
 }

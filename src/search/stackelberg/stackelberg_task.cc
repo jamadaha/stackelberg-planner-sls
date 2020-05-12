@@ -78,6 +78,8 @@ namespace stackelberg {
 			}
                 */
 
+                g_operators[op_no].set_op_id(follower_action_op_id);
+
                 follower_operators.push_back(g_operators[op_no]);
                 global_operator_id_follower_ops.push_back(op_no);
                 

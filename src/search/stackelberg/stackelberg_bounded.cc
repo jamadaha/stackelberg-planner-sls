@@ -52,7 +52,7 @@ namespace stackelberg {
         cout << "Starting Stackelberg bounded search..." << endl;
         auto t1 = chrono::high_resolution_clock::now();
 
-        int maxF = optimal_engine->solve_minimum_ftask();
+        int maxF = optimal_engine->solve_minimum_ftask().solution_cost();
         cout << "Solved minimum task: " << maxF << endl;
         
         int L = 0;
@@ -70,7 +70,7 @@ namespace stackelberg {
                                                     [&](const auto * f_task) {
                                                         auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
                                                         auto follower_state = task->get_follower_state(leader_state);
-                                                        return plan_repair->solve(follower_state, F) <= F;}),
+                                                        return plan_repair->solve(follower_state, F).solution_cost() <= F;}),
                                      follower_tasks.end());
             }
 
@@ -95,7 +95,8 @@ namespace stackelberg {
                 auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
                 auto follower_state = task->get_follower_state(leader_state);
                 if (cost_bounded_engine) {
-                    if (cost_bounded_engine->solve(follower_state, F)) {
+                    auto solution = cost_bounded_engine->solve(follower_state, F);
+                    if (solution.solution_cost() <= F) {
                         num_follower_searches_cost_bounded++;
                         continue;
                     }
@@ -103,7 +104,7 @@ namespace stackelberg {
 
                 cout << "Solving leader state with L=" <<L  << " and F=" << F  << endl;
 
-                int new_bound = optimal_engine->solve(follower_state, maxF);
+                int new_bound = optimal_engine->solve(follower_state, maxF).solution_cost();
                 num_follower_searches++;
                 num_follower_searches_optimal++;
                 
