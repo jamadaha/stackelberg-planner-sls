@@ -70,8 +70,8 @@ namespace stackelberg {
             const GlobalOperator *op = plan[i];
             int cost  =cost_type->get_adjusted_cost(op);
             hstar += cost;
-            TransitionRelation tr (vars.get(), op, cost);
-            current = tr.preimage(current);
+
+            current = follower_transitions_by_id [op->get_op_id()]->preimage(current);
             if (cost == 0) {
                 result[hstar] += current;
             } else {
@@ -161,7 +161,7 @@ namespace stackelberg {
                 }
             }
         }
-               
+
         
         for (auto & trs : transitions) {
             merge(vars.get(), trs.second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
