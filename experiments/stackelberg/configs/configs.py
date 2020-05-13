@@ -27,15 +27,17 @@ class Config:
 
 
 import baseline
+import symbolic_leader
 
 
 CONFIGS = defaultdict(list)
-for config_list in [baseline.CONFIGS]:
+for config_list in [baseline.CONFIGS, symbolic_leader.CONFIGS]:
     for k in config_list:
         for config in config_list[k]:
             CONFIGS[k].append(config)
             CONFIGS[k].append(config.with_soft_goals())
-        
+
+            
 
 
 def get_configs(experiment):
