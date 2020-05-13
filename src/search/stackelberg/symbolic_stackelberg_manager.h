@@ -13,7 +13,6 @@ namespace stackelberg {
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
 
     public:
-
         StackelbergSS(symbolic::SymVariables *v, const symbolic::SymParamsMgr &params,
                       BDD initialState, BDD goal,
                       std::map<int, std::vector <symbolic::TransitionRelation>> indTRs_,
@@ -50,6 +49,10 @@ namespace stackelberg {
         BDD leaderOnlyVarsBDD;
         int num_follower_bdd_vars;
 
+        //List of transition relations by ID. Needed for plan reconstruction
+        std::vector<std::unique_ptr<symbolic::TransitionRelation>> follower_transitions_by_id;
+        std::map <LeaderPrecondition, std::map<int, std::vector<symbolic::TransitionRelation>>> follower_transitions_by_leader_precondition;
+        
         // Transitions and mutex BDDs are classified by leader precondition. An important
         // question is, should TRs have encoded the leader precondition already? There are
         // three options: fully encoded, partially encoded, no encoded.
@@ -67,7 +70,7 @@ namespace stackelberg {
         // If the leader preconditions are encoded, there will be a slightly innecessary
         // overhead on the symbolic searches.x
       
-        /* std::map<int, std::vector <std::pair<int, symbolic::TransitionRelation>>> follower_transitions_by_leader_precondition;  */
+
         /* std::map<int, std::vector <symbolic::TransitionRelation>> transitions_by_leader_precondition; //TRs by cost */
         /* std::vector<std::pair<LeaderPrecondition, BDD>> validStatesFw, validStatesBw; */
 
