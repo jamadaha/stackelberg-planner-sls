@@ -27,8 +27,10 @@ namespace stackelberg {
         
     FollowerSolution() :
         upper_bound (std::numeric_limits<int>::max()) {}
-        
-        FollowerSolution (const symbolic::SymSolution & sol);
+
+        FollowerSolution (int cost) : upper_bound (cost) {}
+
+        FollowerSolution (const symbolic::SymSolution & sol, const std::vector<int> & leader_state);
 
         int solution_cost() const;
         

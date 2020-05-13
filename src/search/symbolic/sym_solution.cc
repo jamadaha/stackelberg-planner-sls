@@ -10,7 +10,12 @@
 using namespace std;
 
 namespace symbolic {
+
     void SymSolution::getPlan(vector <const GlobalOperator *> &path) const {
+        getPlan(path, g_initial_state_data);
+    }
+
+    void SymSolution::getPlan(vector <const GlobalOperator *> &path, const vector<int> & initial_state) const {
 	assert (path.empty()); //This code should be modified to allow appending things to paths
 	DEBUG_MSG(cout << "Extract path forward: " << g << endl; );
 	if (exp_fw) {
@@ -20,7 +25,7 @@ namespace symbolic {
 	if (exp_bw) {
 	    BDD newCut;
 	    if (!path.empty()) {
-		auto s = g_initial_state_data;
+		auto s = initial_state;
 		//Get state
 		for (auto op : path) {
                     for (const GlobalEffect &eff : op->get_effects()) {

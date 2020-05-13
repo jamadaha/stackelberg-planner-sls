@@ -23,8 +23,8 @@ using namespace symbolic;
 
 
         
-FollowerSolution::FollowerSolution(const SymSolution & sol) : upper_bound(sol.getCost()) {
-    sol.getPlan(plan);
+FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state) : upper_bound(sol.getCost()) {
+    sol.getPlan(plan, initial_state);
 }
 
 int FollowerSolution::solution_cost() const {
@@ -35,7 +35,9 @@ bool FollowerSolution::solved() const {
     return upper_bound < std::numeric_limits<int>::max();
 }
 
-FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state, int desired_bound) {
+FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state,
+                                                      int desired_bound ) {
+
     auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
     auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
@@ -51,14 +53,18 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
                                                     move(fw_search),
                                                     move(bw_search));
  
-    while(!search->finished() && !controller->solved() && 
-          (desired_bound == std::numeric_limits<int>::max() ||
-           controller->getUpperBound() > desired_bound)) {
+    while(!controller->solved()) {
+        if (controller->getUpperBound() <= desired_bound) {
+            return FollowerSolution(controller->getUpperBound());
+        }
+        
         search->step();
     }
 
+
     if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
-        return FollowerSolution(*(controller->get_solution()));
+        assert(controller->solved());
+        return FollowerSolution(*(controller->get_solution()), leader_state);
     } else {
         return FollowerSolution();
     }

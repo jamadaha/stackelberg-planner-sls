@@ -33,6 +33,46 @@ namespace stackelberg {
     }
     
 
+    std::map<int, BDD>
+    SymbolicStackelbergManager::regress_plan(const std::vector<const GlobalOperator *> & plan) {
+        std::map<int, BDD> result;
+        int hstar = 0;
+        BDD current = vars->getPartialStateBDD(g_goal);
+
+        result[hstar] = current;
+
+        
+        for (int i = plan.size() -1; i >= 0; ++i ){
+            const GlobalOperator *op = plan[i];
+            int cost  =cost_type->get_adjusted_cost(op);
+            hstar += cost;
+            TransitionRelation tr (vars.get(), op, cost);
+            current = tr.preimage(current);
+            if (cost == 0) {
+                result[hstar] += current;
+            } else {
+                result[hstar] = current;
+            }
+        }
+        
+        return result;        
+    }
+
+
+    BDD SymbolicStackelbergManager::regress_plan_to_leader_states(const std::vector<const GlobalOperator *> & plan) {
+        BDD current = vars->getPartialStateBDD(g_goal);
+        BDD result = current;
+        for (int i = plan.size() -1; i >= 0; --i ){
+            const GlobalOperator *op = plan[i];
+            TransitionRelation tr (vars.get(), op, 1);
+            current = tr.preimage(current);
+            result += current;
+        }        
+        return result;        
+    }
+
+
+    
     std::shared_ptr<StackelbergSS>
     SymbolicStackelbergManager::get_follower_manager(const std::vector<int> & leader_state) {
         
@@ -72,8 +112,9 @@ namespace stackelberg {
         }
 
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions, validStates);
-       
     }
+
+    
     // Obtains the follower manager where all actions that have been disabled
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_follower_manager_minimal() {
 
@@ -141,7 +182,8 @@ namespace stackelberg {
                                  std::map<int, std::vector <symbolic::TransitionRelation>> indTRs_,
                                  std::map<int, std::vector <symbolic::TransitionRelation>> transitions,
                                  std::vector<BDD> validStates) :
-        SymStateSpaceManager(vars, params, initialState, goal, transitions, validStates), indTRs(indTRs_) {
+        SymStateSpaceManager(vars, params, initialState, goal, transitions, validStates),
+        indTRs(indTRs_) {
         
     }
 
@@ -161,6 +203,7 @@ namespace stackelberg {
     BDD StackelbergSS::shrinkTBDD(const BDD &bdd, int ) const {
         return bdd;
     }
+
 
 
 }

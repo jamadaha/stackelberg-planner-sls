@@ -70,19 +70,23 @@ namespace stackelberg {
             cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)
                  << ", follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << flush;
 
-            followerStates *= !(solved_follower_subproblems);
+            followerStates -= solved_follower_subproblems;
+
 
             int newF = F;
             vector<int> current_best;
             FollowerSolution current_best_solution;
             while(!followerStates.IsZero() && newF < maxF) {                
                 auto state = vars->sample_state(followerStates);           
-                assert( L > 0 || state == g_initial_state_data);
+                assert(L > 0 || state == g_initial_state_data);
 
                 auto solution = optimal_engine->solve(state);
+                statistics.inc_opt_search();
+                BDD new_solved = stackelberg_mgr->regress_plan_to_leader_states(solution.get_plan());
+                solved_follower_subproblems += new_solved;
                 int follower_cost  = solution.solution_cost();
 
-                followerStates -= vars->getStateBDD(state);
+                followerStates -= new_solved;
                 
                 if (follower_cost > newF) {
                     newF = follower_cost;

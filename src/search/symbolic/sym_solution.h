@@ -16,6 +16,8 @@ public:
 
     SymSolution(UnidirectionalSearch *e_fw, UnidirectionalSearch *e_bw, int g_val, int h_val, BDD S) : exp_fw(e_fw), exp_bw(e_bw), g(g_val), h(h_val), cut(S) {}
 
+    void getPlan(std::vector <const GlobalOperator *> &path, const std::vector<int> & initial_state) const;
+
     void getPlan(std::vector <const GlobalOperator *> &path) const;
 
     ADD getADD() const;

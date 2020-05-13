@@ -46,7 +46,7 @@ namespace stackelberg {
         symbolic::SymParamsMgr mgr_params;
 
         std::shared_ptr<OperatorCostFunction> cost_type;
-
+        
         BDD leaderOnlyVarsBDD;
         int num_follower_bdd_vars;
 
@@ -88,9 +88,11 @@ namespace stackelberg {
 
 
         std::map<int, BDD> regress_plan(const std::vector<const GlobalOperator *> & plan);
+        BDD regress_plan_to_leader_states(const std::vector<const GlobalOperator *> & plan);
 
 
         BDD get_follower_projection(BDD leader_search_states) const;
+        
         int get_num_follower_bdd_vars() const {
             return num_follower_bdd_vars;
         }
