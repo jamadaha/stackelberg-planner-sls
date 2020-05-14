@@ -70,7 +70,7 @@ public:
     //State getStateFrom(const BDD & bdd) const;
     BDD getStateBDD(const GlobalState &state) const;
     BDD getStateBDD(const std::vector<int> &state) const;
-
+    BDD getPartialStateBDD(const std::vector<int> &state, const std::vector<bool> & pattern) const;
     BDD getPartialStateBDD(const std::vector<std::pair<int, int>> &state) const;
  //Returns the number of states in a BDD
     double numStates(const BDD & bdd, int relevant_vars) const;
@@ -206,9 +206,14 @@ public:
 
 
     std::vector<int> getStateDescription(const std::vector<char> & binary_state) const;
-
     std::vector<int> sample_state (const BDD &  bdd) const;
 
+
+    std::vector<int> getStateDescription(const std::vector<char> & binary_state, const std::vector<bool> & pattern) const;
+    std::vector<int> sample_state (const BDD &  bdd, const std::vector<bool> & pattern) const;
+
+
+    
 
     inline ADD getADD(int value) {
         return _manager->constant(value);

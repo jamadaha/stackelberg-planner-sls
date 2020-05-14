@@ -128,16 +128,18 @@ namespace stackelberg {
     
     std::shared_ptr<StackelbergSS>
     SymbolicStackelbergManager::get_follower_manager(const std::vector<int> & leader_state) {
-        
-        BDD initialState = vars->getStateBDD(leader_state);
-        BDD goal = vars->getPartialStateBDD(g_goal);
 
-        vector<BDD> validStates;
-        validStates.push_back(vars->oneBDD());
-
+        //Variables that the follower can modify given the leader state
+        std::vector<bool> follower_vars (g_variable_domain.size(), false); 
       
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
         std::map<int, std::vector <symbolic::TransitionRelation>> transitions;
+
+
+        //Here is where we should run the h2 preprocessor
+
+        vector<BDD> validStates;
+        validStates.push_back(vars->oneBDD());
 
         for (const auto & entry : follower_transitions_by_leader_precondition) {
             bool failed = false;
@@ -150,17 +152,34 @@ namespace stackelberg {
             if (failed) {
                 continue;
             }
+            
             for (const auto & tr_by_cost : entry.second) {
                 int cost = tr_by_cost.first;
 
                 for (const auto & tr : tr_by_cost.second) {
                     transitions[cost].push_back(tr);
                     for (const auto * op : tr.getOps()) {
+                        for (const auto & eff : op->get_effects()) {
+                            follower_vars[eff.var] = true;
+                        }
                         indTRs[cost].push_back(*(follower_transitions_by_id[op->get_op_id()]));
                     }
                 }
             }
         }
+
+        for (const auto & goal : g_goal) {
+            if (!follower_vars[goal.first] && leader_state[goal.first] != goal.second) {
+                // Task is unsolvable. 
+                return make_shared<StackelbergSS>(vars.get(), mgr_params, vars->zeroBDD(), vars->zeroBDD(), indTRs, transitions, validStates);
+            }
+        }
+
+        
+        BDD initialState = vars->getPartialStateBDD(leader_state, follower_vars);
+        BDD goal = vars->getPartialStateBDD(g_goal);
+        
+
 
         
         for (auto & trs : transitions) {

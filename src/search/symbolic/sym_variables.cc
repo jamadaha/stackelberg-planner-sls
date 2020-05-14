@@ -146,6 +146,17 @@ BDD SymVariables::getStateBDD(const std::vector<int> &state) const {
     return res;
 }
 
+BDD SymVariables::getPartialStateBDD(const std::vector<int> &state, const std::vector<bool> & pattern) const {
+    BDD res = _manager->bddOne();
+    for (int i = var_order.size() - 1; i >= 0; i--) {
+        if (pattern[var_order[i]]) {
+            res = res * preconditionBDDs[var_order[i]][state[var_order[i]]];
+        }
+    }
+    return res;
+}
+
+
 // State SymVariables::getStateFrom(const BDD & bdd) const {
 //   vector <int> vals;
 //   BDD current = bdd;
@@ -232,6 +243,12 @@ vector<int> SymVariables::sample_state (const BDD &  bdd) const {
     return getStateDescription(binState);
 }
 
+    
+vector<int> SymVariables::sample_state (const BDD &  bdd, const std::vector<bool> & pattern) const {
+    bdd.PickOneCube(&(binState[0]));
+    return getStateDescription(binState, pattern);
+}
+
 
 
 BDD SymVariables::getCube(int var, const vector<vector<int>> &v_index) const {
@@ -270,8 +287,10 @@ std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_s
     vector<int> state(var_order.size(), 0);
     
     for (int v : var_order) {       
-        for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {
+        for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {           
             int bdd_v = bdd_index_pre[v][j];
+            assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1);
+                        
             state[v] *= 2;
             state[v] += binary_state[bdd_v];
         }
@@ -280,7 +299,29 @@ std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_s
     }
 
     return state;
+}
 
+    std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_state, const vector<bool> & pattern) const {
+    vector<int> state(var_order.size(), 0);
+    
+    for (int v : var_order) {
+        if (!pattern[v]) {
+            // cout << "Skip " << v << endl;
+            continue;
+        }
+        for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {           
+            int bdd_v = bdd_index_pre[v][j];
+            assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1);
+                        
+            state[v] *= 2;
+            state[v] += binary_state[bdd_v];
+        }
+
+        // cout << v << "  " << state[v] << endl;
+        assert (state[v] < g_variable_domain[v]);
+    }
+
+    return state;
 }
 
     

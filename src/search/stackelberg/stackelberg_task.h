@@ -143,7 +143,12 @@ namespace stackelberg {
         
 
         std::set<int> get_leader_only_vars () const;
-        bool is_leader_only_var (int var) const;        
+        bool is_leader_only_var (int var) const;
+
+        const std::vector<bool> & get_follower_vars () const {
+            return follower_vars;
+        }
+
 
         friend class PartialOrderReduction;	
     };
