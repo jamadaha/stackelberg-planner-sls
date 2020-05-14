@@ -70,9 +70,7 @@ namespace stackelberg {
             cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)
                  << ", follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << flush;
 
-            leader_states -= solved_follower_subproblems;
-            followerStates = stackelberg_mgr->get_follower_projection(leader_states);
-
+            followerStates -= solved_follower_subproblems;
 
             int newF = F;
             vector<int> current_best;
@@ -91,14 +89,10 @@ namespace stackelberg {
                 statistics.inc_opt_search();
                 BDD new_solved = stackelberg_mgr->regress_plan_to_leader_states(solution.get_plan());
 
-                leader_states -= new_solved;
-                followerStates = stackelberg_mgr->get_follower_projection(leader_states);
-
-               
+                followerStates -= new_solved;               
                 solved_follower_subproblems += new_solved;
-                int follower_cost  = solution.solution_cost();
                 
-                followerStates -= new_solved;
+                int follower_cost  = solution.solution_cost();
                 
                 if (follower_cost > newF) {
                     newF = follower_cost;
@@ -148,6 +142,7 @@ namespace stackelberg {
         SymParamsSearch::add_options_to_parser(parser, 30e3, 10e7);
         SymParamsMgr::add_options_to_parser(parser);
 
+        parser.add_option<bool>("project_to_follower_states", "Project the set of leader options to follower states.", "false");
 
         parser.add_option<FollowerSearchEngine *>("optimal_engine");
     

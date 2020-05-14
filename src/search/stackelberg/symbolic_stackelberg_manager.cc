@@ -112,13 +112,18 @@ namespace stackelberg {
 
         // }        
         // return result;
-     
-        BDD current = vars->getPartialStateBDD(g_goal);
+
+
+        //TODO: This will fail if there is a goal on a variable that can only be touched
+        // by the leader.
+        BDD current = get_follower_projection(vars->getPartialStateBDD(g_goal));
         BDD result = current;
+       
         for (int i = plan.size() -1; i >= 0; --i ){
             const GlobalOperator *op = plan[i];
             TransitionRelation tr (vars.get(), op, 1);
             current = tr.preimage(current);
+            assert (current == get_follower_projection(current));
             result += current;
         }        
         return result;        
