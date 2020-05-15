@@ -100,6 +100,30 @@ public:
         return true;
     }
 
+    bool is_applicable(const std::vector<int> &state) const {
+        for (size_t i = 0; i < preconditions.size(); ++i) {
+            if (!preconditions[i].is_applicable(state)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    
+    std::vector<int> apply_to(const std::vector<int> &state) const {
+        assert(is_applicable(state));
+
+        std::vector<int> new_state = state;
+        for (const  auto & eff : effects) {
+            if (eff.does_fire(state)) {
+                new_state[eff.var] = eff.val;
+            }
+        }
+
+        return new_state;
+    }
+
+
     bool is_marked() const {
         return marked;
     }

@@ -12,10 +12,10 @@ using namespace std;
 namespace symbolic {
 
     void SymSolution::getPlan(vector <const GlobalOperator *> &path) const {
-        getPlan(path, g_initial_state_data);
+        getPlan(path, g_initial_state_data, vector<bool>());
     }
 
-    void SymSolution::getPlan(vector <const GlobalOperator *> &path, const vector<int> & initial_state) const {
+    void SymSolution::getPlan(vector <const GlobalOperator *> &path, const vector<int> & initial_state, const vector<bool> & pattern) const {
 	assert (path.empty()); //This code should be modified to allow appending things to paths
 	DEBUG_MSG(cout << "Extract path forward: " << g << endl; );
 	if (exp_fw) {
@@ -34,7 +34,11 @@ namespace symbolic {
 			}
 		    }
 		}
-		newCut = exp_bw->getStateSpace()->getVars()->getStateBDD(s);
+                if(pattern.empty()) {
+                    newCut = exp_bw->getStateSpace()->getVars()->getStateBDD(s);
+                } else {
+                    newCut = exp_bw->getStateSpace()->getVars()->getPartialStateBDD(s, pattern);
+                }
 	    } else {
 		newCut = cut;
 	    }

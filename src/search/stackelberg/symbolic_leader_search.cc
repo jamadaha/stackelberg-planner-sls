@@ -63,37 +63,61 @@ namespace stackelberg {
         int F = -1;
 
         const auto & closed_list = leader_search->getClosed()->getClosedList();
-        while (!pareto_frontier.is_complete(maxF) && L < std::numeric_limits<int>::max() && F < maxF) {
+        while (!pareto_frontier.is_complete(maxF)
+               && L < std::numeric_limits<int>::max()
+               && F < maxF) {
             BDD leader_states = closed_list.at(L);
-            BDD followerStates = stackelberg_mgr->get_follower_projection(leader_states);
+            BDD follower_initial_states = stackelberg_mgr->get_follower_initial_state_projection(leader_states);
             
             cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)
-                 << ", follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << flush;
+                 << ", follower subproblems: " << vars->numStates(follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars()) << flush;
 
-            followerStates -= solved_follower_subproblems;
+            follower_initial_states -= solved_follower_subproblems;
 
             int newF = F;
             vector<int> current_best;
             FollowerSolution current_best_solution;
-            while(!followerStates.IsZero() && newF < maxF) {                
-                auto state = vars->sample_state(followerStates, task->get_follower_vars());
+            while(!follower_initial_states.IsZero() && newF < maxF) {                
+                auto state = stackelberg_mgr->sample_follower_initial_state(follower_initial_states);
+
+                // cout << "Sampled state" << endl;
+                // for (size_t v = 0; v < g_variable_domain.size(); ++v) {           
+                //     if(!task->is_leader_only_var(v))  {
+                //         cout << g_fact_names[v][state[v]]  << endl;
+                //     }
+                // }
 
 #ifndef NDEBUG
-                for (int v : task->get_follower_vars()) {
-                    assert(L > 0 || state[v] == g_initial_state_data[v]);
+                for (size_t v = 0; v < g_variable_domain.size(); ++v) {           
+                    assert(L > 0 || !task->get_follower_vars()[v] || state[v] == g_initial_state_data[v]);
                 }
 #endif
 
                 auto solution = optimal_engine->solve(state);
 
-                statistics.inc_opt_search();
-                BDD new_solved = stackelberg_mgr->regress_plan_to_leader_states(solution.get_plan());
 
-                followerStates -= new_solved;               
-                solved_follower_subproblems += new_solved;
+                if (solution.solved()) {
+                    const auto plan = solution.get_plan();
+#ifndef NDEBUG
+
+                    for (auto * op : plan) {
+                        assert(op->is_applicable(state));
+                        state = op->apply_to(state);
+                        // cout << op->get_name() << endl;
+                    }
+#endif                
+                    statistics.inc_opt_search();
+                    BDD new_solved = stackelberg_mgr->regress_plan_to_follower_initial_states(solution.get_plan());
                 
+                    assert (follower_initial_states - new_solved != follower_initial_states);
+                
+                    follower_initial_states -= new_solved;
+                    solved_follower_subproblems += new_solved;
+
+                }
                 int follower_cost  = solution.solution_cost();
-                
+
+                               
                 if (follower_cost > newF) {
                     newF = follower_cost;
                     current_best = state;
@@ -106,8 +130,11 @@ namespace stackelberg {
                 F = newF;
                 
                 vector<const GlobalOperator *> leader_ops_sequence;                
-                leader_search->getClosed()->extract_path(vars->getStateBDD(current_best), L, true, leader_ops_sequence);
-
+                leader_search->getClosed()->extract_path(
+                    vars->getPartialStateBDD(current_best,
+                                             stackelberg_mgr->get_pattern_vars_follower_subproblems() ),
+                    L, true, leader_ops_sequence);
+                
                 pareto_frontier.add_node(L, F, leader_ops_sequence, current_best_solution.get_plan());
                 
            }
@@ -124,7 +151,7 @@ namespace stackelberg {
         }
 
         statistics.search_finished();
-        BDD followerStates = stackelberg_mgr->get_follower_projection(leader_search->getClosedTotal());
+        BDD followerStates = stackelberg_mgr->get_follower_initial_state_projection(leader_search->getClosedTotal());
         cout << "Total number of leader states: " << vars->numStates(leader_search->getClosedTotal()) << endl;
         cout << "Total number of follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << endl;
 
@@ -138,9 +165,8 @@ namespace stackelberg {
     
     SearchEngine *_parse_ss(OptionParser &parser) {
         SearchEngine::add_options_to_parser(parser);
-        SymVariables::add_options_to_parser(parser);
+        SymbolicStackelbergManager::add_options_to_parser(parser);
         SymParamsSearch::add_options_to_parser(parser, 30e3, 10e7);
-        SymParamsMgr::add_options_to_parser(parser);
 
         parser.add_option<bool>("project_to_follower_states", "Project the set of leader options to follower states.", "false");
 

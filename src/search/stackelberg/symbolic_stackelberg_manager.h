@@ -3,12 +3,18 @@
 
 #include "../symbolic/sym_state_space_manager.h"
 
+class OptionParser;
+class Options;
+
 class MutexGroup; 
 namespace stackelberg {
 
     class StackelbergTask;
     
-    class StackelbergSS : public symbolic::SymStateSpaceManager {       
+    class StackelbergSS : public symbolic::SymStateSpaceManager {
+
+        std::vector<bool> pattern;
+        
         //Individual TRs: Useful for shrink and plan construction
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
 
@@ -17,7 +23,7 @@ namespace stackelberg {
                       BDD initialState, BDD goal,
                       std::map<int, std::vector <symbolic::TransitionRelation>> indTRs_,
                       std::map<int, std::vector <symbolic::TransitionRelation>> trs,
-                      std::vector<BDD> validStates);
+                      std::vector<BDD> validStates, const std::vector<bool> &  _pattern);
 
 
         //For plan solution reconstruction. Only avaialble in original state space
@@ -30,6 +36,11 @@ namespace stackelberg {
         virtual BDD shrinkExists(const BDD &bdd, int maxNodes) const override;
         virtual BDD shrinkForall(const BDD &bdd, int maxNodes) const override;
         virtual BDD shrinkTBDD(const BDD &bdd, int maxNodes) const override;
+
+        const std::vector<bool> & get_relevant_vars() const {
+            return pattern;
+        }                
+        
     };
 
 
@@ -45,9 +56,17 @@ namespace stackelberg {
         symbolic::SymParamsMgr mgr_params;
 
         std::shared_ptr<OperatorCostFunction> cost_type;
+            
+        const bool stackelberg_variable_order;
         
-        BDD leaderOnlyVarsBDD;
-        int num_follower_bdd_vars;
+        BDD cubeFollowerSubproblems;
+        int num_bdd_vars_follower_subproblems;
+        std::vector<bool> pattern_vars_follower_subproblems;
+        
+        BDD cubeOnlyFollowerVars;
+        
+        BDD static_follower_initial_state;
+        
 
         //List of transition relations by ID. Needed for plan reconstruction
         std::vector<std::unique_ptr<symbolic::TransitionRelation>> follower_transitions_by_id;
@@ -60,7 +79,7 @@ namespace stackelberg {
         // Fully encoded: All follower searches use exactly the same TRs. Leader variables
         // fully form part of everything.
         //    * Advantage: It's simpler because all operations occur under the same representation.
-        //                 The only thing required to perform a follower search is to
+        //                 The only thing required to perform a follower search is to 
         //
         //    * Disadvantage: Backward search becomes stupid, trying to apply actions that
         //    * depend on preconditions of leader actions.
@@ -91,18 +110,26 @@ namespace stackelberg {
 
 
         std::map<int, BDD> regress_plan(const std::vector<const GlobalOperator *> & plan);
-        BDD regress_plan_to_leader_states(const std::vector<const GlobalOperator *> & plan);
+        BDD regress_plan_to_follower_initial_states(const std::vector<const GlobalOperator *> & plan);
 
+        std::vector<int> sample_follower_initial_state(BDD follower_initial_states) const;
 
-        BDD get_follower_projection(BDD leader_search_states) const;
+        BDD get_follower_initial_state_projection(BDD leader_search_states) const;
+        
         
         int get_num_follower_bdd_vars() const {
-            return num_follower_bdd_vars;
+            return num_bdd_vars_follower_subproblems;
         }
 
         std::shared_ptr<symbolic::SymVariables> get_sym_vars() {
             return vars;
-        }                        
+        }
+
+        const std::vector<bool> & get_pattern_vars_follower_subproblems() const {
+            return pattern_vars_follower_subproblems;
+        }
+
+        static void add_options_to_parser(OptionParser &parser);
     };
 
     

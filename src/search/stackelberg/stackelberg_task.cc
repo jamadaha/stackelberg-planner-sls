@@ -507,12 +507,29 @@ namespace stackelberg {
             return leader_only_vars;
         }
 
+    std::set<int> StackelbergTask::get_follower_only_vars () const {
+        std::set<int> follower_only_vars;
 
-    
+        for (int i = 0; i < num_vars; ++i) {
+            if (!leader_vars[i]) {
+                follower_only_vars.insert(i);
+            }
+        }
+        return follower_only_vars;
+    }
+
+
+    bool StackelbergTask::is_follower_only_var (int v) const {    
+        return !leader_vars[v];
+    }
+
+
     bool StackelbergTask::is_leader_only_var (int v) const {    
         return !follower_vars[v] && !follower_precondition_vars[v];
     }
 
 
-
+    bool StackelbergTask::is_follower_effect_var (int v) const {    
+        return follower_vars[v];
+    }
 }

@@ -140,14 +140,25 @@ namespace stackelberg {
         const std::vector<int> & get_global_operator_id_follower_ops () const {
             return global_operator_id_follower_ops;
         }
+
+        
+        const std::vector<bool> & get_pattern_leader_vars () const {
+            return leader_vars;
+        }
+
         
 
         std::set<int> get_leader_only_vars () const;
+        std::set<int> get_follower_only_vars () const;
+        
         bool is_leader_only_var (int var) const;
+        bool is_follower_only_var (int var) const;
+        bool is_follower_effect_var (int var) const;
 
         const std::vector<bool> & get_follower_vars () const {
             return follower_vars;
         }
+
 
 
         friend class PartialOrderReduction;	

@@ -31,17 +31,19 @@ void SymVariables::init() {
             var_order.push_back(i);
         }
     }
-    cout << "Sym variable order: ";
-    for (int v : var_order)
-        cout << v << " ";
-    cout << endl;
-
+    
     init(var_order);
 }
 
 //Constructor that makes use of global variables to initialize the symbolic_search structures
 void SymVariables::init(const vector <int> &v_order) {
     cout << "Initializing Symbolic Variables" << endl;
+
+    cout << "Sym variable order: ";
+    for (int v : v_order)
+        cout << v << " ";
+    cout << endl;
+
     var_order = vector<int>(v_order);
     int num_fd_vars = var_order.size();
 
@@ -302,22 +304,25 @@ std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_s
 }
 
     std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_state, const vector<bool> & pattern) const {
-    vector<int> state(var_order.size(), 0);
+    vector<int> state (var_order.size(), 0);
     
     for (int v : var_order) {
         if (!pattern[v]) {
             // cout << "Skip " << v << endl;
+            state[v] = g_initial_state_data[v];
             continue;
         }
+        // cout << "Consider " << v << " " << g_variable_domain[v] << endl;
         for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {           
             int bdd_v = bdd_index_pre[v][j];
+            // cout << binary_state[bdd_v]; 
             assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1);
                         
             state[v] *= 2;
             state[v] += binary_state[bdd_v];
         }
 
-        // cout << v << "  " << state[v] << endl;
+        // cout  << "     " << state[v] << endl;
         assert (state[v] < g_variable_domain[v]);
     }
 

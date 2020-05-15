@@ -23,8 +23,9 @@ using namespace symbolic;
 
 
         
-FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state) : upper_bound(sol.getCost()) {
-    sol.getPlan(plan, initial_state);
+FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern) : upper_bound(sol.getCost()) {
+
+    sol.getPlan(plan, initial_state, pattern);
 }
 
 int FollowerSolution::solution_cost() const {
@@ -40,19 +41,24 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
 
     auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
-    auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-    auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-
     auto mgr = stackelberg_mgr->get_follower_manager(leader_state);
 
-    fw_search->init(mgr, true, bw_search->getClosedShared());
-    bw_search->init(mgr, false, fw_search->getClosedShared());
-	
-    auto search = make_unique<BidirectionalSearch> (controller.get(),
-                                                    searchParams,
-                                                    move(fw_search),
-                                                    move(bw_search));
- 
+    auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+    
+    unique_ptr<BidirectionalSearch> bd_search;
+    SymSearch * search;
+    if (bidir) {
+        auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+        fw_search->init(mgr, true, bw_search->getClosedShared());
+        bw_search->init(mgr, false, fw_search->getClosedShared());	
+        bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
+                                                      move(fw_search), move(bw_search));
+        search = bd_search.get();
+    }else{
+        fw_search->init(mgr, true);
+        search = fw_search.get();
+    }
+
     while(!controller->solved()) {
         if (controller->getUpperBound() <= desired_bound) {
             return FollowerSolution(controller->getUpperBound());
@@ -61,10 +67,10 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
         search->step();
     }
 
-
+   
     if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
         assert(controller->solved());
-        return FollowerSolution(*(controller->get_solution()), leader_state);
+        return FollowerSolution(*(controller->get_solution()), leader_state, mgr->get_relevant_vars());
     } else {
         return FollowerSolution();
     }
@@ -149,8 +155,7 @@ FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
 }
 
 
-FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, int /*desired_bound*/){
-
+FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, int /*desired_bound*/) {
     for (int leader_var = 0; leader_var < task->get_num_leader_vars(); leader_var++) {
         int orig_var_id = task-> get_map_leader_var_id_to_orig_var_id(leader_var);
         g_initial_state_data[orig_var_id] = leader_state[leader_var];
@@ -192,7 +197,7 @@ FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & l
 
 
 SymbolicFollowerSearchEngine::SymbolicFollowerSearchEngine(const Options &opts) :
-    mgrParams(opts), searchParams(opts) {
+    mgrParams(opts), searchParams(opts), bidir(opts.get<bool>("bidir")) {
 }
 
 void SymbolicFollowerSearchEngine::initialize_follower_search_engine() {
@@ -206,6 +211,9 @@ static FollowerSearchEngine *_parse_symbolic(OptionParser &parser) {
     SymVariables::add_options_to_parser(parser);
     SymParamsSearch::add_options_to_parser(parser, 30e3, 10e7);
     SymParamsMgr::add_options_to_parser(parser);
+
+    parser.add_option<bool> ("bidir", "Use bidirectional search", "true");
+
     
     Options opts = parser.parse();
 

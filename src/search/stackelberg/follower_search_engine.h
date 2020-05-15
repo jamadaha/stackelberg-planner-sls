@@ -30,7 +30,9 @@ namespace stackelberg {
 
         FollowerSolution (int cost) : upper_bound (cost) {}
 
-        FollowerSolution (const symbolic::SymSolution & sol, const std::vector<int> & leader_state);
+        FollowerSolution (const symbolic::SymSolution & sol,
+                          const std::vector<int> & leader_state,
+                          const std::vector<bool> & pattern);
 
         int solution_cost() const;
         
@@ -86,6 +88,8 @@ namespace stackelberg {
         
         symbolic::SymParamsMgr mgrParams; //Parameters for SymStateSpaceManager configuration.
         symbolic::SymParamsSearch searchParams; //Parameters to search the original state space
+
+        const bool bidir;
 
         virtual void initialize_follower_search_engine() override;
         

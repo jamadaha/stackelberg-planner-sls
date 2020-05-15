@@ -61,11 +61,12 @@ class SymVariables {
     //Avoid allocating memory during heuristic evaluation
     mutable std::vector <char> binState;
 
-    void init(const std::vector <int> &v_order);
 
 public:
     SymVariables(const Options &opts);
     void init();
+    void init(const std::vector <int> &v_order);
+
 
     //State getStateFrom(const BDD & bdd) const;
     BDD getStateBDD(const GlobalState &state) const;
