@@ -96,6 +96,8 @@ namespace stackelberg {
                 auto solution = optimal_engine->solve(state);
 
 
+                statistics.inc_opt_search();
+                
                 if (solution.solved()) {
                     const auto plan = solution.get_plan();
 #ifndef NDEBUG
@@ -106,7 +108,7 @@ namespace stackelberg {
                         // cout << op->get_name() << endl;
                     }
 #endif                
-                    statistics.inc_opt_search();
+
                     BDD new_solved = stackelberg_mgr->regress_plan_to_follower_initial_states(solution.get_plan());
                 
                     assert (follower_initial_states - new_solved != follower_initial_states);
