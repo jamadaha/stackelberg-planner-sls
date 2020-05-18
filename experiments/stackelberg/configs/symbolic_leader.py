@@ -4,7 +4,7 @@ import sys
 
 from collections import defaultdict
 
-REVISION = "d7c615d35bca3add6841ff36c7587ff8b00ced07"
+REVISION = "9a79cb7c1a6ebce32404de8749f67e2e32c17509"
 SERVERS = "all_servers" 
 
 CONFIGS = defaultdict(list)
