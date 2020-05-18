@@ -50,11 +50,11 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
         auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
 
 
-        if (plan_reuse) {
-            fw_search->init(mgr, true, make_shared<OppositeFrontierComposite>(bw_search->getClosedShared(), plan_reuse->get_closed()));
-        } else {
+        // if (plan_reuse) {
+        //     fw_search->init(mgr, true, make_shared<OppositeFrontierComposite>(bw_search->getClosedShared(), plan_reuse->get_closed()));
+        // } else {
             fw_search->init(mgr, true, bw_search->getClosedShared());
-        }
+            //}
         bw_search->init(mgr, false, fw_search->getClosedShared());	
         bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                       move(fw_search), move(bw_search));

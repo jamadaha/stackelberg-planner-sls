@@ -128,10 +128,9 @@ namespace stackelberg {
         for (const auto & entry : follower_transitions_by_leader_precondition) {
             bool failed = false;
             for (const auto & precondition : entry.first) {
-                // follower_vars[precondition.first]=false;
                 if(leader_state[precondition.first] != precondition.second) {
                     failed = true;
-                    //break;
+                    break;
                 }
             }
             if (failed) {
@@ -144,9 +143,6 @@ namespace stackelberg {
                 for (const auto & tr : tr_by_cost.second) {
                     transitions[cost].push_back(tr);
                     for (const auto * op : tr.getOps()) {
-                        // for (const auto & eff : op->get_effects()) {
-                        //     follower_vars[eff.var] = true;
-                        // }
                         indTRs[cost].push_back(*(follower_transitions_by_id[op->get_op_id()]));
                     }
                 }
