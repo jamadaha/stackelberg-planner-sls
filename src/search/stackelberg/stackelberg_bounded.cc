@@ -95,7 +95,7 @@ namespace stackelberg {
                 auto leader_state = leader_vars_state_registry->lookup_state(f_task->leader_state_id);
                 auto follower_state = task->get_follower_state(leader_state);
                 if (cost_bounded_engine) {
-                    auto solution = cost_bounded_engine->solve(follower_state, F);
+                    auto solution = cost_bounded_engine->solve(follower_state);
                     if (solution.solution_cost() <= F) {
                         num_follower_searches_cost_bounded++;
                         continue;
@@ -104,7 +104,7 @@ namespace stackelberg {
 
                 cout << "Solving leader state with L=" <<L  << " and F=" << F  << endl;
 
-                int new_bound = optimal_engine->solve(follower_state, maxF).solution_cost();
+                int new_bound = optimal_engine->solve(follower_state).solution_cost();
                 num_follower_searches++;
                 num_follower_searches_optimal++;
                 

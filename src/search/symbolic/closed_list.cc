@@ -25,7 +25,7 @@ namespace symbolic {
     ClosedList::ClosedList() : mgr(nullptr) {
     }
 
-    void ClosedList::init(SymStateSpaceManager *manager, UnidirectionalSearch * search) {
+    void ClosedList::init(SymStateSpaceManager *manager, const PlanReconstruction * search) {
 	mgr = manager;
 	my_search = search;
 	set<int>().swap(h_values);
@@ -38,7 +38,7 @@ namespace symbolic {
     }
 
 
-    void ClosedList::init(SymStateSpaceManager *manager, UnidirectionalSearch * search, const ClosedList &other) {
+    void ClosedList::init(SymStateSpaceManager *manager, const PlanReconstruction * search, const ClosedList &other) {
 	mgr = manager;
 	my_search = search;
 	set<int>().swap(h_values);
@@ -104,13 +104,18 @@ namespace symbolic {
 
     void ClosedList::extract_path(const BDD &c, int h, bool fw,
                                   vector <const GlobalOperator *> &path) const {
-	if (!mgr)
+	if (!mgr) {
 	    return;
+        }
+
 	DEBUG_MSG(cout << "Sym closed extract path h=" << h << " notClosed: " << hNotClosed << endl;
 		  cout << "Closed: ";
-		  for (auto &c : closed)
+		  for (const auto &c : closed) {
 		      cout << c.first << " ";
+                  }
+                  
 		  cout << endl;
+                  // 
 	    );
 	const map<int, vector<TransitionRelation>> &trs = mgr->getIndividualTRs();
 	BDD cut = c;
@@ -260,6 +265,7 @@ namespace symbolic {
 		}
 		if (!found) {
 		    cerr << "Error: Solution reconstruction failed: " << endl;
+                    
 		    exit_with(EXIT_CRITICAL_ERROR);
 		}
 	    }
@@ -269,7 +275,7 @@ namespace symbolic {
 	    );
     }
 
-    SymSolution ClosedList::checkCut(UnidirectionalSearch * search, const BDD &states, int g, bool fw) const {
+    SymSolution ClosedList::checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const {
 	BDD cut_candidate = states * closedTotal;
 	if (cut_candidate.IsZero()) {
 	    return SymSolution(); //No solution yet :(

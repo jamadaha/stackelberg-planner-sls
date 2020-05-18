@@ -30,7 +30,7 @@ namespace symbolic {
 
     bool UniformCostSearch::init(std::shared_ptr<SymStateSpaceManager>  manager, 
 				 bool forward, 
-				 std::shared_ptr<ClosedList> closed_opposite){
+				 std::shared_ptr<OppositeFrontier> closed_opposite){
 	mgr = manager;
 	fw = forward;
 	lastStepCost = true;

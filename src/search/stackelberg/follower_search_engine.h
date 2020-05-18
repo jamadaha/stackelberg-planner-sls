@@ -20,28 +20,42 @@ namespace stackelberg {
 
 
     class FollowerSolution {
-        int upper_bound;
+        bool solved;
+        
+        int plan_cost;
         std::vector <const GlobalOperator *> plan;
 
     public:
         
     FollowerSolution() :
-        upper_bound (std::numeric_limits<int>::max()) {}
+        solved(false), plan_cost(-1) {
+        }
 
-        FollowerSolution (int cost) : upper_bound (cost) {}
+        FollowerSolution (int cost) : solved(true), plan_cost (cost) {}
 
         FollowerSolution (const symbolic::SymSolution & sol,
                           const std::vector<int> & leader_state,
                           const std::vector<bool> & pattern);
 
-        int solution_cost() const;
+        int solution_cost() const{
+            return plan_cost;
+        }
         
-        bool solved() const;
+        bool is_solved() const {
+            return solved;
+        }
+
+        bool has_plan() const {
+            return !plan.empty();
+        }
+            
 
         const std::vector <const GlobalOperator *>  & get_plan() const{
             return plan;
         }
     };
+
+    class PlanReuse;
     
     class FollowerTask;
     class StackelbergTask;
@@ -66,7 +80,7 @@ namespace stackelberg {
         //Desired bound means: you can return as soon as you have a solution of this
         //quality or less. But the method should return the cost of the best solution
         //found independently of whether it is larger or lower than desired bound
-        virtual FollowerSolution solve (const std::vector<int> & leader_state, int desired_bound = 0) = 0;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse = nullptr) = 0;
 
         virtual FollowerSolution solve_minimum_ftask () = 0;        
     };
@@ -79,7 +93,7 @@ namespace stackelberg {
 
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
-        virtual FollowerSolution solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse = nullptr) override;
         virtual FollowerSolution solve_minimum_ftask () override;
     };
 
@@ -95,7 +109,7 @@ namespace stackelberg {
         
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
-        virtual FollowerSolution solve (const std::vector<int> & leader_state, int desired_bound = 0) override;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse) override;
         virtual FollowerSolution solve_minimum_ftask () override;
     }; 
 

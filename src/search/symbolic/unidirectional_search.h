@@ -5,6 +5,8 @@
 
 #include "sym_estimate.h"
 #include "sym_util.h"
+#include "sym_solution.h"
+
 #include <vector>
 #include <map>
 #include <memory>
@@ -41,7 +43,7 @@ namespace symbolic {
 
     class OppositeFrontier {
     public: 
-	virtual SymSolution checkCut(UnidirectionalSearch * search, const BDD &states, int g, bool fw) const = 0;
+	virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const = 0;
 
 	virtual BDD notClosed () const = 0;
 
@@ -56,7 +58,7 @@ namespace symbolic {
 	int hNotGoal;
     public:
 	OppositeFrontierFixed (BDD g, const SymStateSpaceManager & mgr); 
-	virtual SymSolution checkCut(UnidirectionalSearch * search, const BDD &states, int g, bool fw) const override;
+	virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
 	virtual BDD notClosed () const override {
 	    return !goal;
@@ -69,12 +71,41 @@ namespace symbolic {
 	virtual int getHNotClosed() const {
 	    return hNotGoal;
 	}
+    };
 
-    
+    class OppositeFrontierComposite  : public OppositeFrontier {
+
+    public:
+        std::shared_ptr<OppositeFrontier> f1, f2;
+    OppositeFrontierComposite(std::shared_ptr<OppositeFrontier> f1_,
+                              std::shared_ptr<OppositeFrontier> f2_) : f1(f1_), f2(f2_) {
+        }
+
+        virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const {
+            auto res = f1->checkCut(search, states, g, fw);
+            if (res.solved()) {
+                return res;
+            } else {
+                return f2->checkCut(search, states, g, fw);
+            }
+        }
+
+	virtual BDD notClosed () const {
+            return f1->notClosed();
+        }
+
+	//Returns true only if all not closed states are guaranteed to be dead ends
+	virtual bool exhausted () const{
+            return f1->exhausted();
+        }
+	
+	virtual int getHNotClosed() const{
+            return f1->getHNotClosed();
+        }
     };
 
 
-    class UnidirectionalSearch : public SymSearch {
+    class UnidirectionalSearch : public SymSearch, public PlanReconstruction {
     protected:
 	bool fw; //Direction of the search. true=forward, false=backward
 
@@ -91,7 +122,10 @@ namespace symbolic {
 
 	void statistics() const;
 
-	virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator *> &path) const = 0;
+	/* virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator
+         * *> &path) const = 0; */
+
+        virtual SymVariables *getVars() const override;        
 
 	virtual int getG() const = 0;
 

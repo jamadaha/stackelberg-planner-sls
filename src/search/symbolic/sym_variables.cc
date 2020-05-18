@@ -123,11 +123,11 @@ void SymVariables::init(const vector <int> &v_order) {
     binState.resize(_numBDDVars, 0);
     cout << "Symbolic Variables... Done." << endl;
 
-    /*  for(int i = 0; i < g_variable_domain.size(); i++){
+    /*  for(size_t i = 0; i < g_variable_domain.size(); i++){
       for(int j = 0; j < g_variable_domain[i]; j++){
-        cout << "Var-val: " << i << "-" << j << endl;
+          cout << "Var-val: " << i << "-" << j << " " << g_fact_names[i][j] << endl;
         preconditionBDDs[i][j].print(1,2);
-        effectBDDs[i][j].print(1,2);
+        //effectBDDs[i][j].print(1,2);
       }
       }*/
 }

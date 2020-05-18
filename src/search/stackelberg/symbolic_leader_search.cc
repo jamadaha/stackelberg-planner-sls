@@ -21,6 +21,7 @@
 
 #include "follower_search_engine.h"
 #include "follower_task.h"
+#include "plan_reuse.h"
 
 
 using namespace std;
@@ -31,11 +32,20 @@ namespace stackelberg {
     SymbolicStackelberg::SymbolicStackelberg(const Options &opts) :
         SearchEngine(opts),
         optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
+        plan_reuse (opts.get<PlanReuse *>("plan_reuse")),
         mgrParams(opts), searchParams(opts) {
 
         task = make_unique<StackelbergTask> ();
         stackelberg_mgr = make_shared<SymbolicStackelbergManager> (task.get(), opts);
         optimal_engine->initialize(task.get(), stackelberg_mgr);
+
+        plan_reuse->initialize(stackelberg_mgr);      
+
+        if (opts.contains("satisficing_engine")) {
+            satisficing_engine.reset(opts.get<FollowerSearchEngine *>("satisficing_engine"));
+            satisficing_engine->initialize(task.get(), stackelberg_mgr);
+        }
+
     }
 
     void SymbolicStackelberg::initialize() {
@@ -55,9 +65,7 @@ namespace stackelberg {
 
     SearchStatus SymbolicStackelberg::step() {
         cout << "Starting Stackelberg bounded search..." << endl;
-
-        BDD solved_follower_subproblems = vars->zeroBDD();
-        
+       
         int maxF = std::numeric_limits<int>::max();
         int L = 0;
         int F = -1;
@@ -67,12 +75,15 @@ namespace stackelberg {
                && L < std::numeric_limits<int>::max()
                && F < maxF) {
             BDD leader_states = closed_list.at(L);
-            BDD follower_initial_states = stackelberg_mgr->get_follower_initial_state_projection(leader_states);
+            BDD follower_initial_states =
+                stackelberg_mgr->get_follower_initial_state_projection(leader_states);
             
             cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)
-                 << ", follower subproblems: " << vars->numStates(follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars()) << flush;
+                 << ", follower subproblems: " << vars->numStates(follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars())  << ", " << flush;
 
-            follower_initial_states -= solved_follower_subproblems;
+
+            follower_initial_states =
+                plan_reuse->find_plan_follower_initial_states(follower_initial_states);
 
             int newF = F;
             vector<int> current_best;
@@ -80,57 +91,53 @@ namespace stackelberg {
             while(!follower_initial_states.IsZero() && newF < maxF) {                
                 auto state = stackelberg_mgr->sample_follower_initial_state(follower_initial_states);
 
-                // cout << "Sampled state" << endl;
-                // for (size_t v = 0; v < g_variable_domain.size(); ++v) {           
-                //     if(!task->is_leader_only_var(v))  {
-                //         cout << g_fact_names[v][state[v]]  << endl;
-                //     }
-                // }
-
-#ifndef NDEBUG
-                for (size_t v = 0; v < g_variable_domain.size(); ++v) {           
-                    assert(L > 0 || !task->get_follower_vars()[v] || state[v] == g_initial_state_data[v]);
+                FollowerSolution solution; 
+                if  (satisficing_engine) {
+                    solution = satisficing_engine->solve(state, plan_reuse.get());                        
                 }
-#endif
-
-                auto solution = optimal_engine->solve(state);
-
+  
+                if (!solution.is_solved()) { 
+                    solution = optimal_engine->solve(state, plan_reuse.get());
+                }
 
                 statistics.inc_opt_search();
                 
-                if (solution.solved()) {
+                if (solution.has_plan()) {
                     const auto plan = solution.get_plan();
 #ifndef NDEBUG
-
+                    auto state_aux  = state;
                     for (auto * op : plan) {
-                        assert(op->is_applicable(state));
-                        state = op->apply_to(state);
+                        assert(op->is_applicable(state_aux));
+                        state_aux = op->apply_to(state_aux);
                         // cout << op->get_name() << endl;
                     }
 #endif                
+                    
+                    follower_initial_states = plan_reuse->regress_plan_to_follower_initial_states(solution.get_plan(), follower_initial_states);
 
-                    BDD new_solved = stackelberg_mgr->regress_plan_to_follower_initial_states(solution.get_plan());
-                
-                    assert (follower_initial_states - new_solved != follower_initial_states);
-                
-                    follower_initial_states -= new_solved;
-                    solved_follower_subproblems += new_solved;
+                    // BDD aux = vars->getPartialStateBDD(state,stackelberg_mgr->get_pattern_vars_follower_subproblems());
+                    // assert(follower_initial_states-aux !=follower_initial_states);
+                    // follower_initial_states -= aux;
 
                 }
+                
                 int follower_cost  = solution.solution_cost();
-
-                               
+       
                 if (follower_cost > newF) {
                     newF = follower_cost;
                     current_best = state;
                     current_best_solution = solution;
+                    plan_reuse->set_follower_bound(newF);
                 }
             }
 
 
             if (newF > F) {
                 F = newF;
-                
+
+                // cout << "Extract leader path" << endl;
+                // cout << "leader state: " << endl; for (size_t i =0; i < g_fact_names.size(); ++i) { cout << g_fact_names[i][current_best[i]] << endl; }
+ 
                 vector<const GlobalOperator *> leader_ops_sequence;                
                 leader_search->getClosed()->extract_path(
                     vars->getPartialStateBDD(current_best,
@@ -141,7 +148,7 @@ namespace stackelberg {
                 
            }
 
-            cout << ",  F: " << F << endl;
+            cout << "F: " << F << ", total time: " << g_timer() <<  endl;
 
             //Generate the next layer
             while(!leader_search->finished() && leader_search->getG() == L) {
@@ -169,10 +176,13 @@ namespace stackelberg {
         SearchEngine::add_options_to_parser(parser);
         SymbolicStackelbergManager::add_options_to_parser(parser);
         SymParamsSearch::add_options_to_parser(parser, 30e3, 10e7);
-
+        
         parser.add_option<bool>("project_to_follower_states", "Project the set of leader options to follower states.", "false");
 
+        parser.add_option<PlanReuse *>("plan_reuse", "strategy for plan reuse", "simple");
         parser.add_option<FollowerSearchEngine *>("optimal_engine");
+        parser.add_option<FollowerSearchEngine *>("satisficing_engine", "", "", 
+        OptionFlags(false));
     
         Options opts = parser.parse();
         if (!parser.dry_run()) {

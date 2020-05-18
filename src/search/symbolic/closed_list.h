@@ -17,7 +17,7 @@ class SymSearch;
 
 class ClosedList : public OppositeFrontier {
 private:
-    UnidirectionalSearch * my_search;
+    const PlanReconstruction * my_search;
     SymStateSpaceManager *mgr;  //Symbolic manager to perform bdd operations
 
     std::map<int, BDD> closed;   // Mapping from cost to set of states
@@ -37,8 +37,8 @@ private:
 
 public:
     ClosedList();
-    void init(SymStateSpaceManager *manager, UnidirectionalSearch * search);
-    void init(SymStateSpaceManager *manager, UnidirectionalSearch * search, const ClosedList &other);
+    void init(SymStateSpaceManager *manager, const PlanReconstruction * search);
+    void init(SymStateSpaceManager *manager, const PlanReconstruction * search, const ClosedList &other);
 
     void insert(int h, const BDD &S);
     void setHNotClosed(int h);
@@ -48,7 +48,7 @@ public:
 
     //Check if any of the states is closed.
     //In case positive, return a solution pair <f_value, S>
-    virtual SymSolution checkCut(UnidirectionalSearch * search, const BDD &states, int g, bool fw) const override;
+    virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
     void extract_path(const BDD &cut, int h, bool fw,
 		      std::vector <const GlobalOperator *> &path) const;

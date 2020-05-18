@@ -11,7 +11,7 @@ namespace symbolic {
 										     hNotGoal(mgr.getAbsoluteMinTransitionCost()) {
     }
 
-    SymSolution OppositeFrontierFixed::checkCut(UnidirectionalSearch * search, const BDD &states, int g, bool fw) const {
+    SymSolution OppositeFrontierFixed::checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const {
 	BDD cut = states * goal;
 	if (cut.IsZero()) {
 	    return SymSolution(); //No solution yet :(
@@ -31,5 +31,9 @@ namespace symbolic {
 	cout << "Exp " << (fw ? "fw" : "bw") << " time: " << stats.step_time << "s (img:" <<
 	    stats.image_time << "s, heur: " << stats.time_heuristic_evaluation <<
 	    "s) in " << stats.num_steps_succeeded << " steps ";
+    }
+
+    SymVariables *UnidirectionalSearch::getVars() const {
+        return mgr->getVars();
     }
 }

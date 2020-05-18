@@ -13,6 +13,89 @@ using namespace std;
 
 namespace symbolic {
 
+    
+TransitionRelation::TransitionRelation(SymVariables *sVars,
+				       const GlobalOperator *op, int cost_, const vector<bool> & pattern) :
+    sV(sVars), cost(cost_), tBDD(sVars->oneBDD()),
+    existsVars(sVars->oneBDD()), existsBwVars(sVars->oneBDD()),
+    absAfterImage(nullptr) {
+    ops.insert(op);
+    for (size_t i = 0; i < op->get_preconditions().size(); i++) { //Put precondition of label
+        const GlobalCondition &prevail = op->get_preconditions()[i];
+        if(pattern[prevail.var]) {
+            tBDD *= sV->preBDD(prevail.var, prevail.val);
+        }
+    }
+
+    map<int, BDD> effect_conditions;
+    map<int, BDD> effects;
+    // Get effects and the remaining conditions. We iterate in reverse
+    // order because pre_post at the end have preference
+    for (int i = op->get_effects().size() - 1; i >= 0; i--) {
+        const GlobalEffect &effect = op->get_effects()[i];
+        int var = effect.var;
+        if(!pattern[effect.var]) continue;
+
+        if (std::find(effVars.begin(), effVars.end(), var) == effVars.end()) {
+            effVars.push_back(var);
+        }
+
+        BDD condition = sV->oneBDD();
+        BDD ppBDD = sV->effBDD(var, effect.val);
+        if (effect_conditions.count(var)) {
+            condition = effect_conditions.at(var);
+        } else {
+            effect_conditions[var] = condition;
+            effects [var] = sV->zeroBDD();
+        }
+
+        for (const auto &cPrev : effect.conditions) {
+            if (pattern[cPrev.var])  {
+                condition *= sV->preBDD(cPrev.var, cPrev.val);
+            }
+        }
+        effect_conditions[var] *= !condition;
+        effects[var] += (condition * ppBDD);
+    }
+
+    //Add effects to the tBDD
+    for (auto it = effects.rbegin(); it != effects.rend(); ++it) {
+        int var = it->first;
+        if(!pattern[var]) continue;
+
+        BDD effectBDD = it->second;
+        //If some possibility is not covered by the conditions of the
+        //conditional effect, then in those cases the value of the value
+        //is preserved with a biimplication
+        if (!effect_conditions[var].IsZero()) {
+            effectBDD += (effect_conditions[var] * sV->biimp(var));
+        }
+        tBDD *= effectBDD;
+    }
+    if (tBDD.IsZero()) {
+        cerr << "ERROR, DESAMBIGUACION: " << op->get_name() << endl;
+        //exit(0);
+    }
+
+    sort(effVars.begin(), effVars.end());
+    for (int var : effVars) {
+        for (int bdd_var : sV->vars_index_pre(var)) {
+            swapVarsS.push_back(sV->bddVar(bdd_var));
+        }
+        for (int bdd_var : sV->vars_index_eff(var)) {
+            swapVarsSp.push_back(sV->bddVar(bdd_var));
+        }
+    }
+    assert(swapVarsS.size() == swapVarsSp.size());
+    // existsVars/existsBwVars is just the conjunction of swapVarsS and swapVarsSp
+    for (size_t i = 0; i < swapVarsS.size(); ++i) {
+        existsVars *= swapVarsS[i];
+        existsBwVars *= swapVarsSp[i];
+    }
+    //DEBUG_MSG(cout << "Computing tr took " << tr_timer; tBDD.print(1, 1););
+}
+
+
 TransitionRelation::TransitionRelation(SymVariables *sVars,
 				       const GlobalOperator *op, int cost_) :
     sV(sVars), cost(cost_), tBDD(sVars->oneBDD()),

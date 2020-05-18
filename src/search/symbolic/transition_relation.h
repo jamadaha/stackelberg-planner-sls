@@ -44,6 +44,10 @@ public:
     TransitionRelation(SymVariables *sVars,
                   const GlobalOperator *op, int cost_);
 
+    //Constructor for transitions irrelevant for the abstraction
+    TransitionRelation(SymVariables *sVars,const GlobalOperator *op, int cost_, const std::vector<bool> & pattern);
+
+
     //Copy constructor
     TransitionRelation(const TransitionRelation &) = default;
 

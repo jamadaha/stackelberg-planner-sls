@@ -48,6 +48,7 @@ class SearchEngine;
 
 namespace stackelberg {
     class FollowerSearchEngine;
+    class PlanReuse;
 }
 class MergeStrategy;
 class ShrinkStrategy;
@@ -149,6 +150,13 @@ class TokenParser<stackelberg::FollowerSearchEngine *>
 {
 public:
     static inline stackelberg::FollowerSearchEngine *parse(OptionParser &p);
+};
+
+template <>
+class TokenParser<stackelberg::PlanReuse *>
+{
+public:
+    static inline stackelberg::PlanReuse *parse(OptionParser &p);
 };
 
 template <>
@@ -478,6 +486,12 @@ SearchEngine *TokenParser<SearchEngine *>::parse(OptionParser &p)
 stackelberg::FollowerSearchEngine *TokenParser<stackelberg::FollowerSearchEngine *>::parse(OptionParser &p)
 {
     return lookup_in_registry<stackelberg::FollowerSearchEngine>(p);
+}
+
+
+stackelberg::PlanReuse *TokenParser<stackelberg::PlanReuse *>::parse(OptionParser &p)
+{
+    return lookup_in_registry<stackelberg::PlanReuse>(p);
 }
 
 MergeStrategy *TokenParser<MergeStrategy *>::parse(OptionParser &p)

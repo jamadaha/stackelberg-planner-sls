@@ -5,16 +5,24 @@
 #include <vector>
 
 namespace symbolic {
-class UnidirectionalSearch;
+    class PlanReconstruction {
+
+    public: 
+	virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator *> &path) const = 0;
+
+        virtual SymVariables *getVars() const = 0;
+            
+        
+    };
 
 class SymSolution {
-    UnidirectionalSearch *exp_fw, *exp_bw;
+    const PlanReconstruction *exp_fw, *exp_bw;
     int g, h;
     BDD cut;
 public:
     SymSolution() : g(-1), h(-1) {} //No solution yet
 
-    SymSolution(UnidirectionalSearch *e_fw, UnidirectionalSearch *e_bw, int g_val, int h_val, BDD S) : exp_fw(e_fw), exp_bw(e_bw), g(g_val), h(h_val), cut(S) {}
+    SymSolution(const PlanReconstruction *e_fw, const PlanReconstruction *e_bw, int g_val, int h_val, BDD S) : exp_fw(e_fw), exp_bw(e_bw), g(g_val), h(h_val), cut(S) {}
 
     void getPlan(std::vector <const GlobalOperator *> &path, const std::vector<int> & initial_state, const std::vector<bool> & pattern) const;
 

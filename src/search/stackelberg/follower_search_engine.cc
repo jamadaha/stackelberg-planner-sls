@@ -8,6 +8,7 @@
 #include "util.h"
 #include "stackelberg_task.h"
 #include "symbolic_stackelberg_manager.h"
+#include "plan_reuse.h"
 #include "../symbolic/sym_search.h"
 #include "../symbolic/sym_variables.h"
 #include "../symbolic/sym_params_search.h"
@@ -23,21 +24,14 @@ using namespace symbolic;
 
 
         
-FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern) : upper_bound(sol.getCost()) {
+FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern) : solved(true), plan_cost(sol.getCost()) {
 
     sol.getPlan(plan, initial_state, pattern);
 }
-
-int FollowerSolution::solution_cost() const {
-    return upper_bound;
-}
         
-bool FollowerSolution::solved() const {
-    return upper_bound < std::numeric_limits<int>::max();
-}
 
 FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state,
-                                                      int desired_bound ) {
+                                                      PlanReuse * plan_reuse ) {
 
     auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
@@ -47,9 +41,20 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
     
     unique_ptr<BidirectionalSearch> bd_search;
     SymSearch * search;
+
+    // if(plan_reuse) {
+    //     fw_search->init(mgr, true, plan_reuse->getClosed());
+    //     search = fw_search.get();
+    // } else
     if (bidir) {
         auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-        fw_search->init(mgr, true, bw_search->getClosedShared());
+
+
+        if (plan_reuse) {
+            fw_search->init(mgr, true, make_shared<OppositeFrontierComposite>(bw_search->getClosedShared(), plan_reuse->get_closed()));
+        } else {
+            fw_search->init(mgr, true, bw_search->getClosedShared());
+        }
         bw_search->init(mgr, false, fw_search->getClosedShared());	
         bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                       move(fw_search), move(bw_search));
@@ -60,8 +65,8 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
     }
 
     while(!controller->solved()) {
-        if (controller->getUpperBound() <= desired_bound) {
-            return FollowerSolution(controller->getUpperBound());
+        if (plan_reuse && controller->getUpperBound() <= plan_reuse->get_follower_bound()) {
+            return FollowerSolution(*(controller->get_solution()), leader_state, mgr->get_relevant_vars());
         }
         
         search->step();
@@ -72,7 +77,7 @@ FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & l
         assert(controller->solved());
         return FollowerSolution(*(controller->get_solution()), leader_state, mgr->get_relevant_vars());
     } else {
-        return FollowerSolution();
+        return FollowerSolution(controller->getUpperBound());
     }
 }
 
@@ -140,7 +145,6 @@ FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
     }
     cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << endl;
 
-
     g_operators.clear();
     for (const auto & op :task->get_follower_operators_with_all_preconds()) {
         g_operators.push_back(op);
@@ -155,7 +159,7 @@ FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
 }
 
 
-FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, int /*desired_bound*/) {
+FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * /*desired_bound*/) {
     for (int leader_var = 0; leader_var < task->get_num_leader_vars(); leader_var++) {
         int orig_var_id = task-> get_map_leader_var_id_to_orig_var_id(leader_var);
         g_initial_state_data[orig_var_id] = leader_state[leader_var];

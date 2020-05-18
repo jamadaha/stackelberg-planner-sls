@@ -21,7 +21,19 @@ namespace symbolic {
 	if (exp_fw) {
 	    exp_fw->getPlan(cut, g, path);   
 	}
-	DEBUG_MSG(cout << "Extract path backward: " << h << endl; );
+	DEBUG_MSG(cout << "Extract path backward: " << h << endl << " starting from path: "  << endl;
+                  for (const auto *  op : path ) {
+                      cout << op->get_name() << endl;
+                  }
+                  cout << "Starting state" << endl;
+                  for (size_t v = 0; v < g_fact_names.size(); ++v) {
+                      if (pattern[v]) {
+                          cout << g_fact_names[v][initial_state[v]] << endl;
+                      }
+                  }
+            );
+
+        
 	if (exp_bw) {
 	    BDD newCut;
 	    if (!path.empty()) {
@@ -35,9 +47,9 @@ namespace symbolic {
 		    }
 		}
                 if(pattern.empty()) {
-                    newCut = exp_bw->getStateSpace()->getVars()->getStateBDD(s);
+                    newCut = exp_bw->getVars()->getStateBDD(s);
                 } else {
-                    newCut = exp_bw->getStateSpace()->getVars()->getPartialStateBDD(s, pattern);
+                    newCut = exp_bw->getVars()->getPartialStateBDD(s, pattern);
                 }
 	    } else {
 		newCut = cut;
@@ -72,8 +84,8 @@ namespace symbolic {
 	getPlan(path);
 
 	SymVariables *vars = nullptr;
-	if(exp_fw) vars = exp_fw->getStateSpace()->getVars();
-	else if(exp_bw) vars = exp_bw->getStateSpace()->getVars();
+	if(exp_fw) vars = exp_fw->getVars();
+	else if(exp_bw) vars = exp_bw->getVars();
 	
 	ADD hADD = vars->getADD(-1);
 	int h_val = g + h;

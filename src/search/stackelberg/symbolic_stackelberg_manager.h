@@ -6,7 +6,8 @@
 class OptionParser;
 class Options;
 
-class MutexGroup; 
+class MutexGroup;
+
 namespace stackelberg {
 
     class StackelbergTask;
@@ -44,7 +45,6 @@ namespace stackelberg {
     };
 
 
-    
     typedef  std::vector<std::pair<int,int>> LeaderPrecondition;
     // This class initializes common data structures that are useful for all stackelberg
     // searches.
@@ -62,6 +62,7 @@ namespace stackelberg {
         BDD cubeFollowerSubproblems;
         int num_bdd_vars_follower_subproblems;
         std::vector<bool> pattern_vars_follower_subproblems;
+        std::vector<bool> pattern_vars_follower_search;
         
         BDD cubeOnlyFollowerVars;
         
@@ -69,6 +70,7 @@ namespace stackelberg {
         
 
         //List of transition relations by ID. Needed for plan reconstruction
+        std::vector<std::unique_ptr<symbolic::TransitionRelation>> transitions_by_id;
         std::vector<std::unique_ptr<symbolic::TransitionRelation>> follower_transitions_by_id;
         std::map <LeaderPrecondition, std::map<int, std::vector<symbolic::TransitionRelation>>> follower_transitions_by_leader_precondition;
         
@@ -109,8 +111,8 @@ namespace stackelberg {
         std::shared_ptr<StackelbergSS> get_leader_manager();
 
 
-        std::map<int, BDD> regress_plan(const std::vector<const GlobalOperator *> & plan);
-        BDD regress_plan_to_follower_initial_states(const std::vector<const GlobalOperator *> & plan);
+
+        const symbolic::TransitionRelation &  get_transition_relation(const GlobalOperator * op) const;
 
         std::vector<int> sample_follower_initial_state(BDD follower_initial_states) const;
 
@@ -128,6 +130,15 @@ namespace stackelberg {
         const std::vector<bool> & get_pattern_vars_follower_subproblems() const {
             return pattern_vars_follower_subproblems;
         }
+
+        const BDD & get_static_follower_initial_state () const {
+            return static_follower_initial_state;
+        }
+
+        std::shared_ptr<StackelbergSS> get_empty_manager() const;
+            
+
+        int get_cost (const GlobalOperator *op) const; 
 
         static void add_options_to_parser(OptionParser &parser);
     };

@@ -94,7 +94,7 @@ namespace symbolic {
 	virtual bool stepImage(int maxTime, int maxNodes);
 
 	bool init(std::shared_ptr<SymStateSpaceManager> manager, bool fw, 
-		  std::shared_ptr<ClosedList> closed_opposite = nullptr); // Init forward or backward search
+		  std::shared_ptr<OppositeFrontier> closed_opposite = nullptr); // Init forward or backward search
 
 	virtual void getPlan(const BDD &cut, int g,
 			     std::vector <const GlobalOperator *> &path) const override;

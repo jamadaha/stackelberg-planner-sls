@@ -218,7 +218,6 @@ HEADERS +=  symbolic/sym_variables.h \
 	symbolic/symbolic_search.h 
 
 HEADERS +=  stackelberg/stackelberg_search.h \
-	    stackelberg/stackelberg_bounded.h \
 	    stackelberg/pareto_frontier.h \
 	    stackelberg/stackelberg_task.h \
 	    stackelberg/partial_order_reduction.h \
@@ -227,12 +226,13 @@ HEADERS +=  stackelberg/stackelberg_search.h \
 	    stackelberg/util.h \
 	    stackelberg/symbolic_stackelberg_manager.h  \
 	    stackelberg/stackelberg_statistics.h \
-	    stackelberg/symbolic_leader_search.h 
+	    stackelberg/symbolic_leader_search.h \
+	    stackelberg/plan_reuse.h	
 # stackelberg/bound_library.h
 # stackelberg/dominance_relation.h
 
 # stackelberg/perimeter_plan.h
-# stackelberg/plan_reuse.h
+
 
 
 
