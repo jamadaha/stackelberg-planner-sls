@@ -11,7 +11,36 @@ class MutexGroup;
 namespace stackelberg {
 
     class StackelbergTask;
-    
+
+    class MutexBDDs {
+
+        std::vector<BDD> notMutexBDDsFw, notMutexBDDsBw;
+        //notMutex relative for each fluent
+        std::vector<std::vector<BDD>> notMutexBDDsByFluentFw, notMutexBDDsByFluentBw;
+        std::vector<std::vector<BDD>> exactlyOneBDDsByFluent;
+
+
+    public:
+        
+        MutexBDDs (symbolic::SymVariables * vars,
+                   const std::vector<MutexGroup> &mutex_groups,
+                   const symbolic::SymParamsMgr &params,
+                   const std::vector<bool> & relevant_vars);
+        
+        void init_mutex(symbolic::SymVariables * vars,
+                        const std::vector<MutexGroup> &mutex_groups,
+                        const symbolic::SymParamsMgr &params, 
+                        bool genMutexBDD, bool genMutexBDDByFluent, bool fw,
+                        const std::vector<bool> & relevant_vars);
+
+        const std::vector<BDD> & getValidStates(bool fw) const{
+            if (fw) return notMutexBDDsFw;
+            else return notMutexBDDsBw;
+        }
+
+        void edeletion(symbolic::TransitionRelation & tr) const;
+
+    }; 
     class StackelbergSS : public symbolic::SymStateSpaceManager {
 
         std::vector<bool> pattern;
@@ -24,7 +53,7 @@ namespace stackelberg {
                       BDD initialState, BDD goal,
                       std::map<int, std::vector <symbolic::TransitionRelation>> indTRs_,
                       std::map<int, std::vector <symbolic::TransitionRelation>> trs,
-                      std::vector<BDD> validStates, const std::vector<bool> &  _pattern);
+                      const std::vector<BDD> & validStates, const std::vector<bool> &  _pattern);
 
 
         //For plan solution reconstruction. Only avaialble in original state space
@@ -63,12 +92,16 @@ namespace stackelberg {
         int num_bdd_vars_follower_subproblems;
         std::vector<bool> pattern_vars_follower_subproblems;
         std::vector<bool> pattern_vars_follower_search;
+
+
+        std::unique_ptr<MutexBDDs> mutex_bdds;
         
         BDD cubeOnlyFollowerVars;
         
         BDD static_follower_initial_state;
         
 
+        
         //List of transition relations by ID. Needed for plan reconstruction
         std::vector<std::unique_ptr<symbolic::TransitionRelation>> transitions_by_id;
         std::vector<std::unique_ptr<symbolic::TransitionRelation>> follower_transitions_by_id;
@@ -144,6 +177,6 @@ namespace stackelberg {
     };
 
     
-}
+    }
 #endif
 
