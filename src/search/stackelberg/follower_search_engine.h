@@ -31,6 +31,9 @@ namespace stackelberg {
         solved(false), plan_cost(-1) {
         }
 
+        FollowerSolution (int cost, const std::vector <const GlobalOperator *> & plan_) :
+        solved(true), plan_cost (cost), plan(plan_) {}
+
         FollowerSolution (int cost) : solved(true), plan_cost (cost) {}
 
         FollowerSolution (const symbolic::SymSolution & sol,

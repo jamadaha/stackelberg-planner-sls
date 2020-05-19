@@ -17,12 +17,8 @@
 #include "../symbolic/bidirectional_search.h"
 #include "../symbolic/sym_controller.h"
 
-
-
 using namespace stackelberg;
 using namespace symbolic;
-
-
         
 FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern) : solved(true), plan_cost(sol.getCost()) {
 
@@ -152,19 +148,29 @@ FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
     delete g_successor_generator;
     g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
     if(follower_heuristic) {
-        follower_heuristic->reset();
-    
+        follower_heuristic->reset();    
     }
     return FollowerSolution(); //follower_cost_upper_bound;
 }
 
 
 FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * /*desired_bound*/) {
-    for (int leader_var = 0; leader_var < task->get_num_leader_vars(); leader_var++) {
-        int orig_var_id = task-> get_map_leader_var_id_to_orig_var_id(leader_var);
-        g_initial_state_data[orig_var_id] = leader_state[leader_var];
-    }
 
+    auto original_g_initial_state_data = g_initial_state_data;
+#ifdef NDEBUG
+    streambuf *old = cout.rdbuf(); // <-- save
+    stringstream ss;
+    cout.rdbuf(ss.rdbuf());        // <-- redirect
+#endif
+
+    
+    // for (int leader_var = 0; leader_var < task->get_num_leader_vars(); leader_var++) {
+    //     int orig_var_id = task-> get_map_leader_var_id_to_orig_var_id(leader_var);
+    //     g_initial_state_data[orig_var_id] = leader_state[leader_var];
+    // }
+    g_initial_state_data = leader_state;
+
+    
     search_engine->reset();
     g_state_registry->reset();
     
@@ -173,29 +179,39 @@ FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & l
     // SearchSpace *search_space = search_engine->get_search_space();
     // all_attacker_states += search_space->get_num_search_node_infos();
 
-    // // int plan_cost = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE; 
-    // if (search_engine->found_solution()) {
-    //     search_engine->save_plan_if_necessary();
-    //     plan_cost = search_engine->calculate_plan_cost();
+    int plan_cost = std::numeric_limits<int>::max();
 
-    //     // if (follower_heuristic) {
-    //     //     follower_heuristic_search_space = new AttackSearchSpace();
-    //     //     free_follower_heuristic_per_state_info = true;
+    std::vector <const GlobalOperator *> plan;
+
+
+    // if (follower_heuristic) {
+    //     follower_heuristic_search_space = new AttackSearchSpace();
+    //     free_follower_heuristic_per_state_info = true;
                 
-    //     //     OpenList<pair<StateID, int>> *open_list = ((EagerSearch *)
-    //     //                                                search_engine)->get_open_list();
-    //     //     const GlobalState *goal_state = search_engine->get_goal_state();
-    //     //     const int goal_state_budget = search_engine->get_goal_state_budget();
+    //     OpenList<pair<StateID, int>> *open_list = ((EagerSearch *)
+    //                                                search_engine)->get_open_list();
+    //     const GlobalState *goal_state = search_engine->get_goal_state();
+    //     const int goal_state_budget = search_engine->get_goal_state_budget();
 
-    //     //     follower_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(attack_vars_indizes);
+    //     follower_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(attack_vars_indizes);
 
-    //     //     follower_heuristic->reinitialize(follower_heuristic_search_space, search_space,
-    //     //                                      open_list, *goal_state,
-    //     //                                      goal_state_budget);
-    //     // }
+    //     follower_heuristic->reinitialize(follower_heuristic_search_space, search_space,
+    //                                      open_list, *goal_state,
+    //                                      goal_state_budget);
     // }
-    
-    return FollowerSolution(); //plan_cost;
+
+    if (search_engine->found_solution()) {
+        plan_cost = search_engine->calculate_plan_cost();
+        plan = search_engine->get_plan();
+    } 
+
+    g_initial_state_data = original_g_initial_state_data;
+
+#ifdef NDEBUG
+    cout.rdbuf(old);   			// <-- restore
+#endif
+
+    return FollowerSolution(plan_cost, plan);
 }
 
 
@@ -229,4 +245,21 @@ static FollowerSearchEngine *_parse_symbolic(OptionParser &parser) {
     return nullptr;
 }
 
-static Plugin<FollowerSearchEngine> _plugin_symbolic("symbolic", _parse_symbolic);
+
+
+
+static FollowerSearchEngine *_parse_explicit(OptionParser &parser) {
+
+    parser.add_option<SearchEngine *> ("search_engine", "engine", "");
+    Options opts = parser.parse();
+
+    if (!parser.dry_run()) {
+        return new ExplicitFollowerSearchEngine(opts);
+    }
+
+    return nullptr;
+}
+
+
+static Plugin<FollowerSearchEngine> _plugin_symbolic_follower("symbolic", _parse_symbolic);
+static Plugin<FollowerSearchEngine> _plugin_explicit_follower("explicit", _parse_explicit);
