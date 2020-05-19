@@ -143,6 +143,8 @@ namespace stackelberg {
                     vars->getPartialStateBDD(current_best,
                                              stackelberg_mgr->get_pattern_vars_follower_subproblems() ),
                     L, true, leader_ops_sequence);
+
+                std::reverse(leader_ops_sequence.begin(), leader_ops_sequence.end());
                 
                 pareto_frontier.add_node(L, F, leader_ops_sequence, current_best_solution.get_plan());
                 
