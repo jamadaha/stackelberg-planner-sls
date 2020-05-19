@@ -35,12 +35,12 @@ namespace symbolic {
     SymStateSpaceManager::SymStateSpaceManager(SymVariables *v, const SymParamsMgr &params,
                                                BDD initialState_, BDD goal_,
                                                std::map<int, std::vector <TransitionRelation>> transitions_,
-                                               std::vector<BDD> validStates_,
+                                               const std::vector<BDD> & notMutexBDDsFw_, const std::vector<BDD> & notMutexBDDsBw_,
                                                const std::set<int> & relevant_vars_) :
         vars(v), p(params), relevant_vars(relevant_vars_), 
 	initialState(initialState_), goal(goal_), transitions(transitions_),
 	min_transition_cost(0), hasTR0(false),
-        notMutexBDDsFw(validStates_), notMutexBDDsBw(validStates_) {
+        notMutexBDDsFw(notMutexBDDsFw_), notMutexBDDsBw(notMutexBDDsBw_) {
         
 	if(relevant_vars.empty()) {
 	    for (size_t i = 0; i < g_variable_domain.size(); ++i) {

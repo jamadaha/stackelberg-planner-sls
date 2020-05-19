@@ -53,7 +53,7 @@ namespace stackelberg {
                       BDD initialState, BDD goal,
                       std::map<int, std::vector <symbolic::TransitionRelation>> indTRs_,
                       std::map<int, std::vector <symbolic::TransitionRelation>> trs,
-                      const std::vector<BDD> & validStates, const std::vector<bool> &  _pattern);
+                      const MutexBDDs & mutex_bdds, const std::vector<bool> &  _pattern);
 
 
         //For plan solution reconstruction. Only avaialble in original state space
@@ -94,7 +94,7 @@ namespace stackelberg {
         std::vector<bool> pattern_vars_follower_search;
 
 
-        std::unique_ptr<MutexBDDs> mutex_bdds;
+        std::shared_ptr<MutexBDDs> mutex_bdds;
         
         BDD cubeOnlyFollowerVars;
         

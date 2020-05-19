@@ -73,7 +73,7 @@ namespace stackelberg {
         cubeFollowerSubproblems = vars->getCubePre(task->get_leader_only_vars()) *
             vars->getCubePre(task->get_follower_only_vars());
 
-        mutex_bdds = make_unique<MutexBDDs> (vars.get(), g_mutex_groups, mgr_params, pattern_vars_follower_search);
+        mutex_bdds = make_shared<MutexBDDs> (vars.get(), g_mutex_groups, mgr_params, pattern_vars_follower_search);
 
         
         transitions_by_id.resize(g_operators.size());
@@ -159,7 +159,7 @@ namespace stackelberg {
             if (!pattern_vars_follower_search[goal.first] && leader_state[goal.first] != goal.second) {
                 // Task is unsolvable. 
                 return make_shared<StackelbergSS>(vars.get(), mgr_params, vars->zeroBDD(), vars->zeroBDD(),
-                                                  indTRs, transitions, mutex_bdds->getValidStates(true), pattern_vars_follower_search);
+                                                  indTRs, transitions, *mutex_bdds, pattern_vars_follower_search);
             }
         }
 
@@ -173,7 +173,7 @@ namespace stackelberg {
         }
 
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions,
-                                          mutex_bdds->getValidStates(true), pattern_vars_follower_search);
+                                          *mutex_bdds, pattern_vars_follower_search);
     }
 
     
@@ -197,7 +197,7 @@ namespace stackelberg {
         // }
 
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, trs,
-                                          mutex_bdds->getValidStates(true), vector<bool>());
+                                          *mutex_bdds, vector<bool>());
 
 
     }
@@ -255,7 +255,7 @@ namespace stackelberg {
         }
 
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions,
-                                          mutex_bdds->getValidStates(true), vector<bool>());
+                                          *mutex_bdds, vector<bool>());
     
     }
 
@@ -268,7 +268,7 @@ namespace stackelberg {
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal,
                                           std::map<int, std::vector <symbolic::TransitionRelation>> (),
                                           std::map<int, std::vector <symbolic::TransitionRelation>> (),
-                                          mutex_bdds->getValidStates(true), vector<bool>());
+                                          *mutex_bdds, vector<bool>());
     
     }
 
@@ -281,9 +281,11 @@ namespace stackelberg {
                                  BDD initialState, BDD goal,
                                  std::map<int, std::vector <symbolic::TransitionRelation>> indTRs_,
                                  std::map<int, std::vector <symbolic::TransitionRelation>> transitions,
-                                 const std::vector<BDD> & validStates, const std::vector<bool> &  _pattern) :
-        SymStateSpaceManager(vars, params, initialState, goal, transitions, validStates),
-        pattern(_pattern), indTRs(indTRs_) {
+                                 const MutexBDDs & mutex_bdds, const std::vector<bool> &  _pattern) :
+        SymStateSpaceManager(vars, params, initialState, goal, transitions,
+                             mutex_bdds.getValidStates(true),
+                             mutex_bdds.getValidStates(false)),
+                             pattern(_pattern), indTRs(indTRs_) {
         
     }
 
