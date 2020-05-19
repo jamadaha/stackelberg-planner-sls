@@ -93,25 +93,31 @@ namespace stackelberg {
 
                 FollowerSolution solution; 
                 if  (satisficing_engine) {
-                    solution = satisficing_engine->solve(state, plan_reuse.get());                        
-                }
-  
-                if (!solution.is_solved()) { 
-                    solution = optimal_engine->solve(state, plan_reuse.get());
+                    solution = satisficing_engine->solve(state, plan_reuse.get());
+
+                    // if (solution.has_plan()) {
+                    // }
                 }
 
-                statistics.inc_opt_search();
-                
+                if (!solution.is_solved() || solution.solution_cost() > newF) { 
+                    solution = optimal_engine->solve(state, plan_reuse.get());
+
+                    statistics.inc_opt_search();
+                }
+
                 if (solution.has_plan()) {
                     const auto plan = solution.get_plan();
 #ifndef NDEBUG
                     auto state_aux  = state;
                     for (auto * op : plan) {
+                        cout << op->get_name() << endl;
+                        
                         assert(op->is_applicable(state_aux));
                         state_aux = op->apply_to(state_aux);
-                        // cout << op->get_name() << endl;
                     }
-#endif                
+                    cout << endl;
+#endif
+
                     
                     follower_initial_states = plan_reuse->regress_plan_to_follower_initial_states(solution.get_plan(), follower_initial_states);
 
