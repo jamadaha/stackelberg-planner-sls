@@ -93,14 +93,14 @@ namespace stackelberg {
 
                 FollowerSolution solution; 
                 if  (satisficing_engine) {
-                    solution = satisficing_engine->solve(state, plan_reuse.get());
+                    solution = satisficing_engine->solve(state, plan_reuse.get(), newF);
 
                     // if (solution.has_plan()) {
                     // }
                 }
 
                 if (!solution.is_solved() || solution.solution_cost() > newF) { 
-                    solution = optimal_engine->solve(state, plan_reuse.get());
+                    solution = optimal_engine->solve(state, plan_reuse.get(), std::numeric_limits<int>::max());
 
                     statistics.inc_opt_search();
                 }

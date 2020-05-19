@@ -83,7 +83,7 @@ namespace stackelberg {
         //Desired bound means: you can return as soon as you have a solution of this
         //quality or less. But the method should return the cost of the best solution
         //found independently of whether it is larger or lower than desired bound
-        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse = nullptr) = 0;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) = 0;
 
         virtual FollowerSolution solve_minimum_ftask () = 0;        
     };
@@ -100,7 +100,7 @@ namespace stackelberg {
 
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
-        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse = nullptr) override;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) override;
         virtual FollowerSolution solve_minimum_ftask () override;
     };
 
@@ -116,7 +116,7 @@ namespace stackelberg {
         
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
-        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse) override;
+        virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) override;
         virtual FollowerSolution solve_minimum_ftask () override;
     }; 
 

@@ -27,7 +27,7 @@ FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> &
         
 
 FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state,
-                                                      PlanReuse * plan_reuse ) {
+                                                      PlanReuse * plan_reuse, int /*bound*/ ) {
 
     auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
@@ -160,7 +160,8 @@ FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
 }
 
 
-FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * /*desired_bound*/) {
+FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * // plan_reuse
+                                                      , int bound) {
     // Save global information
     auto * g_successor_generator_copy = g_successor_generator;
     auto original_g_initial_state_data = g_initial_state_data;
@@ -178,8 +179,10 @@ FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & l
     stringstream ss;
     cout.rdbuf(ss.rdbuf());        // <-- redirect
 #endif   
-    
-    search_engine->search(); 
+
+    search_engine->set_bound(bound);
+    search_engine->search();
+
 
     // SearchSpace *search_space = search_engine->get_search_space();
     // all_attacker_states += search_space->get_num_search_node_infos();
@@ -202,6 +205,10 @@ FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & l
     g_initial_state_data = original_g_initial_state_data;
     g_operators.swap(follower_operators_with_all_preconds);
     g_successor_generator = g_successor_generator_copy;
+
+    if (search_engine->get_status() == TIMEOUT) {
+        return FollowerSolution();
+    }
 
     return FollowerSolution(plan_cost, plan);
 }
