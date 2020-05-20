@@ -37,12 +37,12 @@ namespace stackelberg {
             vector<vector<int>> var_order_partitions(3);
 
             for(size_t var = 0; var < g_variable_domain.size(); ++var) {
-                int partition = 2;
+                int partition = 1;
                 
                 if (task->is_leader_only_var(var)){
                     partition = 0;
                 } else if (task->is_follower_only_var(var)) {
-                    partition = 1;
+                    partition = 2;
                 }
                     
                 var_order_partitions[partition].push_back(var);
@@ -286,7 +286,11 @@ namespace stackelberg {
                              mutex_bdds.getValidStates(true),
                              mutex_bdds.getValidStates(false)),
                              pattern(_pattern), indTRs(indTRs_) {
-        
+        cout << "StackelbergSS pattern: ";
+        for (auto v : pattern) {
+            cout << v << ", ";
+        }
+        cout << endl;
     }
 
 
