@@ -16,6 +16,7 @@ namespace symbolic {
 class SearchEngine;
 class Heuristic;
 class Options;
+class OptionParser;
 namespace stackelberg {
 
 
@@ -56,6 +57,7 @@ namespace stackelberg {
         const std::vector <const GlobalOperator *>  & get_plan() const{
             return plan;
         }
+
     };
 
     class PlanReuse;
@@ -68,12 +70,15 @@ namespace stackelberg {
     class FollowerSearchEngine {
     protected:
         StackelbergTask * task;
-        
         std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
+        
+        const bool plan_reuse_upper_bound;
 
         virtual void initialize_follower_search_engine() = 0; 
             
     public:
+        FollowerSearchEngine(const Options &opts);
+
         void initialize(StackelbergTask * _task, std::shared_ptr<SymbolicStackelbergManager> mgr) {
             task = _task;
             stackelberg_mgr = mgr;
@@ -85,7 +90,10 @@ namespace stackelberg {
         //found independently of whether it is larger or lower than desired bound
         virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) = 0;
 
-        virtual FollowerSolution solve_minimum_ftask () = 0;        
+        virtual FollowerSolution solve_minimum_ftask () = 0;
+        
+        static void add_options_to_parser(OptionParser &parser);
+
     };
 
     class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
