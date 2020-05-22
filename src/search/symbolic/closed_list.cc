@@ -25,11 +25,33 @@ namespace symbolic {
     ClosedList::ClosedList() : mgr(nullptr) {
     }
 
-    void ClosedList::init(SymStateSpaceManager *manager, const PlanReconstruction * search) {
+    ClosedList::ClosedList(const ClosedList & other, const BDD & subset) : mgr(other.mgr) {
+        for (const auto & entry  : other.closed){
+            int hval = entry.first;
+            BDD result = entry.second*subset;
+            if (!result.IsZero()) {
+                closed[hval] = result;
+                h_values.insert(hval);
+                if (zeroCostClosed.count(hval)) {
+                    for (auto & bdd : other.zeroCostClosed.at(hval)) {
+                        zeroCostClosed[hval].push_back(bdd*subset);
+                    }
+                }
+            }
+            // assert(other.closedUpTo.count(hval));
+            // closedUpTo[hval] = other.closedUpTo.at(hval)*subset;        
+        }
+        
+        closedTotal = other.closedTotal * subset;
+        hNotClosed = 0;
+        fNotClosed = 0;        
+    }
+
+
+    void ClosedList::init(SymStateSpaceManager *manager) {
 	mgr = manager;
-	my_search = search;
 	set<int>().swap(h_values);
-	map<int, BDD>().swap(closedUpTo);
+	// map<int, BDD>().swap(closedUpTo);
 	map <int, vector<BDD>>().swap(zeroCostClosed);
 	map<int, BDD>().swap(closed);
 	closedTotal = mgr->zeroBDD();
@@ -38,11 +60,10 @@ namespace symbolic {
     }
 
 
-    void ClosedList::init(SymStateSpaceManager *manager, const PlanReconstruction * search, const ClosedList &other) {
+    void ClosedList::init(SymStateSpaceManager *manager, const ClosedList &other) {
 	mgr = manager;
-	my_search = search;
 	set<int>().swap(h_values);
-	map<int, BDD>().swap(closedUpTo);
+	// map<int, BDD>().swap(closedUpTo);
 	map <int, vector<BDD>>().swap(zeroCostClosed);
 	map<int, BDD>().swap(closed);
 	closedTotal = mgr->zeroBDD();
@@ -80,12 +101,13 @@ namespace symbolic {
 	}
 	closedTotal += S;
 
-	//Introduce in closedUpTo
-	auto c = closedUpTo.lower_bound(h);
-	while (c != std::end(closedUpTo)) {
-	    c->second += S;
-	    c++;
-	}
+	// //Introduce in closedUpTo
+	// auto c = closedUpTo.lower_bound(h);
+	// while (c != std::end(closedUpTo)) {
+	//     c->second += S;
+	//     c++;
+	// }
+        // Warning: We should introduce items in closedUpTo
     }
 
 
@@ -288,9 +310,9 @@ namespace symbolic {
 	    BDD cut = closedH.second * cut_candidate;
 	    if (!cut.IsZero()) {
 		if (fw) //Solution reconstruction will fail
-		    return SymSolution(search, my_search, g, h, cut);
+		    return SymSolution(search, this, g, h, cut);
 		else
-		    return SymSolution(my_search, search, h, g, cut);
+		    return SymSolution(this, search, h, g, cut);
 	    }
 	}
 
@@ -397,6 +419,16 @@ namespace symbolic {
         
 	averageHeuristic += notClosedSize * maxH;
 	return averageHeuristic / heuristicSize;
+    }
+
+    void ClosedList::getPlan(const BDD &cut, int g, bool fw, std::vector <const GlobalOperator *> &path) const {
+	extract_path(cut, g, fw, path);
+    	if (fw) {
+    	    std::reverse(path.begin(), path.end());
+    	} 
+    }
+    SymVariables *ClosedList::getVars() const {
+        return mgr->getVars();
     }
 
 

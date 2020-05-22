@@ -3,6 +3,7 @@
 
 #include "sym_variables.h"
 #include "unidirectional_search.h"
+#include "sym_solution.h"
 
 #include <vector>
 #include <set>
@@ -15,9 +16,8 @@ class SymSolution;
 class UnidirectionalSearch;
 class SymSearch;
 
-class ClosedList : public OppositeFrontier {
+class ClosedList : public OppositeFrontier, PlanReconstruction { 
 private:
-    const PlanReconstruction * my_search;
     SymStateSpaceManager *mgr;  //Symbolic manager to perform bdd operations
 
     std::map<int, BDD> closed;   // Mapping from cost to set of states
@@ -30,15 +30,18 @@ private:
     BDD closedTotal;             // All closed states.
 
     int hNotClosed, fNotClosed; // Bounds on h and g for those states not in closed
-    std::map<int, BDD> closedUpTo;  // Disjunction of BDDs in closed  (auxiliar useful to take the maximum between several BDDs)
+    //std::map<int, BDD> closedUpTo;  // Disjunction of BDDs in closed  (auxiliar useful to take the maximum between several BDDs)
     std::set<int> h_values; //Set of h_values of the heuristic
 
     void newHValue(int h_value); 
 
 public:
     ClosedList();
-    void init(SymStateSpaceManager *manager, const PlanReconstruction * search);
-    void init(SymStateSpaceManager *manager, const PlanReconstruction * search, const ClosedList &other);
+
+    ClosedList(const ClosedList & other, const BDD & subset);
+    
+    void init(SymStateSpaceManager *manager);
+    void init(SymStateSpaceManager *manager, const ClosedList &other);
 
     void insert(int h, const BDD &S);
     void setHNotClosed(int h);
@@ -86,6 +89,12 @@ public:
     virtual bool exhausted () const override {
 	return fNotClosed == std::numeric_limits<int>::max();
     }
+
+
+    // From plan reconstruction: 
+    virtual void getPlan(const BDD &cut, int g, bool fw, std::vector <const GlobalOperator *> &path) const override;
+    virtual SymVariables *getVars() const override;
+
 };
 }
 

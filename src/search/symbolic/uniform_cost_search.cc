@@ -44,7 +44,7 @@ namespace symbolic {
 	frontier.init(manager.get(), init_bdd);
 	DEBUG_MSG(cout << "Init closed: " << endl;);
 
-	closed->init(mgr.get(), this);
+	closed->init(mgr.get());
 	closed->insert(0, init_bdd);
 	closed->setHNotClosed(open_list.minNextG(frontier, mgr->getAbsoluteMinTransitionCost()));
 	closed->setFNotClosed(getF());
@@ -383,14 +383,15 @@ namespace symbolic {
 	}
     }
 
-    void UniformCostSearch::getPlan(const BDD &cut, int g, std::vector <const GlobalOperator *> &path) const {
+    void UniformCostSearch::getPlan(const BDD &cut, int g, bool dir_fw, std::vector <const GlobalOperator *> &path) const {
 
-	closed->extract_path(cut, g, fw, path);
-    	if (fw) {  
+        assert(fw == dir_fw);
+
+	closed->extract_path(cut, g, dir_fw, path);
+    	if (dir_fw) {  
     	    std::reverse(path.begin(), path.end());
     	} 
     }
-
 
     BDD UniformCostSearch::get_seen_states(bool ) const {
         return closed->getClosed();

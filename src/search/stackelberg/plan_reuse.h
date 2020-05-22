@@ -21,8 +21,9 @@ namespace stackelberg {
 
     class SymbolicStackelbergManager;
     class StackelbergSS;
+
     
-    class PlanReuse : public symbolic::OppositeFrontier, public symbolic::PlanReconstruction {
+    class PlanReuse {
     protected:
 
         const bool check_all_cuts;
@@ -65,25 +66,20 @@ namespace stackelberg {
         virtual BDD find_plan_follower_initial_states (const BDD & bdd) const = 0; 
 
 
-        symbolic::SymSolution checkCut(const symbolic::PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
+        std::shared_ptr<symbolic::OppositeFrontier> get_opposite_frontier(const std::vector<int> & leader_state) const;
+        
+        /* symbolic::SymSolution checkCut(const symbolic::PlanReconstruction * search, const BDD &states, int g, bool fw) const override; */
 
-	virtual BDD notClosed () const override;
+	/* virtual BDD notClosed () const override; */
 
-	//Returns true only if all not closed states are guaranteed to be dead ends
-	virtual bool exhausted () const override {
-            return false;
-        }
+	/* //Returns true only if all not closed states are guaranteed to be dead ends */
+	/* virtual bool exhausted () const override { */
+        /*     return false; */
+        /* } */
 	
-	virtual int getHNotClosed() const override {
-            return 0;
-        }
-
-        virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator *> &path) const override;
-
-        virtual symbolic::SymVariables *getVars() const {
-            return vars.get();
-        }
-
+	/* virtual int getHNotClosed() const override { */
+        /*     return 0; */
+        /* } */
 
     };
 
@@ -99,9 +95,7 @@ namespace stackelberg {
 
         const bool accumulate_intermediate_states;
 
-        
     public:
-
         PlanReuseSimple(const Options & opts);
 
         virtual void initialize() override;

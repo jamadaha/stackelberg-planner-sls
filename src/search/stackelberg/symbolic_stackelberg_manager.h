@@ -70,7 +70,6 @@ namespace stackelberg {
         const std::vector<bool> & get_relevant_vars() const {
             return pattern;
         }                
-        
     };
 
 
@@ -92,6 +91,7 @@ namespace stackelberg {
         int num_bdd_vars_follower_subproblems;
         std::vector<bool> pattern_vars_follower_subproblems;
         std::vector<bool> pattern_vars_follower_search;
+        std::vector<bool> pattern_vars_static_follower;
 
 
         std::shared_ptr<MutexBDDs> mutex_bdds;
@@ -163,6 +163,8 @@ namespace stackelberg {
         const std::vector<bool> & get_pattern_vars_follower_subproblems() const {
             return pattern_vars_follower_subproblems;
         }
+
+        BDD get_static_follower (const std::vector<int> & leader_state) const; 
 
         const BDD & get_static_follower_initial_state () const {
             return static_follower_initial_state;

@@ -81,14 +81,7 @@ namespace symbolic {
                               std::shared_ptr<OppositeFrontier> f2_) : f1(f1_), f2(f2_) {
         }
 
-        virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const {
-            auto res = f1->checkCut(search, states, g, fw);
-            if (res.solved()) {
-                return res;
-            } else {
-                return f2->checkCut(search, states, g, fw);
-            }
-        }
+        virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
 	virtual BDD notClosed () const {
             return f1->notClosed();

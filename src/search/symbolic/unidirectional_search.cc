@@ -23,6 +23,19 @@ namespace symbolic {
 	    return SymSolution(nullptr, search, 0, g, cut);
 
     }
+
+
+    SymSolution OppositeFrontierComposite::checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const {
+        //cout << "Trying f1 " << g << " " << fw << endl;
+        auto res = f1->checkCut(search, states, g, fw);
+        if (res.solved()) {
+            return res;
+        } else {
+            //cout << "Trying f2" << endl;
+            return f2->checkCut(search, states, g, fw);
+        }
+    }
+
     UnidirectionalSearch::UnidirectionalSearch(SymController * eng, const SymParamsSearch &params) : 
 	SymSearch(eng, params), fw(true) {}
 

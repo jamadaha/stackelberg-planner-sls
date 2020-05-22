@@ -14,11 +14,12 @@ using namespace std;
 
 namespace stackelberg {
 
-
-    BDD PlanReuse::notClosed () const {
-        return vars->zeroBDD();
+    std::shared_ptr<symbolic::OppositeFrontier>
+    PlanReuse::get_opposite_frontier(const std::vector<int> & leader_state) const {
+        BDD bdd = stackelberg_mgr->get_static_follower(leader_state);
+        return make_shared<ClosedList> (*closed_list, bdd);
     }
-    
+
     void PlanReuse::initialize(std::shared_ptr<SymbolicStackelbergManager> mgr) {
         stackelberg_mgr = mgr;
         vars = mgr->get_sym_vars();
@@ -27,38 +28,8 @@ namespace stackelberg {
 
         mockup_mgr = mgr->get_empty_manager();
         closed_list = make_shared<ClosedList>();
-        closed_list->init(mockup_mgr.get(), this);
+        closed_list->init(mockup_mgr.get());
         initialize();
-    }
-
-    
-    SymSolution PlanReuse::checkCut(const PlanReconstruction * search,
-                                    const BDD &cut_candidate, int g, bool fw) const {
-
-        return closed_list->checkCut(search, cut_candidate,  g, fw);
-        // for(const auto & entry : boundsForFollowerStates) {
-        //     int h = entry.first;
-        //     if (!check_all_cuts && g + h > current_follower_bound) {
-        //         break;
-        //     }
-                        
-	//     BDD cut = entry.second * cut_candidate;
-	//     if (!cut.IsZero()) {
-	// 	if (fw){
-	// 	    return SymSolution(search, this, g, h, cut);
-        //         } else {
-	// 	    return SymSolution(this, search, h, g, cut);
-        //         }
-	//     }
-
-        // }
-
-        // return SymSolution(); //No solution yet :(
-    }
-
-
-    void PlanReuse::getPlan(const BDD &cut, int g, std::vector <const GlobalOperator *> &path) const {
-	closed_list->extract_path(cut, g, true, path);
     }
 
 

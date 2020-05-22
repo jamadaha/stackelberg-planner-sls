@@ -8,7 +8,8 @@ namespace symbolic {
     class PlanReconstruction {
 
     public: 
-	virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator *> &path) const = 0;
+	virtual void getPlan(const BDD &cut, int g, bool fw,
+                             std::vector <const GlobalOperator *> &path) const = 0;
 
         virtual SymVariables *getVars() const = 0;
             

@@ -27,6 +27,9 @@ namespace stackelberg {
                                  "Ensure that variables are ordered according to the stackelberg task", "true");
     }
 
+    BDD SymbolicStackelbergManager::get_static_follower (const std::vector<int> & leader_state) const {
+        return vars->getPartialStateBDD(leader_state, pattern_vars_static_follower);
+    }
     SymbolicStackelbergManager::SymbolicStackelbergManager(StackelbergTask * task_,
                                                            const Options & opts
         )  : task(task_), vars(make_shared<SymVariables>(opts)), mgr_params(opts),
@@ -67,8 +70,12 @@ namespace stackelberg {
             pattern_vars_follower_subproblems[var] = false;
         }
 
-
         pattern_vars_follower_search = task->get_follower_vars ();
+
+        pattern_vars_static_follower.resize(g_variable_domain.size());
+        for(size_t var = 0; var < g_variable_domain.size(); ++ var) {
+            pattern_vars_static_follower[var] = task->is_follower_static_var(var);
+        }       
 
         cubeFollowerSubproblems = vars->getCubePre(task->get_leader_only_vars()) *
             vars->getCubePre(task->get_follower_only_vars());
@@ -106,8 +113,6 @@ namespace stackelberg {
             }
         }
 
-        
-        
         std::vector<bool> pattern_vars_static_initial_state (g_variable_domain.size(), false);
         for (int var : task->get_follower_only_vars()) {
             pattern_vars_static_initial_state[var] = true;
@@ -286,11 +291,11 @@ namespace stackelberg {
                              mutex_bdds.getValidStates(true),
                              mutex_bdds.getValidStates(false)),
                              pattern(_pattern), indTRs(indTRs_) {
-        cout << "StackelbergSS pattern: ";
-        for (auto v : pattern) {
-            cout << v << ", ";
-        }
-        cout << endl;
+        // cout << "StackelbergSS pattern: ";
+        // for (auto v : pattern) {
+        //     cout << v << ", ";
+        // }
+        // cout << endl;
     }
 
 

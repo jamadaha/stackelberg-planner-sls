@@ -154,6 +154,7 @@ namespace stackelberg {
         bool is_leader_only_var (int var) const;
         bool is_follower_only_var (int var) const;
         bool is_follower_effect_var (int var) const;
+        bool is_follower_static_var (int v) const;
 
         const std::vector<bool> & get_follower_vars () const {
             return follower_vars;

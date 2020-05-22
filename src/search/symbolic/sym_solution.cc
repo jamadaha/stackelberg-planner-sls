@@ -19,7 +19,7 @@ namespace symbolic {
 	assert (path.empty()); //This code should be modified to allow appending things to paths
 	DEBUG_MSG(cout << "Extract path forward: " << g << endl; );
 	if (exp_fw) {
-	    exp_fw->getPlan(cut, g, path);   
+	    exp_fw->getPlan(cut, g, true, path);   
 	}
 	DEBUG_MSG(cout << "Extract path backward: " << h << endl << " starting from path: "  << endl;
                   for (const auto *  op : path ) {
@@ -55,7 +55,7 @@ namespace symbolic {
 		newCut = cut;
 	    }
     
-	    exp_bw->getPlan(newCut, h, path);
+	    exp_bw->getPlan(newCut, h, false, path);
 	}
 	/*DEBUG_MSG(cout << "Path extracted" << endl;
 	  State s2 (*g_initial_state);

@@ -532,4 +532,9 @@ namespace stackelberg {
     bool StackelbergTask::is_follower_effect_var (int v) const {    
         return follower_vars[v];
     }
+
+    bool StackelbergTask::is_follower_static_var (int v) const {    
+        return !follower_vars[v] && follower_precondition_vars[v];
+    }
+
 }
