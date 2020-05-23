@@ -44,7 +44,7 @@ namespace symbolic {
     class OppositeFrontier {
     public: 
 	virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const = 0;
-
+        
 	virtual BDD notClosed () const = 0;
 
 	//Returns true only if all not closed states are guaranteed to be dead ends

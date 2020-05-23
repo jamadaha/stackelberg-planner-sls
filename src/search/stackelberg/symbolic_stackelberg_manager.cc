@@ -185,26 +185,47 @@ namespace stackelberg {
     // Obtains the follower manager where all actions that have been disabled
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_follower_manager_minimal() {
 
-        BDD initialState = vars->zeroBDD();//getStateBDD(leader_state);
-        BDD goal = vars->getPartialStateBDD(g_goal);
-        
+              
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
-        std::map<int, std::vector <symbolic::TransitionRelation>> trs;
+        std::map<int, std::vector <symbolic::TransitionRelation>> transitions;
+
+
+        //Here is where we should run the h2 preprocessor
+
+        for (const auto & entry : follower_transitions_by_leader_precondition) {
+            if (!entry.first.empty()) {
+                continue;
+            }
+            
+            for (const auto & tr_by_cost : entry.second) {
+                int cost = tr_by_cost.first;
+
+                for (const auto & tr : tr_by_cost.second) {
+                    transitions[cost].push_back(tr);
+                    for (const auto * op : tr.getOps()) {
+                        indTRs[cost].push_back(*(follower_transitions_by_id[op->get_op_id()]));
+                    }
+                }
+            }
+        }
+
+        for (const auto & goal : g_goal) {
+            if (!pattern_vars_follower_search[goal.first] && g_initial_state_data[goal.first] != goal.second) {
+                // Task is unsolvable. 
+                return make_shared<StackelbergSS>(vars.get(), mgr_params, vars->zeroBDD(), vars->zeroBDD(),
+                                                  indTRs, transitions, *mutex_bdds, pattern_vars_follower_search);
+            }
+        }
+
+        BDD initialState = vars->getPartialStateBDD(g_initial_state_data, pattern_vars_follower_search);
+        BDD goal = vars->getPartialStateBDD(g_goal);       
         
-        // for (size_t i = 0; i < g_operators.size(); i++) {
-        //     const GlobalOperator *op = &(g_operators[i]);
-        //     int cost = cost_type->get_adjusted_cost(i);
-        //     DEBUG_MSG(cout << "Creating TR of op " << i << " of cost " << cost << endl;);
-        //     indTRs[cost].push_back(TransitionRelation(vars, op, cost));
-        //     if (p.mutex_type == MutexType::MUTEX_EDELETION) {
-        //         indTRs[cost].back().edeletion(notMutexBDDsByFluentFw, notMutexBDDsByFluentBw, exactlyOneBDDsByFluent);
-        //     }
-        // }
+        for (auto & trs : transitions) {
+            merge(vars.get(), trs.second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
+        }
 
-        return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, trs,
-                                          *mutex_bdds, vector<bool>());
-
-
+        return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions,
+                                          *mutex_bdds, pattern_vars_follower_search);
     }
 
     BDD SymbolicStackelbergManager::get_follower_initial_state_projection(BDD leader_search_states) const {
@@ -266,12 +287,35 @@ namespace stackelberg {
 
 
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_empty_manager() const {
+
+        std::map<int, std::vector <symbolic::TransitionRelation>>        indTRs;
+        // for (const auto & entry : follower_transitions_by_leader_precondition) {
+        //     if (!entry.first.empty()) {
+        //         continue;
+        //     }
+
+        //     for (const auto & tr_by_cost : entry.second) {
+        //         int cost = tr_by_cost.first;
+
+        //         for (const auto & tr : tr_by_cost.second) {
+        //             for (const auto * op : tr.getOps()) {
+        //                 indTRs[cost].push_back(*(follower_transitions_by_id[op->get_op_id()]));
+        //             }
+        //         }
+        //     }
+        // }
         
+
+        for (int op_no : task->get_global_operator_id_follower_ops()) {
+            auto * tr = transitions_by_id[op_no].get();
+            indTRs[tr->getCost()].push_back(*tr);
+        }
+
         BDD initialState = vars->getStateBDD(g_initial_state());
         BDD goal = vars->zeroBDD();
         
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal,
-                                          std::map<int, std::vector <symbolic::TransitionRelation>> (),
+                                          indTRs,
                                           std::map<int, std::vector <symbolic::TransitionRelation>> (),
                                           *mutex_bdds, vector<bool>());
     

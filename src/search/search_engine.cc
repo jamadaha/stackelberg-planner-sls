@@ -75,8 +75,7 @@ void SearchEngine::search()
          << " [t=" << g_timer << "]" << endl;
 }
 
-bool SearchEngine::check_goal_and_set_plan(const GlobalState &state,
-        int budget)
+bool SearchEngine::check_goal_and_set_plan(const GlobalState &state,int budget)
 {
     if (test_goal(state)) {
         cout << "Solution found!" << endl;

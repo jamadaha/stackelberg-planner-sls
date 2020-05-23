@@ -147,8 +147,9 @@ SearchStatus EagerSearch::step() {
     for (size_t i = 0; i < applicable_ops.size(); ++i) {
         const GlobalOperator *op = applicable_ops[i];
 
-        if ((node.get_real_g() + op->get_cost()) >= bound)
+        if ((node.get_real_g() + op->get_cost()) >= bound) {
             continue;
+        }
 
         int new_budget = compute_remaining_budget(node.get_budget(), op->get_cost2());
         if(new_budget != UNLTD_BUDGET && new_budget < 0) {
@@ -158,6 +159,14 @@ SearchStatus EagerSearch::step() {
         GlobalState succ_state = g_state_registry->get_successor_state(s, *op);
         search_progress.inc_generated();
         bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
+
+//        if(opposite_frontier) {
+//            opposite_frontier.check_goal(succ_state, desired_bound);
+//        }
+
+        // if (lower_bound_heuristic && (node.get_real_g() + op->get_cost() + lower_bound_heuristic->compute_heuristic(succ_state)) >= bound) {
+        //     continue;
+        // }
 
         SearchNode succ_node = search_space.get_node(succ_state, new_budget);
 

@@ -33,7 +33,8 @@ namespace stackelberg {
         SearchEngine(opts),
         optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
         plan_reuse (opts.get<PlanReuse *>("plan_reuse")),
-        mgrParams(opts), searchParams(opts) {
+        mgrParams(opts), searchParams(opts),
+        upper_bound_pruning(opts.get<bool> ("upper_bound_pruning")){
 
         task = make_unique<StackelbergTask> ();
         stackelberg_mgr = make_shared<SymbolicStackelbergManager> (task.get(), opts);
@@ -69,6 +70,14 @@ namespace stackelberg {
         int maxF = std::numeric_limits<int>::max();
         int L = 0;
         int F = -1;
+
+        if (upper_bound_pruning) {
+            cout << "Upper bound pruning:" << endl;
+            FollowerSolution minimum_ftask_solution = optimal_engine->solve_minimum_ftask(plan_reuse.get());
+            if (minimum_ftask_solution.is_solved()) {
+                maxF = minimum_ftask_solution.solution_cost();
+            }
+        }
 
         const auto & closed_list = leader_search->getClosed()->getClosedList();
         while (!pareto_frontier.is_complete(maxF)
@@ -186,6 +195,8 @@ namespace stackelberg {
         SymParamsSearch::add_options_to_parser(parser, 30e3, 10e7);
         
         parser.add_option<bool>("project_to_follower_states", "Project the set of leader options to follower states.", "false");
+        parser.add_option<bool>("upper_bound_pruning", "Upper bound pruning.", "true");
+        
 
         parser.add_option<PlanReuse *>("plan_reuse", "strategy for plan reuse", "simple");
         parser.add_option<FollowerSearchEngine *>("optimal_engine");

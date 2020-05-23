@@ -32,6 +32,9 @@ namespace stackelberg {
         initialize();
     }
 
+    void PlanReuse::load_plans (const ClosedList & closed) const {
+        closed_list->load(closed);
+    }
 
     PlanReuseSimple::PlanReuseSimple (const Options & opts) :
         accumulate_intermediate_states (opts.get<bool>("accumulate_intermediate_states")) {

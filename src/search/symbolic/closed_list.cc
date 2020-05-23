@@ -32,7 +32,7 @@ namespace symbolic {
             if (!result.IsZero()) {
                 closed[hval] = result;
                 h_values.insert(hval);
-                if (zeroCostClosed.count(hval)) {
+                if (other.zeroCostClosed.count(hval)) {
                     for (auto & bdd : other.zeroCostClosed.at(hval)) {
                         zeroCostClosed[hval].push_back(bdd*subset);
                     }
@@ -47,6 +47,31 @@ namespace symbolic {
         fNotClosed = 0;        
     }
 
+    void ClosedList::load(const ClosedList &other) {
+        for (const auto & entry  : other.closed) {
+            int hval = entry.first;
+            if (closed.count(hval)) {
+                closed[hval] += entry.second;
+            } else {
+                closed[hval] = entry.second;
+            }
+            h_values.insert(hval);
+            if (other.zeroCostClosed.count(hval)) {
+                const auto & bdds = other.zeroCostClosed.at(hval);
+                for(size_t i = 0; i < bdds.size(); ++i) {
+
+                    if  (i < zeroCostClosed[hval].size()) {
+                        zeroCostClosed[hval][i] += bdds[i];
+                    }else {
+                        zeroCostClosed[hval].push_back(bdds[i]);
+                    }
+                }
+            }
+        }
+        
+        closedTotal += other.closedTotal;
+
+    }
 
     void ClosedList::init(SymStateSpaceManager *manager) {
 	mgr = manager;
@@ -140,6 +165,7 @@ namespace symbolic {
                   // 
 	    );
 	const map<int, vector<TransitionRelation>> &trs = mgr->getIndividualTRs();
+
 	BDD cut = c;
 	size_t steps0 = 0;
 	if (zeroCostClosed.count(h)) {
@@ -243,9 +269,11 @@ namespace symbolic {
 
 	    if (h > 0 && steps0 == 0) {
 		bool found = false;
+;
 		for (auto key : trs) { //TODO: maybe is best to use the inverse order
-		    if (found)
+		    if (found) {
 			break;
+                    }
 		    int newH = h - key.first;
 		    if (key.first == 0 || closed.count(newH) == 0)
 			continue;
@@ -431,5 +459,30 @@ namespace symbolic {
         return mgr->getVars();
     }
 
+
+
+
+    // SymSolution ClosedList::checkCut(const PlanReconstruction * search, const GlobalState &state, int g, bool fw) const {
+    //     char * inputs = vars->getBinaryDescription(state);
+
+    //     BDD evalNode = closedTotal.Eval(inputs);
+    //     if (evalNode.IsZero()) {
+    //         return SymSolution(); //No solution yet :(
+    //     }
+
+    //     for (const auto &closedH : closed) {
+    //         int h = closedH.first;
+
+    //         if(!closedH.second.Eval(inputs).IsZero()) {
+    //     	if (fw) //Solution reconstruction will fail
+    //     	    return SymSolution(search, this, g, h, vars->getBDD(state));
+    //     	else
+    //     	    return SymSolution(this, search, h, g, cut);
+    //         }
+    //     }
+
+    //     cerr << "Error: Cut with closedTotal but not found on closed" << endl;
+    //     exit_with(EXIT_CRITICAL_ERROR);
+    // }
 
 }

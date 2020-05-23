@@ -60,6 +60,7 @@ namespace stackelberg {
 
     };
 
+
     class PlanReuse;
     
     class FollowerTask;
@@ -90,7 +91,7 @@ namespace stackelberg {
         //found independently of whether it is larger or lower than desired bound
         virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) = 0;
 
-        virtual FollowerSolution solve_minimum_ftask () = 0;
+        virtual FollowerSolution solve_minimum_ftask (PlanReuse * plan_reuse) = 0;
         
         static void add_options_to_parser(OptionParser &parser);
 
@@ -109,7 +110,7 @@ namespace stackelberg {
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
         virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) override;
-        virtual FollowerSolution solve_minimum_ftask () override;
+        virtual FollowerSolution solve_minimum_ftask (PlanReuse * plan_reuse) override;
     };
 
     class SymbolicFollowerSearchEngine : public FollowerSearchEngine {
@@ -119,13 +120,14 @@ namespace stackelberg {
         symbolic::SymParamsSearch searchParams; //Parameters to search the original state space
 
         const bool bidir;
+        const bool plan_reuse_minimal_task_upper_bound;
 
         virtual void initialize_follower_search_engine() override;
         
     public:
         SymbolicFollowerSearchEngine(const Options &opts);
         virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) override;
-        virtual FollowerSolution solve_minimum_ftask () override;
+        virtual FollowerSolution solve_minimum_ftask (PlanReuse * plan_reuse) override;
     }; 
 
 }

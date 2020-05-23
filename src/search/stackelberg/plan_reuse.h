@@ -67,6 +67,10 @@ namespace stackelberg {
 
 
         std::shared_ptr<symbolic::OppositeFrontier> get_opposite_frontier(const std::vector<int> & leader_state) const;
+
+
+        void load_plans (const symbolic::ClosedList & closed) const; 
+
         
         /* symbolic::SymSolution checkCut(const symbolic::PlanReconstruction * search, const BDD &states, int g, bool fw) const override; */
 

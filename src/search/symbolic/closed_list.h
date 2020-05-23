@@ -39,9 +39,12 @@ public:
     ClosedList();
 
     ClosedList(const ClosedList & other, const BDD & subset);
+
     
     void init(SymStateSpaceManager *manager);
     void init(SymStateSpaceManager *manager, const ClosedList &other);
+
+    void load(const ClosedList &other);
 
     void insert(int h, const BDD &S);
     void setHNotClosed(int h);
@@ -91,6 +94,7 @@ public:
     }
 
 
+  
     // From plan reconstruction: 
     virtual void getPlan(const BDD &cut, int g, bool fw, std::vector <const GlobalOperator *> &path) const override;
     virtual SymVariables *getVars() const override;

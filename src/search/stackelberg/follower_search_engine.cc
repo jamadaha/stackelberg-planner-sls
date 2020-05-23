@@ -85,34 +85,48 @@ namespace stackelberg {
         }
     }
 
-    FollowerSolution SymbolicFollowerSearchEngine::solve_minimum_ftask () {
+    FollowerSolution SymbolicFollowerSearchEngine::solve_minimum_ftask (PlanReuse * plan_reuse) {
 
-        // auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
-        // auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-        // auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+        auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
-        // auto mgr = make_shared<SymbolicStackelbergManager> (vars.get(),
-        //                                                     mgrParams,
-        //                                                     OperatorCostFunction::get_cost_function());
+        auto mgr = stackelberg_mgr->get_follower_manager_minimal();
+
+        auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
     
-        // fw_search->init(mgr, true, bw_search->getClosedShared());
-        // bw_search->init(mgr, false, fw_search->getClosedShared());
-	
-        // auto search = make_unique<BidirectionalSearch> (controller.get(),
-        //                                                 searchParams,
-        //                                                 move(fw_search),
-        //                                                 move(bw_search));
+        unique_ptr<BidirectionalSearch> bd_search;
+        SymSearch * search;
+        UniformCostSearch * bw_search_ptr = nullptr;
+        if (bidir) {
+            auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+            bw_search_ptr = bw_search.get();
+            fw_search->init(mgr, true, bw_search->getClosedShared());
+            
+            bw_search->init(mgr, false, fw_search->getClosedShared());	
+            bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
+                                                          move(fw_search), move(bw_search));
+            search = bd_search.get();
+        }else{
+            fw_search->init(mgr, true);
+            search = fw_search.get();
+        }
 
-        // while(!search->finished()) {
-        //     search->step();
-        // }
+        while(!controller->solved()) {       
+            search->step();
+        }
 
-        // cout << "Follower Search finished: " << search->finished() << endl;
-        // cout << "Controller upper bound: " << controller->getUpperBound() << endl;
-    
-        // return controller->getUpperBound();
 
-        return FollowerSolution();
+        if(plan_reuse && plan_reuse_minimal_task_upper_bound) {
+            plan_reuse->load_plans(*(bw_search_ptr->getClosed()));
+        }
+   
+        if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
+            cout << "Max upper bound: " << controller->getUpperBound() << endl;
+            assert(controller->solved());
+            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars());
+        } else {
+                cout << "Max upper bound: unsolvable " << endl;
+            return FollowerSolution(controller->getUpperBound());
+        }
     }
 
     void ExplicitFollowerSearchEngine::initialize_follower_search_engine() {
@@ -132,7 +146,7 @@ namespace stackelberg {
     }
 
 
-    FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask () {
+    FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask (PlanReuse * /*plan_reuse*/) {
         // auto * g_successor_generator_copy = g_successor_generator;
         // g_successor_generator = successor_generator;
         // g_operators.clear();
@@ -223,9 +237,11 @@ namespace stackelberg {
 
 
 
-    SymbolicFollowerSearchEngine::SymbolicFollowerSearchEngine(const Options &opts) :FollowerSearchEngine(opts), 
-        mgrParams(opts), searchParams(opts), bidir(opts.get<bool>("bidir")) {
-    }
+    SymbolicFollowerSearchEngine::SymbolicFollowerSearchEngine(const Options &opts) :
+        FollowerSearchEngine(opts), 
+        mgrParams(opts), searchParams(opts), bidir(opts.get<bool>("bidir")),
+        plan_reuse_minimal_task_upper_bound(opts.get<bool>("plan_reuse_minimal_task_upper_bound")) {
+            }
 
     void SymbolicFollowerSearchEngine::initialize_follower_search_engine() {
         vars = stackelberg_mgr->get_sym_vars();
@@ -241,7 +257,8 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
     stackelberg::FollowerSearchEngine::add_options_to_parser(parser);
 
     parser.add_option<bool> ("bidir", "Use bidirectional search", "true");
-
+    parser.add_option<bool> ("plan_reuse_minimal_task_upper_bound",
+                             "Reuse all backward search for the minimal search for plan reuse purposes", "true");    
     
     Options opts = parser.parse();
 

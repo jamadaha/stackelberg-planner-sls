@@ -45,7 +45,9 @@ namespace stackelberg {
         std::unique_ptr<symbolic::UniformCostSearch> leader_search;
         symbolic::SymParamsMgr mgrParams; //Parameters for SymStateSpaceManager configuration.
         symbolic::SymParamsSearch searchParams; //Parameters to search the original state space
-     
+
+        const bool upper_bound_pruning;
+        
 	ParetoFrontier pareto_frontier;
 
         StackelbergStatistics statistics;
