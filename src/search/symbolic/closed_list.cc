@@ -155,10 +155,14 @@ namespace symbolic {
 	    return;
         }
 
-	DEBUG_MSG(cout << "Sym closed extract path h=" << h << " notClosed: " << hNotClosed << endl;
+	DEBUG_MSG(cout <<  "    " << "Sym closed extract path h=" << h << " notClosed: " << hNotClosed << " Intersection: " << !((c*closedTotal).IsZero()) << endl;
 		  cout << "Closed: ";
-		  for (const auto &c : closed) {
-		      cout << c.first << " ";
+		  for (const auto &cl : closed) {
+                      if (((cl.second)*c).IsZero()){
+                          cout << cl.first << " ";
+                      }else {
+                          cout << cl.first << "** ";
+                      }
                   }
                   
 		  cout << endl;
@@ -170,7 +174,7 @@ namespace symbolic {
 	size_t steps0 = 0;
 	if (zeroCostClosed.count(h)) {
 	    assert(trs.count(0));
-	    //DEBUG_MSG(cout << "Check " << steps0 << " of " << zeroCostClosed.at(h).size() << endl;);
+	    DEBUG_MSG(cout << "Check " << steps0 << " of " << zeroCostClosed.at(h).size() << endl;);
 	    while (steps0 < zeroCostClosed.at(h).size() && (cut * zeroCostClosed.at(h)[steps0]).IsZero()) {
 		//DEBUG_MSG(cout << "Steps0 is not " << steps0<< " of " << zeroCostClosed.at(h).size() << endl;);
 		steps0++;
@@ -269,16 +273,23 @@ namespace symbolic {
 
 	    if (h > 0 && steps0 == 0) {
 		bool found = false;
-;
+
+                assert (!trs.empty());
 		for (auto key : trs) { //TODO: maybe is best to use the inverse order
 		    if (found) {
 			break;
                     }
+                    DEBUG_MSG(cout << "Trying: " << key.first << endl;);
 		    int newH = h - key.first;
 		    if (key.first == 0 || closed.count(newH) == 0)
 			continue;
+                    DEBUG_MSG(cout << "Trying2: " << key.first << " " << key.second << endl;);
+                    assert (!key.second.empty());
 		    for (TransitionRelation &tr : key.second) {
 			//DEBUG_MSG(cout << "Check " << tr.getOps().size() << " " << (*(tr.getOps().begin()))->get_name() << " of cost " << key.first << " in h=" << newH << endl;);
+                        assert(tr.getOps().size() == 1);
+                        DEBUG_MSG(cout << "Check " << (*(tr.getOps().begin()))->get_name() << endl;);
+                        
 			BDD succ;
 			if (fw) {
 			    succ = tr.preimage(cut);

@@ -46,6 +46,13 @@ namespace symbolic {
 			}
 		    }
 		}
+                DEBUG_MSG(cout << "Starting state after path" << endl;
+                for (size_t v = 0; v < g_fact_names.size(); ++v) {
+                    if (pattern[v]) {
+                        cout << g_fact_names[v][s[v]] << endl;
+                    }
+                });
+                
                 if(pattern.empty()) {
                     newCut = exp_bw->getVars()->getStateBDD(s);
                 } else {

@@ -67,18 +67,19 @@ namespace stackelberg {
 
         BDD current = vars->getPartialStateBDD(g_goal);
         BDD result = vars->zeroBDD();
-
+        closed_list->insert(0, current);
         int cost = 0;
         for (int i = plan.size() -1; i >= 0; --i ){
-            cost += stackelberg_mgr->get_cost(plan[i]);
-            
             if (accumulate_intermediate_states) {
                 result += current;
             }
 
-            closed_list->insert(cost, current);
-
+            // cout << "Regressing plan " <<  cost << " " << plan[i]->get_name() << endl;
             current = stackelberg_mgr->get_transition_relation(plan[i]).preimage(current);
+            cost += stackelberg_mgr->get_cost(plan[i]);
+            
+
+            closed_list->insert(cost, current);
         }
 
         result += current;

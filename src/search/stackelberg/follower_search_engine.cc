@@ -115,7 +115,7 @@ namespace stackelberg {
         }
 
 
-        if(plan_reuse && plan_reuse_minimal_task_upper_bound) {
+        if(plan_reuse && plan_reuse_minimal_task_upper_bound && bw_search_ptr) {
             plan_reuse->load_plans(*(bw_search_ptr->getClosed()));
         }
    
