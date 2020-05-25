@@ -307,7 +307,8 @@ namespace stackelberg {
         
 
         for (int op_no : task->get_global_operator_id_follower_ops()) {
-            auto * tr = transitions_by_id[op_no].get();
+            const GlobalOperator * op = &(g_operators[op_no]);
+            auto * tr = transitions_by_id[op->get_op_id()].get();
             indTRs[tr->getCost()].push_back(*tr);
         }
 
