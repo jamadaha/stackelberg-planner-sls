@@ -160,9 +160,9 @@ SearchStatus EagerSearch::step() {
         search_progress.inc_generated();
         bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
 
-//        if(opposite_frontier) {
-//            opposite_frontier.check_goal(succ_state, desired_bound);
-//        }
+        if(check_goal_and_set_plan_generation (succ_state, node.get_real_g() + op->get_cost())) {
+            return SOLVED;
+        }
 
         // if (lower_bound_heuristic && (node.get_real_g() + op->get_cost() + lower_bound_heuristic->compute_heuristic(succ_state)) >= bound) {
         //     continue;

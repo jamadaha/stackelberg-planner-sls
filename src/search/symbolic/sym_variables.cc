@@ -120,7 +120,8 @@ void SymVariables::init(const vector <int> &v_order) {
         biimpBDDs[var] = createBiimplicationBDD(bdd_index_pre[var], bdd_index_eff[var]);
     }
 
-    binState.resize(_numBDDVars, 0);
+    binStateChar.resize(_numBDDVars, 0);
+    binStateInt.resize(_numBDDVars, 0);
     cout << "Symbolic Variables... Done." << endl;
 
     /*  for(size_t i = 0; i < g_variable_domain.size(); i++){
@@ -242,14 +243,14 @@ vector <BDD> SymVariables::getBDDVars(const vector <int> &vars, const vector<vec
 }
 
 vector<int> SymVariables::sample_state (const BDD &  bdd) const {
-    bdd.PickOneCube(&(binState[0]));
-    return getStateDescription(binState);
+    bdd.PickOneCube(&(binStateChar[0]));
+    return getStateDescription(binStateChar);
 }
 
     
 vector<int> SymVariables::sample_state (const BDD &  bdd, const std::vector<bool> & pattern) const {
-    bdd.PickOneCube(&(binState[0]));
-    return getStateDescription(binState, pattern);
+    bdd.PickOneCube(&(binStateChar[0]));
+    return getStateDescription(binStateChar, pattern);
 }
 
 

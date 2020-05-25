@@ -93,11 +93,13 @@ public:
 	return fNotClosed == std::numeric_limits<int>::max();
     }
 
-
-  
     // From plan reconstruction: 
     virtual void getPlan(const BDD &cut, int g, bool fw, std::vector <const GlobalOperator *> &path) const override;
     virtual SymVariables *getVars() const override;
+
+
+    int check_goal_cost(const GlobalState & state) const;
+
 
 };
 }

@@ -59,8 +59,10 @@ class SymVariables {
 
     //Vector to store the binary description of an state
     //Avoid allocating memory during heuristic evaluation
-    mutable std::vector <char> binState;
-
+    mutable std::vector <char> binStateChar; 
+    mutable std::vector <int> binStateInt;
+    // We need different representations because some CUDD functions use int * and some
+    // use char *
 
 public:
     SymVariables(const Options &opts);
@@ -184,7 +186,7 @@ public:
     void print();
     
     template <class T> 
-    char *getBinaryDescription(const T &state) {
+    char *getBinaryDescriptionChar(const T &state) {
         int pos = 0;
         //  cout << "State " << endl;
         for (int v : var_order) {
@@ -192,17 +194,39 @@ public:
             //preconditionBDDs[v] [state[v]].PrintMinterm();
 
             for (size_t j = 0; j < bdd_index_pre[v].size(); j++) {
-                binState[pos++] = ((state[v] >> j) % 2);
-                binState[pos++] = 0; //Skip interleaving variable
+                binStateChar[pos++] = ((state[v] >> j) % 2);
+                binStateChar[pos++] = 0; //Skip interleaving variable
             }
         }
         /* cout << "Binary description: ";
            for(int i = 0; i < pos; i++){
-           cout << binState[i];
+           cout << binStateChar[i];
            }
            cout << endl;*/
 
-        return &(binState[0]);
+        return &(binStateChar[0]);
+    }
+
+    template <class T> 
+    int *getBinaryDescriptionInt(const T &state) {
+        int pos = 0;
+        //  cout << "State " << endl;
+        for (int v : var_order) {
+            //cout << v << "=" << state[v] << " " << g_variable_domain[v] << " assignments and  " << binary_len[v] << " variables   " ;
+            //preconditionBDDs[v] [state[v]].PrintMinterm();
+
+            for (size_t j = 0; j < bdd_index_pre[v].size(); j++) {
+                binStateInt[pos++] = ((state[v] >> j) % 2);
+                binStateInt[pos++] = 0; //Skip interleaving variable
+            }
+        }
+        /* cout << "Binary description: ";
+           for(int i = 0; i < pos; i++){
+           cout << binStateInt[i];
+           }
+           cout << endl;*/
+
+        return &(binStateInt[0]);
     }
 
 

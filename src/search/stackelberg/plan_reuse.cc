@@ -20,6 +20,13 @@ namespace stackelberg {
         return make_shared<ClosedList> (*closed_list, bdd);
     }
 
+    std::shared_ptr<OppositeFrontierExplicit>
+    PlanReuse::get_opposite_frontier_explicit(const std::vector<int> & leader_state) const {
+        BDD bdd = stackelberg_mgr->get_static_follower(leader_state);
+        return make_shared<OppositeFrontierExplicit> (make_shared<ClosedList> (*closed_list, bdd));
+    }
+
+
     void PlanReuse::initialize(std::shared_ptr<SymbolicStackelbergManager> mgr) {
         stackelberg_mgr = mgr;
         vars = mgr->get_sym_vars();

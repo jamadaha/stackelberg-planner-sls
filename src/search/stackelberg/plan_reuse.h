@@ -23,6 +23,20 @@ namespace stackelberg {
     class StackelbergSS;
 
     
+    class OppositeFrontierExplicit {
+        std::shared_ptr<symbolic::ClosedList> closed_list;
+        int desired_bound;
+
+    public:
+    OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedList> closed) :
+        closed_list (closed), desired_bound(0) {}
+        
+        int check_goal_cost(const GlobalState & state){
+            return closed_list->check_goal_cost(state);
+        }
+    };
+
+    
     class PlanReuse {
     protected:
 
@@ -67,6 +81,8 @@ namespace stackelberg {
 
 
         std::shared_ptr<symbolic::OppositeFrontier> get_opposite_frontier(const std::vector<int> & leader_state) const;
+        
+        std::shared_ptr<OppositeFrontierExplicit> get_opposite_frontier_explicit(const std::vector<int> & leader_state) const;
 
 
         void load_plans (const symbolic::ClosedList & closed) const; 

@@ -2,6 +2,7 @@
 #define SEARCH_ENGINE_H
 
 #include <vector>
+#include <memory>
 
 class Heuristic;
 class OptionParser;
@@ -14,6 +15,10 @@ class Options;
 #include "open_lists/open_list.h"
 
 enum SearchStatus {IN_PROGRESS, TIMEOUT, FAILED, SOLVED};
+
+namespace stackelberg {
+    class OppositeFrontierExplicit;
+}
 
 class SearchEngine
 {
@@ -29,8 +34,11 @@ protected:
     int bound;
     OperatorCost cost_type;
     double max_time;
-    const GlobalState *goal_state = nullptr;
+
+    std::unique_ptr<GlobalState> goal_state;
     int goal_state_budget = UNLTD_BUDGET;
+
+    std::shared_ptr<stackelberg::OppositeFrontierExplicit> opposite_frontier;
 
     virtual void initialize() {}
     virtual SearchStatus step() = 0;
@@ -38,6 +46,8 @@ protected:
     void set_plan(const Plan &plan);
     bool check_goal_and_set_plan(const GlobalState &state,
                                  int budget = UNLTD_BUDGET);
+    bool check_goal_and_set_plan_generation(const GlobalState &state, int g);
+
     int get_adjusted_cost(const GlobalOperator &op) const;
 public:
     SearchEngine(const Options &opts);
@@ -68,12 +78,17 @@ public:
     }
     const GlobalState *get_goal_state()
     {
-        return goal_state;
+        return goal_state.get();
     }
     int get_goal_state_budget()
     {
         return goal_state_budget;
     }
+
+     void set_opposite_frontier(std::shared_ptr<stackelberg::OppositeFrontierExplicit> opposite_frontier_) {
+         opposite_frontier = opposite_frontier_;
+     }
+
     static void add_options_to_parser(OptionParser &parser);
 
     virtual int calculate_plan_cost() const;

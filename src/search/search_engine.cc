@@ -82,10 +82,21 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state,int budget)
         Plan plan;
         search_space.trace_path(state, plan, budget);
         set_plan(plan);
-        if (goal_state != NULL) {
-            delete goal_state;
-        }
-        goal_state = new GlobalState(state);
+        goal_state.reset(new GlobalState(state));
+        goal_state_budget = budget;
+        return true;
+    }
+    return false;
+}
+
+bool SearchEngine::check_goal_and_set_plan_generation(const GlobalState &state,int budget)
+{
+    if (test_goal(state)) {
+        cout << "Solution found!" << endl;
+        Plan plan;
+        search_space.trace_path(state, plan, budget);
+        set_plan(plan);
+        goal_state.reset(new GlobalState(state));
         goal_state_budget = budget;
         return true;
     }

@@ -181,9 +181,7 @@ namespace stackelberg {
         return FollowerSolution(); //follower_cost_upper_bound;
     }
 
-
-    FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * // plan_reuse
-                                                          , int bound) {
+    FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) {
         // Save global information
         auto * g_successor_generator_copy = g_successor_generator;
         auto original_g_initial_state_data = g_initial_state_data;
@@ -203,6 +201,12 @@ namespace stackelberg {
 #endif   
 
         search_engine->set_bound(bound);
+
+        if(plan_reuse && plan_reuse_upper_bound) {
+            search_engine->set_opposite_frontier(plan_reuse->get_opposite_frontier_explicit(leader_state));
+        }
+
+        
         search_engine->search();
 
 
@@ -223,6 +227,8 @@ namespace stackelberg {
         cout.rdbuf(old);   			// <-- restore
 #endif
 
+        search_engine->set_bound(std::numeric_limits<int>::max()); // restore bound.
+        
         //Restore globals
         g_initial_state_data = original_g_initial_state_data;
         g_operators.swap(follower_operators_with_all_preconds);
