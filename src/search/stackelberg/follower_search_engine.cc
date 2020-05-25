@@ -5,6 +5,8 @@
 #include "../successor_generator.h"
 #include "../search_engine.h"
 
+#include <chrono>
+
 #include "util.h"
 #include "stackelberg_task.h"
 #include "symbolic_stackelberg_manager.h"
@@ -21,11 +23,16 @@ using namespace symbolic;
 
 namespace stackelberg {
     FollowerSearchEngine::FollowerSearchEngine(const Options &opts)  :
-        plan_reuse_upper_bound (opts.get<bool> ("plan_reuse_upper_bound")) {    
+        plan_reuse_upper_bound (opts.get<bool> ("plan_reuse_upper_bound")),
+        time_limit_seconds_minimum_task(opts.get<int>("time_limit_seconds_minimum_task")) {
     }
 
     void FollowerSearchEngine::add_options_to_parser(OptionParser &parser) {   
         parser.add_option<bool> ("plan_reuse_upper_bound", "reuse upper bound computed from previous plans", "true");
+
+        parser.add_option<int> ("time_limit_seconds_minimum_task",
+                                "time limit for solving the minimum ftask in seconds", "10000");    
+
     }
 
 
@@ -87,6 +94,8 @@ namespace stackelberg {
 
     FollowerSolution SymbolicFollowerSearchEngine::solve_minimum_ftask (PlanReuse * plan_reuse) {
 
+        auto t1 = chrono::high_resolution_clock::now();
+                        
         auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
         auto mgr = stackelberg_mgr->get_follower_manager_minimal();
@@ -101,7 +110,16 @@ namespace stackelberg {
             bw_search_ptr = bw_search.get();
             fw_search->init(mgr, true, bw_search->getClosedShared());
             
-            bw_search->init(mgr, false, fw_search->getClosedShared());	
+            bw_search->init(mgr, false, fw_search->getClosedShared());
+
+            if (force_bw_search_minimum_task_seconds) {
+
+                while(!bw_search->finished() && chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - t1).count() <
+                      force_bw_search_minimum_task_seconds) {
+                    bw_search->step();
+                }
+            }
+            
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
@@ -110,7 +128,7 @@ namespace stackelberg {
             search = fw_search.get();
         }
 
-        while(!controller->solved()) {       
+        while(!controller->solved()  && chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - t1).count() < time_limit_seconds_minimum_task) {
             search->step();
         }
 
@@ -246,8 +264,9 @@ namespace stackelberg {
     SymbolicFollowerSearchEngine::SymbolicFollowerSearchEngine(const Options &opts) :
         FollowerSearchEngine(opts), 
         mgrParams(opts), searchParams(opts), bidir(opts.get<bool>("bidir")),
-        plan_reuse_minimal_task_upper_bound(opts.get<bool>("plan_reuse_minimal_task_upper_bound")) {
-            }
+        plan_reuse_minimal_task_upper_bound(opts.get<bool>("plan_reuse_minimal_task_upper_bound")),
+        force_bw_search_minimum_task_seconds (opts.get<int>("force_bw_search_minimum_task_seconds")) {
+    }
 
     void SymbolicFollowerSearchEngine::initialize_follower_search_engine() {
         vars = stackelberg_mgr->get_sym_vars();
@@ -265,7 +284,12 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
     parser.add_option<bool> ("bidir", "Use bidirectional search", "true");
     parser.add_option<bool> ("plan_reuse_minimal_task_upper_bound",
                              "Reuse all backward search for the minimal search for plan reuse purposes", "true");    
-    
+
+
+    parser.add_option<int> ("force_bw_search_minimum_task_seconds",
+                             "Perform backward search on the minimum task for at least that many seconds", "0");    
+
+  
     Options opts = parser.parse();
 
 

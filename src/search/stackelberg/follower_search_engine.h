@@ -75,6 +75,8 @@ namespace stackelberg {
         
         const bool plan_reuse_upper_bound;
 
+        const int time_limit_seconds_minimum_task;
+
         virtual void initialize_follower_search_engine() = 0; 
             
     public:
@@ -121,7 +123,8 @@ namespace stackelberg {
 
         const bool bidir;
         const bool plan_reuse_minimal_task_upper_bound;
-
+        const int force_bw_search_minimum_task_seconds;
+        
         virtual void initialize_follower_search_engine() override;
         
     public:
