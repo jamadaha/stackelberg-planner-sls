@@ -36,7 +36,8 @@ namespace stackelberg {
     }
 
 
-    FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern) : solved(true), plan_cost(sol.getCost()) {
+    FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern,  int lb) : solved(true), plan_cost(sol.getCost()),
+                                                                                                                                             lower_bound(lb) {
 
         sol.getPlan(plan, initial_state, pattern);
     }
@@ -77,7 +78,9 @@ namespace stackelberg {
 
         while(!controller->solved()) {
             if (plan_reuse && controller->getUpperBound() <= plan_reuse->get_follower_bound()) {
-                return FollowerSolution(*(controller->get_solution()), leader_state, mgr->get_relevant_vars());
+                return FollowerSolution(*(controller->get_solution()),
+                                        leader_state, mgr->get_relevant_vars(),
+                                        controller->getLowerBound());
             }
         
             search->step();
@@ -86,9 +89,11 @@ namespace stackelberg {
    
         if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
             assert(controller->solved());
-            return FollowerSolution(*(controller->get_solution()), leader_state, mgr->get_relevant_vars());
+            return FollowerSolution(*(controller->get_solution()),
+                                    leader_state, mgr->get_relevant_vars(),
+                                    controller->getLowerBound());
         } else {
-            return FollowerSolution(controller->getUpperBound());
+            return FollowerSolution(controller->getUpperBound(), controller->getLowerBound());
         }
     }
 
@@ -140,10 +145,10 @@ namespace stackelberg {
         if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
             cout << "Max upper bound: " << controller->getUpperBound() << endl;
             assert(controller->solved());
-            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars());
+            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars(), controller->getLowerBound());
         } else {
                 cout << "Max upper bound: unsolvable " << endl;
-            return FollowerSolution(controller->getUpperBound());
+                return FollowerSolution(controller->getUpperBound(), controller->getLowerBound());
         }
     }
 

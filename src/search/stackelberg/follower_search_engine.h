@@ -22,29 +22,35 @@ namespace stackelberg {
 
     class FollowerSolution {
         bool solved;
-        
         int plan_cost;
+        int lower_bound;
+        
         std::vector <const GlobalOperator *> plan;
 
     public:
         
     FollowerSolution() :
-        solved(false), plan_cost(-1) {
+        solved(false), plan_cost(-1), lower_bound(std::numeric_limits<int>::max()) {
         }
 
-        FollowerSolution (int cost, const std::vector <const GlobalOperator *> & plan_) :
-        solved(true), plan_cost (cost), plan(plan_) {}
+        FollowerSolution (int cost, const std::vector <const GlobalOperator *> & plan_,
+                          int lb = std::numeric_limits<int>::max()) :
+        solved(true), plan_cost (cost), lower_bound(lb), plan(plan_)  {}
 
-        FollowerSolution (int cost) : solved(true), plan_cost (cost) {}
+        FollowerSolution (int cost, int lb = std::numeric_limits<int>::max()) : solved(true), plan_cost (cost), lower_bound(lb) {}
 
         FollowerSolution (const symbolic::SymSolution & sol,
                           const std::vector<int> & leader_state,
-                          const std::vector<bool> & pattern);
+                          const std::vector<bool> & pattern,
+                          int lb);
 
         int solution_cost() const{
             return plan_cost;
         }
-        
+
+        bool is_optimal () const {
+            return plan_cost == lower_bound;
+        }
         bool is_solved() const {
             return solved;
         }

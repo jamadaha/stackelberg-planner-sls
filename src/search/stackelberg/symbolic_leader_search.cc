@@ -61,7 +61,7 @@ namespace stackelberg {
         
         leader_search->init(mgr, true);
         
-        statistics.search_initialized(t1);
+        statistics.stackelberg_search_initialized(t1);
     }
 
     SearchStatus SymbolicStackelberg::step() {
@@ -102,16 +102,21 @@ namespace stackelberg {
 
                 FollowerSolution solution; 
                 if  (satisficing_engine) {
+                    auto t1 = chrono::high_resolution_clock::now();
                     solution = satisficing_engine->solve(state, plan_reuse.get(), newF);
+                    auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
 
-                    // if (solution.has_plan()) {
-                    // }
+                    statistics.follower_search_finished(runtime, false, solution.is_optimal());
                 }
 
-                if (!solution.is_solved() || solution.solution_cost() > newF) { 
+                if (!solution.is_solved() || solution.solution_cost() > newF) {
+                    auto t1 = chrono::high_resolution_clock::now();
+                    
                     solution = optimal_engine->solve(state, plan_reuse.get(), std::numeric_limits<int>::max());
 
-                    statistics.inc_opt_search();
+                    auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
+                    
+                    statistics.follower_search_finished(runtime, true, solution.is_optimal());
                 }
 
                 if (solution.has_plan()) {
@@ -176,7 +181,7 @@ namespace stackelberg {
             L = leader_search->getG();   
         }
 
-        statistics.search_finished();
+        statistics.stackelberg_search_finished();
         BDD followerStates = stackelberg_mgr->get_follower_initial_state_projection(leader_search->getClosedTotal());
         cout << "Total number of leader states: " << vars->numStates(leader_search->getClosedTotal()) << endl;
         cout << "Total number of follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << endl;

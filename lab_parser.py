@@ -14,8 +14,13 @@ eval = Parser()
 regexps = [re.compile("Optimally solved follower subproblems: (?P<optimally_solved_subproblems>(\d+))"),
            re.compile("Pareto-frontier: (?P<pareto_frontier>(.*))"),
            re.compile("Pareto-frontier size: (?P<pareto_frontier_size>(\d+))"),
-           re.compile("Follower search time: (?P<follower_time>(.*))s"), 
-           re.compile("Leader search time: (?P<leader_time>(.*))s"), 
+           re.compile("Follower search time: (?P<follower_time>(.*))s"),
+           re.compile("Optimal solver time: (?P<optimal_solver_time>(.*))s"), 
+           re.compile("Cost-bounded solver time: (?P<cost_bounded_solver_time>(.*))s"), 
+           re.compile("Leader search time: (?P<leader_time>(.*))s"),
+           re.compile("Total follower searches: (?P<total_follower_searches>(\d+))"),     
+           re.compile("Solved by optimal solver: (?P<optimal_solver_searches>(\d+))"),
+           re.compile("Solved by cost bounded solver: (?P<cost_bounded_solver_searches>(\d+))"),   
 ]
 
 def parse_pareto_frontier(x):
