@@ -67,19 +67,27 @@ namespace stackelberg {
 
         BDD current = vars->getPartialStateBDD(g_goal);
         BDD result = vars->zeroBDD();
-        closed_list->insert(0, current);
         int cost = 0;
+        int zeroCostSteps = 0;
+        
+        closed_list->insertWithZeroCostSteps(cost, zeroCostSteps, current);
         for (int i = plan.size() -1; i >= 0; --i ){
             if (accumulate_intermediate_states) {
                 result += current;
             }
 
-            // cout << "Regressing plan " <<  cost << " " << plan[i]->get_name() << endl;
+            //cout << "Regressing plan " <<  cost << " " << plan[i]->get_name() << endl;
             current = stackelberg_mgr->get_transition_relation(plan[i]).preimage(current);
-            cost += stackelberg_mgr->get_cost(plan[i]);
-            
+            int step_cost = stackelberg_mgr->get_cost(plan[i]);
+            cost += step_cost;
 
-            closed_list->insert(cost, current);
+            if (step_cost == 0) {
+                zeroCostSteps  ++;
+            } else {
+                zeroCostSteps = 0;
+            }
+            
+            closed_list->insertWithZeroCostSteps(cost, zeroCostSteps, current);
         }
 
         result += current;

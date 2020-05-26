@@ -317,7 +317,7 @@ namespace stackelberg {
         
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal,
                                           indTRs,
-                                          std::map<int, std::vector <symbolic::TransitionRelation>> (),
+                                          indTRs,
                                           *mutex_bdds, vector<bool>());
     
     }

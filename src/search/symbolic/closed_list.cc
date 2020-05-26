@@ -59,7 +59,6 @@ namespace symbolic {
             if (other.zeroCostClosed.count(hval)) {
                 const auto & bdds = other.zeroCostClosed.at(hval);
                 for(size_t i = 0; i < bdds.size(); ++i) {
-
                     if  (i < zeroCostClosed[hval].size()) {
                         zeroCostClosed[hval][i] += bdds[i];
                     }else {
@@ -136,6 +135,44 @@ namespace symbolic {
     }
 
 
+    void ClosedList::insertWithZeroCostSteps(int h, int zeroCostSteps, const BDD &S) {
+	DEBUG_MSG(cout << "Inserting on closed "  << "g=" << h << ": " << S.nodeCount() << " nodes and "
+		  << mgr->getVars()->numStates(S) << " states" << endl;
+	    );
+
+#ifdef DEBUG_GST
+	gst_plan.checkClose(S, h, exploration);
+#endif
+
+	if (closed.count(h)) {
+	    assert(h_values.count(h));
+	    closed[h] += S;
+	} else {
+	    closed[h] = S;
+	    newHValue(h);
+	}
+
+	if (mgr->hasTransitions0()) {
+            assert ((size_t)zeroCostSteps <= zeroCostClosed[h].size());
+            if ((size_t)zeroCostSteps < zeroCostClosed[h].size()){
+                zeroCostClosed[h][zeroCostSteps] += S;
+            }else {
+                zeroCostClosed[h].push_back(S);
+            }
+	}
+        
+	closedTotal += S;
+
+	// //Introduce in closedUpTo
+	// auto c = closedUpTo.lower_bound(h);
+	// while (c != std::end(closedUpTo)) {
+	//     c->second += S;
+	//     c++;
+	// }
+        // Warning: We should introduce items in closedUpTo
+    }
+
+
     void ClosedList::setHNotClosed(int newHNotClosed) {
 	if (newHNotClosed > hNotClosed) {
 	    hNotClosed = newHNotClosed;
@@ -156,12 +193,14 @@ namespace symbolic {
         }
 
 	DEBUG_MSG(cout <<  "    " << "Sym closed extract path h=" << h << " notClosed: " << hNotClosed << " Intersection: " << !((c*closedTotal).IsZero()) << endl;
-		  cout << "Closed: ";
+		  cout << "Closed:";
 		  for (const auto &cl : closed) {
-                      if (((cl.second)*c).IsZero()){
-                          cout << cl.first << " ";
-                      }else {
-                          cout << cl.first << "** ";
+                      cout << " " << cl.first; 
+                      if (zeroCostClosed.count(h)) {
+                          cout << "#";
+                      }
+                      if (!((cl.second)*c).IsZero()){
+                          cout << "**";
                       }
                   }
                   

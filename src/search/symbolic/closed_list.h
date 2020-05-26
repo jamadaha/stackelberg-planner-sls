@@ -47,6 +47,7 @@ public:
     void load(const ClosedList &other);
 
     void insert(int h, const BDD &S);
+    void insertWithZeroCostSteps(int h, int zero_cost_steps, const BDD &S);
     void setHNotClosed(int h);
     void setFNotClosed(int f);
     
