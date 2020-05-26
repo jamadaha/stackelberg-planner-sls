@@ -5,7 +5,7 @@
 ## By default, build in 32-bit mode. Use DOWNWARD_BITWIDTH=64
 ## to build in 64-bit mode and DOWNWARD_BITWIDTH=native to use
 ## the native bitness of the OS.
-DOWNWARD_BITWIDTH ?= 64
+DOWNWARD_BITWIDTH ?= 32
 
 ## Set DOWNWARD_USE_LP to 1 to enable linear programming stuff.
 DOWNWARD_USE_LP ?= 0
@@ -461,7 +461,7 @@ endif # LP code
 CUDD_ROOT = cudd-3.0.0/cudd/.libs/libcudd.a
 
 $(CUDD_ROOT):
-	cd cudd-3.0.0 && ./configure --enable-obj --build=i686-pc-linux-gnu "CFLAGS=-m64 -Wall -Wextra -g -O3" "CXXFLAGS=-m64 -Wall -Wextra -std=c++0x -g -O3" "LDFLAGS=-m64" && make
+	cd cudd-3.0.0 && ./configure --enable-obj --build=i686-pc-linux-gnu "CFLAGS=-m32 -Wall -Wextra -g -O3" "CXXFLAGS=-m32 -Wall -Wextra -std=c++0x -g -O3" "LDFLAGS=-m32" && make
 
 CUDD_CCOPT = -Icudd-3.0.0/cudd -Icudd-3.0.0/cplusplus
 
