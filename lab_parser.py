@@ -10,7 +10,6 @@ eval = Parser()
 
 
 
-
 regexps = [re.compile("Optimally solved follower subproblems: (?P<optimally_solved_subproblems>(\d+))"),
            re.compile("Pareto-frontier: (?P<pareto_frontier>(.*))"),
            re.compile("Pareto-frontier size: (?P<pareto_frontier_size>(\d+))"),
@@ -32,10 +31,16 @@ def parse_pareto_frontier(x):
 
 type_atr = {'follower_time' : lambda x : max(0.01, float(x)),
             'leader_time' : lambda x : max(0.01, float(x)),
+            'optimal_solver_time' : lambda x : max(0.01, float(x)),
+            'cost_bounded_solver_time' : lambda x : max(0.01, float(x)),
             'pareto_frontier' : parse_pareto_frontier,
             'pareto_frontier_size' : int,
-            "optimally_solved_subproblems" : int
+            "optimally_solved_subproblems" : int,
+            'total_follower_searches' : int,
+            'optimal_solver_searches' : int,
+            'cost_bounded_solver_searches' : int
         }
+
 
 def parse_regexps (content, props):
     for l in content.split("\n"):
