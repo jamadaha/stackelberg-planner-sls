@@ -73,6 +73,11 @@ public:
     void print_h_line(int g) const;
     void print_statistics() const;
 
+
+    int get_f_value() const {
+        return std::max(0, lastjump_f_value); 
+    }
+
     void reset() {
         expanded_states = 0;
         reopened_states = 0;

@@ -115,7 +115,9 @@ namespace stackelberg {
         std::unique_ptr<SuccessorGenerator> successor_generator;
         std::vector <GlobalOperator> follower_operators_with_all_preconds;
 
-        SearchProgress follower_statistics; 
+        SearchProgress follower_statistics;
+
+        const bool is_optimal_solver;
         
         virtual void initialize_follower_search_engine() override; 
 

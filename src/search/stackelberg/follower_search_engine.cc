@@ -159,7 +159,8 @@ namespace stackelberg {
     }
 
     ExplicitFollowerSearchEngine::ExplicitFollowerSearchEngine(const Options &opts) : FollowerSearchEngine(opts), 
-        search_engine (opts.get<SearchEngine *>("search_engine"))  {
+                                                                                      search_engine (opts.get<SearchEngine *>("search_engine")),
+                                                                                      is_optimal_solver(opts.get<bool>("is_optimal_solver"))  {
         if (opts.contains("follower_heuristic")) {
             follower_heuristic =
                 opts.get<Heuristic *>("follower_heuristic"); 
@@ -234,7 +235,7 @@ namespace stackelberg {
 
         follower_statistics.accumulate(search_engine->get_search_progress());  
 
-
+        
         // SearchSpace *search_space = search_engine->get_search_space();
         // all_attacker_states += search_space->get_num_search_node_infos();
 
@@ -263,7 +264,11 @@ namespace stackelberg {
             return FollowerSolution();
         }
 
-        return FollowerSolution(plan_cost, plan);
+        if(is_optimal_solver) {
+            return FollowerSolution(plan_cost, plan, search_engine->get_search_progress().get_f_value());
+        }else {
+            return FollowerSolution(plan_cost, plan);
+        }
     }
 
 
@@ -313,6 +318,8 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
 static stackelberg::FollowerSearchEngine *_parse_explicit(OptionParser &parser) {
     stackelberg::FollowerSearchEngine::add_options_to_parser(parser);
     parser.add_option<SearchEngine *> ("search_engine", "engine", "");
+    parser.add_option<bool> ("is_optimal_solver", "engine", "");
+        
     Options opts = parser.parse();
 
     if (!parser.dry_run()) {
