@@ -25,7 +25,6 @@ namespace symbolic {
 }
 
 namespace stackelberg {
-
     class PlanReuse;
     class FollowerSearchEngine;
     class SymbolicStackelbergManager;
@@ -36,7 +35,7 @@ namespace stackelberg {
         std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
 
         std::unique_ptr<FollowerSearchEngine> optimal_engine;
-        std::unique_ptr<FollowerSearchEngine> satisficing_engine;
+        std::unique_ptr<FollowerSearchEngine> cost_bounded_engine;
 
         std::unique_ptr<PlanReuse> plan_reuse;
 

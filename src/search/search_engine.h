@@ -60,7 +60,7 @@ public:
     SearchStatus get_status() const;
     const Plan &get_plan() const;
     void search();
-    SearchProgress get_search_progress() const
+    const SearchProgress & get_search_progress() const
     {
         return search_progress;
     }

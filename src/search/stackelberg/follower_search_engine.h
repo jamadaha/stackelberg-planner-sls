@@ -5,6 +5,7 @@
 #include "../symbolic/sym_state_space_manager.h"
 #include "../symbolic/sym_solution.h"
 #include "../symbolic/sym_params_search.h"
+#include "../search_progress.h"
 
 #include <memory>
 
@@ -103,6 +104,8 @@ namespace stackelberg {
         
         static void add_options_to_parser(OptionParser &parser);
 
+        virtual void print_statistics (){}
+
     };
 
     class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
@@ -111,14 +114,19 @@ namespace stackelberg {
 
         std::unique_ptr<SuccessorGenerator> successor_generator;
         std::vector <GlobalOperator> follower_operators_with_all_preconds;
-        
 
+        SearchProgress follower_statistics; 
+        
         virtual void initialize_follower_search_engine() override; 
 
     public:
         ExplicitFollowerSearchEngine(const Options &opts);
         virtual FollowerSolution solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) override;
         virtual FollowerSolution solve_minimum_ftask (PlanReuse * plan_reuse) override;
+
+        virtual void print_statistics () override {
+            follower_statistics.print_statistics();
+        }
     };
 
     class SymbolicFollowerSearchEngine : public FollowerSearchEngine {

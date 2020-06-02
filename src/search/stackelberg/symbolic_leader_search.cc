@@ -42,9 +42,9 @@ namespace stackelberg {
 
         plan_reuse->initialize(stackelberg_mgr);      
 
-        if (opts.contains("satisficing_engine")) {
-            satisficing_engine.reset(opts.get<FollowerSearchEngine *>("satisficing_engine"));
-            satisficing_engine->initialize(task.get(), stackelberg_mgr);
+        if (opts.contains("cost_bounded_engine")) {
+            cost_bounded_engine.reset(opts.get<FollowerSearchEngine *>("cost_bounded_engine"));
+            cost_bounded_engine->initialize(task.get(), stackelberg_mgr);
         }
 
     }
@@ -101,9 +101,9 @@ namespace stackelberg {
                 auto state = stackelberg_mgr->sample_follower_initial_state(follower_initial_states);
 
                 FollowerSolution solution; 
-                if  (satisficing_engine) {
+                if  (cost_bounded_engine) {
                     auto t1 = chrono::high_resolution_clock::now();
-                    solution = satisficing_engine->solve(state, plan_reuse.get(), newF);
+                    solution = cost_bounded_engine->solve(state, plan_reuse.get(), newF);
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
 
                     statistics.follower_search_finished(runtime, false, solution.is_optimal());
@@ -188,8 +188,16 @@ namespace stackelberg {
         cout << "Total number of leader states: " << vars->numStates(leader_search->getClosedTotal()) << endl;
         cout << "Total number of follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << endl;
 
-        statistics.dump();
         pareto_frontier.dump(*task);
+        statistics.dump();
+
+        cout << "Optimal engine:" << endl;
+        optimal_engine->print_statistics();
+
+        if (cost_bounded_engine) {
+            cout << "Cost-bounded engine:" << endl;
+            cost_bounded_engine->print_statistics();            
+        }
 
         exit(0);
 
@@ -207,7 +215,7 @@ namespace stackelberg {
 
         parser.add_option<PlanReuse *>("plan_reuse", "strategy for plan reuse", "simple");
         parser.add_option<FollowerSearchEngine *>("optimal_engine");
-        parser.add_option<FollowerSearchEngine *>("satisficing_engine", "", "", 
+        parser.add_option<FollowerSearchEngine *>("cost_bounded_engine", "", "", 
         OptionFlags(false));
     
         Options opts = parser.parse();

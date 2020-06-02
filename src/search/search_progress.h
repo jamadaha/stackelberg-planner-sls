@@ -93,6 +93,9 @@ public:
         best_heuristic_values.assign(best_heuristic_values.size(), -1);
         initial_h_values.clear();
     }
+
+
+    void accumulate(const SearchProgress & other); 
 };
 
 #endif

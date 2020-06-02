@@ -128,3 +128,22 @@ void SearchProgress::print_statistics() const {
              << lastjump_generated_states << " state(s)." << endl;
     }
 }
+
+
+void SearchProgress::accumulate(const SearchProgress & other) {
+    expanded_states += other.expanded_states;
+    evaluated_states += other.evaluated_states;
+    evaluations += other.evaluations;
+    generated_states += other.generated_states;
+    reopened_states += other.reopened_states;
+    dead_end_states += other.dead_end_states;
+
+    generated_ops += other.generated_ops;
+    pathmax_corrections += other.pathmax_corrections;
+
+    lastjump_f_value += other.lastjump_f_value;
+    lastjump_expanded_states += other.lastjump_expanded_states;
+    lastjump_reopened_states += other.lastjump_reopened_states;
+    lastjump_evaluated_states += other.lastjump_evaluated_states;
+    lastjump_generated_states += other.lastjump_generated_states;
+}

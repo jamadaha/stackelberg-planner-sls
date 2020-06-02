@@ -232,6 +232,8 @@ namespace stackelberg {
         
         search_engine->search();
 
+        follower_statistics.accumulate(search_engine->get_search_progress());  
+
 
         // SearchSpace *search_space = search_engine->get_search_space();
         // all_attacker_states += search_space->get_num_search_node_infos();
