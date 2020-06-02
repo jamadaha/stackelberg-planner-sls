@@ -39,6 +39,15 @@ bool test_goal(const GlobalState &state) {
     return true;
 }
 
+bool test_goal(const std::vector<int> &state) {
+    for (size_t i = 0; i < g_goal.size(); ++i) {
+        if (state[g_goal[i].first] != g_goal[i].second) {
+            return false;
+        }
+    }
+    return true;
+}
+
 int calculate_plan_cost(const vector<const GlobalOperator *> &plan) {
     // TODO: Refactor: this is only used by save_plan (see below)
     //       and the SearchEngine classes and hence should maybe

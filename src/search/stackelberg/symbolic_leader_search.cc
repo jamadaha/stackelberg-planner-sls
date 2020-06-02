@@ -119,6 +119,7 @@ namespace stackelberg {
                     statistics.follower_search_finished(runtime, true, solution.is_optimal());
                 }
 
+
                 if (solution.has_plan()) {
                     const auto plan = solution.get_plan();
 #ifndef NDEBUG
@@ -130,17 +131,18 @@ namespace stackelberg {
                         state_aux = op->apply_to(state_aux);
                     }
                     cout << endl;
+                    assert(test_goal(state_aux));
 #endif
 
-                    
                     follower_initial_states = plan_reuse->regress_plan_to_follower_initial_states(solution.get_plan(), follower_initial_states);
 
                     // BDD aux = vars->getPartialStateBDD(state,stackelberg_mgr->get_pattern_vars_follower_subproblems());
                     // assert(follower_initial_states-aux !=follower_initial_states);
                     // follower_initial_states -= aux;
 
+                } else {
+                    assert(solution.solution_cost() == std::numeric_limits<int>::max());
                 }
-                
                 int follower_cost  = solution.solution_cost();
        
                 if (follower_cost > newF) {

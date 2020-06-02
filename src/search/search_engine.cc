@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "operator_cost.h"
 #include "option_parser.h"
+#include "stackelberg/plan_reuse.h"
 
 #include <cassert>
 #include <iostream>
@@ -14,7 +15,7 @@ using namespace std;
 
 SearchEngine::SearchEngine(const Options &opts)
     : status(IN_PROGRESS),
-      solution_found(false),
+      current_plan_cost(std::numeric_limits<int>::max()), solution_found(false), 
       search_space(OperatorCost(opts.get_enum("cost_type"))),
       cost_type(OperatorCost(opts.get_enum("cost_type"))),
       max_time(opts.get<double>("max_time"))
@@ -54,6 +55,10 @@ void SearchEngine::set_plan(const Plan &p)
 {
     solution_found = true;
     plan = p;
+    current_plan_cost = ::calculate_plan_cost(plan);
+
+    cout << "plan length: " << plan.size() << endl;
+    cout << "current plan cost: " << current_plan_cost << endl;
 }
 
 void SearchEngine::search()
@@ -89,16 +94,27 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state,int budget)
     return false;
 }
 
-bool SearchEngine::check_goal_and_set_plan_generation(const GlobalState &state,int budget)
+bool SearchEngine::check_goal_and_set_plan_generation(const GlobalState &state,int budget, int g)
 {
-    if (test_goal(state)) {
-        cout << "Solution found!" << endl;
+    if (!opposite_frontier) {
+        return false;
+    }
+    
+    int goal_cost = opposite_frontier->check_goal_cost(state);
+    if (goal_cost < std::numeric_limits<int>::max() && goal_cost + g < current_plan_cost) {     
+        cout << "Solution found by opposite frontier!" << endl;
+        cout << "g value: " << g << endl;
+        cout << "goal cost: " << goal_cost << endl;
         Plan plan;
         search_space.trace_path(state, plan, budget);
+        opposite_frontier->getPlan(state, goal_cost, plan);
         set_plan(plan);
         goal_state.reset(new GlobalState(state));
         goal_state_budget = budget;
-        return true;
+
+        cout << "Checking " << current_plan_cost << " against a desired bound of " << opposite_frontier->get_desired_bound() << endl;
+        return current_plan_cost <= opposite_frontier->get_desired_bound();
+ //TODO: compare againstlower bound
     }
     return false;
 }
@@ -117,7 +133,7 @@ int SearchEngine::get_adjusted_cost(const GlobalOperator &op) const
 
 int SearchEngine::calculate_plan_cost() const
 {
-    return ::calculate_plan_cost(plan);
+    return current_plan_cost;
 }
 
 void SearchEngine::add_options_to_parser(OptionParser &parser)

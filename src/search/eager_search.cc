@@ -159,11 +159,7 @@ SearchStatus EagerSearch::step() {
         GlobalState succ_state = g_state_registry->get_successor_state(s, *op);
         search_progress.inc_generated();
         bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
-
-        if(check_goal_and_set_plan_generation (succ_state, node.get_real_g() + op->get_cost())) {
-            return SOLVED;
-        }
-
+        
         // if (lower_bound_heuristic && (node.get_real_g() + op->get_cost() + lower_bound_heuristic->compute_heuristic(succ_state)) >= bound) {
         //     continue;
         // }
@@ -264,7 +260,13 @@ SearchStatus EagerSearch::step() {
                 succ_node.update_parent(node, op);
             }
         }
+
+        if(check_goal_and_set_plan_generation (succ_state, new_budget, node.get_real_g() + op->get_cost())) {
+            return SOLVED;
+        }
     }
+
+    
 
     return IN_PROGRESS;
 }
@@ -368,9 +370,10 @@ void EagerSearch::print_heuristic_values(const vector<int> &values) const {
 }
 
 void EagerSearch::reset() {
-	search_space.reset();
-	open_list->clear();
-	search_progress.reset();
+    SearchEngine::reset();
+    search_space.reset();
+    open_list->clear();
+    search_progress.reset();
 }
 
 void add_pruning_option(OptionParser &parser) {

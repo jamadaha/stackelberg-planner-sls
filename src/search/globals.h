@@ -23,6 +23,7 @@ class SuccessorGenerator;
 class StateRegistry;
 
 bool test_goal(const GlobalState &state);
+bool test_goal(const std::vector<int> &state);
 void save_plan(const std::vector<const GlobalOperator *> &plan, int iter);
 int calculate_plan_cost(const std::vector<const GlobalOperator *> &plan);
 int calculate_fix_actions_plan_cost(const std::vector<const GlobalOperator *>

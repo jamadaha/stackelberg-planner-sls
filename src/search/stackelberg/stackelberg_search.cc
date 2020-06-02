@@ -324,8 +324,7 @@ int StackelbergSearch::compute_pareto_frontier(const GlobalState &state,
                 follower_heuristic_search_space->budget_attack_search_node_infos.set_relevant_variables(task->get_follower_vars_indizes());
 
                 follower_heuristic->reinitialize(follower_heuristic_search_space, search_space,
-						 open_list, *goal_state,
-						 goal_state_budget);
+						 open_list, *goal_state, goal_state_budget);
             }
         } else {
 #ifdef LEADER_SEARCH_DEBUG

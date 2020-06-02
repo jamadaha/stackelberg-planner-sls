@@ -28,18 +28,23 @@ namespace stackelberg {
         int desired_bound;
 
     public:
-    OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedList> closed) :
-        closed_list (closed), desired_bound(0) {}
+    OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedList> closed, int desired_bound_) :
+        closed_list (closed), desired_bound(desired_bound_) {}
         
         int check_goal_cost(const GlobalState & state){
             return closed_list->check_goal_cost(state);
+        }
+
+        void getPlan(const GlobalState & state, int g, std::vector <const GlobalOperator *> &path) const;
+
+        int get_desired_bound() const {
+            return desired_bound;
         }
     };
 
     
     class PlanReuse {
     protected:
-
         const bool check_all_cuts;
 
         std::shared_ptr<StackelbergSS> mockup_mgr;

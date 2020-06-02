@@ -27,6 +27,7 @@ public:
 private:
     SearchStatus status;
     Plan plan;
+    int current_plan_cost;
 protected:
     bool solution_found;
     SearchSpace search_space;
@@ -46,7 +47,7 @@ protected:
     void set_plan(const Plan &plan);
     bool check_goal_and_set_plan(const GlobalState &state,
                                  int budget = UNLTD_BUDGET);
-    bool check_goal_and_set_plan_generation(const GlobalState &state, int g);
+    bool check_goal_and_set_plan_generation(const GlobalState &state, int budget, int g);
 
     int get_adjusted_cost(const GlobalOperator &op) const;
 public:
@@ -71,7 +72,11 @@ public:
     {
         return bound;
     }
-    virtual void reset() {};
+    virtual void reset() {
+        solution_found = false;
+        plan.clear();
+        current_plan_cost = std::numeric_limits<int>::max();
+    };
     SearchSpace *get_search_space()
     {
         return &search_space;
