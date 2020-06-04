@@ -46,45 +46,18 @@ def rename_algorithm_and_domain(run):
     run['domain'] = dom
     return run
 
-exp.add_fetcher('data/sbd',filter=[rename_algorithm_and_domain])
-
-# ms_algorithm_time = Attribute('ms_algorithm_time', absolute=False, min_wins=True, functions=[geometric_mean])
-# ms_atomic_algorithm_time = Attribute('ms_atomic_algorithm_time', absolute=False, min_wins=True, functions=[geometric_mean])
-# ms_memory_delta = Attribute('ms_memory_delta', absolute=False, min_wins=True)
-# fts_transformation_time = Attribute('fts_transformation_time', absolute=False, min_wins=True, functions=[geometric_mean])
-# transformed_task_variables = Attribute('transformed_task_variables', absolute=False, min_wins=True, functions=[sum])
-# transformed_task_labels = Attribute('transformed_task_labels', absolute=False, min_wins=True, functions=[sum])
-# transformed_task_facts = Attribute('transformed_task_facts', absolute=False, min_wins=True, functions=[sum])
-# transformed_task_transitions = Attribute('transformed_task_transitions', absolute=False, min_wins=True, functions=[sum])
-# fts_search_task_construction_time = Attribute('fts_search_task_construction_time', absolute=False, min_wins=True, functions=[geometric_mean])
-# search_task_variables = Attribute('search_task_variables', absolute=False, min_wins=True, functions=[sum])
-# search_task_labels = Attribute('search_task_labels', absolute=False, min_wins=True, functions=[sum])
-# search_task_facts = Attribute('search_task_facts', absolute=False, min_wins=True, functions=[sum])
-# search_task_transitions = Attribute('search_task_transitions', absolute=False, min_wins=True, functions=[sum])
-# fts_plan_reconstruction_time = Attribute('fts_plan_reconstruction_time', absolute=False, min_wins=True, functions=[geometric_mean])
-# atomic_task_constructed = Attribute('atomic_task_constructed', absolute=True, min_wins=False)
-# solved_without_search = Attribute('solved_without_search', absolute=True, min_wins=True)
-# extra_attributes = [
-# ms_algorithm_time,
-#     ms_atomic_algorithm_time,
-#     ms_memory_delta,
-#     fts_transformation_time,
-#     transformed_task_variables,
-#     transformed_task_labels,
-#     transformed_task_facts,
-#     transformed_task_transitions,
-#     fts_search_task_construction_time,
-#     search_task_variables,
-#     search_task_labels,
-#     search_task_facts,
-#     search_task_transitions,
-#     fts_plan_reconstruction_time,
-#     atomic_task_constructed,
-#     solved_without_search,
-# ]
 
 
-attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'leader_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches']
+def add_histogram(run):
+    for a in [3, 5, 10, 20, 50, 100]:
+        run['histogram_follower_searches_{}'.format(a)] = 1 if 'total_follower_searches' in run and run['total_follower_searches'] >= a else 0
+    
+    return run
+
+exp.add_fetcher('data/sbd',filter=[rename_algorithm_and_domain, add_histogram])
+
+
+attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'leader_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches'] + ['histogram_follower_searches_{}'.format(a) for a in [3, 5, 10, 20, 50, 100] ]
 # attributes.extend(extra_attributes)
 
 

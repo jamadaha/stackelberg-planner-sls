@@ -11,7 +11,6 @@ CONFIGS = defaultdict(list)
 
 CONFIGS["symbolic_leader"] += [configs.Config('ss-sbd', 'ss-sbd', \
                 ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
- configs.Config('ss-lmcut', 'ss-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut())))"], REVISION, SERVERS),
  configs.Config('ss-sbd-up', 'ss-sbd-up', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=true)"], REVISION, SERVERS), 
  configs.Config('ss-sbd-ubreuse', 'ss-sbd-ubreuse', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS), 
  # configs.Config('ss-sbd-up-ubreuse', 'ss-sbd-up-ubreuse', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true), upper_bound_pruning=true)"], REVISION, SERVERS),
@@ -23,3 +22,4 @@ CONFIGS["symbolic_leader"] += [configs.Config('ss-sbd', 'ss-sbd', \
 
 
 
+configs.Config('ss-lmcut', 'ss-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=false))"], REVISION, SERVERS),                              

@@ -28,10 +28,11 @@ class Config:
 
 import baseline
 import symbolic_leader
+import symbolic_leader_lmcut
 
 
 CONFIGS = defaultdict(list)
-for config_list in [baseline.CONFIGS, symbolic_leader.CONFIGS]:
+for config_list in [baseline.CONFIGS, symbolic_leader.CONFIGS, symbolic_leader_lmcut.CONFIGS]:
     for k in config_list:
         for config in config_list[k]:
             CONFIGS[k].append(config)
