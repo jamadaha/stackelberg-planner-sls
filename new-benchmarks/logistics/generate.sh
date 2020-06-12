@@ -1,0 +1,10 @@
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 5 -a 1 -p 5 -r 1 > p-5-5.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 5 -a 1 -p 6 -r 1 > p-5-6.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 5 -a 1 -p 7 -r 1 > p-5-7.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 5 -a 1 -p 8 -r 1 > p-5-8.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 5 -a 1 -p 9 -r 1 > p-5-9.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 8 -a 1 -p 5 -r 1 > p-8-5.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 8 -a 1 -p 6 -r 1 > p-8-6.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 8 -a 1 -p 7 -r 1 > p-8-7.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 8 -a 1 -p 8 -r 1 > p-8-8.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/logistics/logistics -c 3 -s 8 -a 1 -p 9 -r 1 > p-8-9.pddl
