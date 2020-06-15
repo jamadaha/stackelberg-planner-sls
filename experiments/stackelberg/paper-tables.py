@@ -54,7 +54,16 @@ def add_histogram(run):
     
     return run
 
-exp.add_fetcher('data/sbd',filter=[rename_algorithm_and_domain, add_histogram])
+def correct_statistics(run):
+    if 'optimally_solved_subproblems' in run and not 'optimal_solver_searches' in run:
+        run['optimal_solver_searches'] = run['optimally_solved_subproblems']
+
+    if 'optimally_solved_subproblems' in run and not 'total_follower_searches' in run:
+        run['total_follower_searches'] = run['optimally_solved_subproblems']
+
+    return run
+
+exp.add_fetcher('data/sbd',filter=[rename_algorithm_and_domain, correct_statistics, add_histogram])
 
 
 attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'leader_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches'] + ['histogram_follower_searches_{}'.format(a) for a in [3, 5, 10, 20, 50, 100] ]
@@ -80,7 +89,7 @@ for atr in ['optimally_solved_subproblems', "search_time", 'total_time', 'total_
                 ],
                 get_category=lambda run1, run2: run1['domain'],
                 attributes=[atr],
-                format='png',
+                format='tex',
             ),
             outfile=os.path.join(exp.eval_dir, '{}-{}-vs-{}'.format(atr, alg1, alg2)),
         )

@@ -49,6 +49,10 @@ namespace stackelberg {
             return plan_cost;
         }
 
+        int get_lower_bound() const {
+            return lower_bound;
+        }
+
         bool is_optimal () const {
             return plan_cost == lower_bound;
         }
@@ -58,8 +62,7 @@ namespace stackelberg {
 
         bool has_plan() const {
             return !plan.empty();
-        }
-            
+        }            
 
         const std::vector <const GlobalOperator *>  & get_plan() const{
             return plan;

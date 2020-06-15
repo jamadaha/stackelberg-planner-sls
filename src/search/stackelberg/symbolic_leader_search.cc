@@ -34,7 +34,8 @@ namespace stackelberg {
         optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
         plan_reuse (opts.get<PlanReuse *>("plan_reuse")),
         mgrParams(opts), searchParams(opts),
-        upper_bound_pruning(opts.get<bool> ("upper_bound_pruning")){
+        upper_bound_pruning(opts.get<bool> ("upper_bound_pruning")),
+        statistics (opts.get<bool> ("follower_info")){
 
         task = make_unique<StackelbergTask> ();
         stackelberg_mgr = make_shared<SymbolicStackelbergManager> (task.get(), opts);
@@ -73,10 +74,18 @@ namespace stackelberg {
 
         if (upper_bound_pruning) {
             cout << "Upper bound pruning:" << endl;
+            auto t1 = chrono::high_resolution_clock::now();
+            
             FollowerSolution minimum_ftask_solution = optimal_engine->solve_minimum_ftask(plan_reuse.get());
+            auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
+            statistics.follower_search_finished(runtime, true, minimum_ftask_solution);
+
+
             if (minimum_ftask_solution.is_solved()) {
                 maxF = minimum_ftask_solution.solution_cost();
             }
+            
+
         }
 
         const auto & closed_list = leader_search->getClosed()->getClosedList();
@@ -106,7 +115,7 @@ namespace stackelberg {
                     solution = cost_bounded_engine->solve(state, plan_reuse.get(), newF);
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
 
-                    statistics.follower_search_finished(runtime, false, solution.is_optimal());
+                    statistics.follower_search_finished(runtime, false, solution);
                 }
 
                 if (!solution.is_solved() || solution.solution_cost() > newF) {
@@ -116,7 +125,7 @@ namespace stackelberg {
 
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
                     
-                    statistics.follower_search_finished(runtime, true, solution.is_optimal());
+                    statistics.follower_search_finished(runtime, true, solution);
                 }
 
 
@@ -209,8 +218,8 @@ namespace stackelberg {
         SymbolicStackelbergManager::add_options_to_parser(parser);
         SymParamsSearch::add_options_to_parser(parser, 30e3, 10e7);
         
-        parser.add_option<bool>("project_to_follower_states", "Project the set of leader options to follower states.", "false");
         parser.add_option<bool>("upper_bound_pruning", "Upper bound pruning.", "true");
+        parser.add_option<bool>("follower_info", "Print additional info about follower searches", "false");
         
 
         parser.add_option<PlanReuse *>("plan_reuse", "strategy for plan reuse", "simple");

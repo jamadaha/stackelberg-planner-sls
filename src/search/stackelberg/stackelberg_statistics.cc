@@ -2,15 +2,16 @@
 
 #include "../globals.h"
 #include <iostream>
-
+#include "follower_search_engine.h"
 using namespace std;
 
 namespace stackelberg {
 
-    StackelbergStatistics::StackelbergStatistics() : time_optimal_solver(0),
-                                                     time_cost_bounded_solver(0),
-                                                     time_solvers(0) {}
-
+    StackelbergStatistics::StackelbergStatistics(bool print_info) :
+        print_follower_search_info(print_info), time_optimal_solver(0),
+        time_cost_bounded_solver(0),
+        time_solvers(0) {}
+    
 
     void StackelbergStatistics::dump() const {
 
@@ -23,6 +24,7 @@ namespace stackelberg {
         cout << "Solved by optimal solver: " << num_follower_searches_optimal_solver << endl;
         cout << "Solved by cost bounded solver: " << num_follower_searches_cost_bounded_solver << endl;
         cout << "Optimally solved follower subproblems: " << num_follower_searches_optimal_solution << endl;
+        cout << "Solved follower subproblems: " << num_follower_searches_solved << endl;
 
         cout << "Optimal solver time: " << (time_optimal_solver.count()/1000.0) << "s" << endl;
         cout << "Cost-bounded solver time: " << (time_cost_bounded_solver.count()/1000.0) << "s" << endl;
@@ -53,9 +55,22 @@ namespace stackelberg {
 
     void StackelbergStatistics::follower_search_finished (std::chrono::milliseconds runtime,
                                                           bool optimal_solver,
-                                                          bool optimal_solution) {
+                                                          const FollowerSolution & solution) {
+
+        if (print_follower_search_info) {
+            cout << "Follower " << (optimal_solver ? "optimal" : "cost-bounded") << " search: " << solution.get_lower_bound() << " < " << solution.solution_cost() << endl;
+        }
+                
         num_follower_searches++;
         time_solvers += runtime;
+
+        if (solution.is_solved()) {
+            num_follower_searches_solved++;
+            if (solution.is_optimal()) {
+                num_follower_searches_optimal_solution ++;
+            }
+        }
+        
         if (optimal_solver) {
             time_optimal_solver += runtime;
             num_follower_searches_optimal_solver ++;
@@ -64,9 +79,6 @@ namespace stackelberg {
             num_follower_searches_cost_bounded_solver ++;
         }
 
-        if (optimal_solution) {
-            num_follower_searches_optimal_solution ++;
-        }
     }
 
 
