@@ -30,7 +30,7 @@ def parse_domain_specific_locations(domain_name, locations, objects, content):
             if content.find("(location " + loc + ")") != -1 :
                 locations.append(loc)
 
-                
+
 def parse_domain_specific_connections(domain_name, locations, connections, content):
     if domain_name == "logistics-strips":
         for i, loc1 in enumerate(locations):
@@ -202,7 +202,7 @@ for file in files_in_dir:
         copyfile(os.path.join(dir, file), os.path.join(new_dir, file))
 
 if makes_sense_to_increase_number_of_connections is False:
-    print ("Increasing total number of connections makes no sense for this domain!")
+    print("Increasing total number of connections makes no sense for this domain!")
     exit(1)
 else:
     exit(0)
