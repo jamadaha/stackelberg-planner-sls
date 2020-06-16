@@ -30,6 +30,7 @@ def parse_domain_specific_locations(domain_name, locations, objects, content):
             if content.find("(location " + loc + ")") != -1 :
                 locations.append(loc)
 
+                
 def parse_domain_specific_connections(domain_name, locations, connections, content):
     if domain_name == "logistics-strips":
         for i, loc1 in enumerate(locations):
@@ -45,7 +46,7 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                     if content.find("(" + connection_predicate_regex[domain_name] + " " + loc2 + " " + loc1 + ")") != -1:
                         connections.append((loc1, loc2))
                     else:
-                        print "We assumed here that all roads are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!"
+                        print("We assumed here that all roads are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!")
                         exit()
     elif domain_name == "Rover":
         for i, loc1 in enumerate(locations):
@@ -54,7 +55,7 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                     if re.search("\(can_traverse rover\d+ " + loc2 + " " + loc1 + "\)", content) is not None:
                         connections.append((loc1, loc2))
                     else:
-                        print "We assumed here that all roads in Rovers are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!"
+                        print("We assumed here that all roads in Rovers are bi-directional which seems not to be the case for " + loc1 + " and " + loc2 + "... Abort!")
                         exit()
     elif domain_name == "sokoban-sequential":
             for loc in locations:
@@ -64,6 +65,7 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
             for loc in locations:
                 if re.search("\(on " + loc + " A\d+\)", content) is None:
                     connections.append((loc, loc))
+
 
 def generate_walls_for_sokoban(locations, content):
     walls = []
@@ -99,7 +101,6 @@ def generate_walls_for_sokoban(locations, content):
     return predicates_to_insert
 
 
-
 def generate_random_connection_sublist (connection_list, new_size):
     indizes = list(range(len(connection_list)))
     selected_indizes = []
@@ -110,9 +111,10 @@ def generate_random_connection_sublist (connection_list, new_size):
 
     return [connection_list[i] for i in sorted(selected_indizes)]
 
+
 def modify_problem_file(problem_file_name, new_problem_file_name):
     global makes_sense_to_increase_number_of_connections
-    print problem_file_name
+    print(problem_file_name)
 
     problem_file = open(problem_file_name, "r")
     content = problem_file.read()
@@ -121,22 +123,22 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     # Assuming here that there is exactly this line in the domain file:
     # (:domain domain_name)
     domain_name = re.search(":domain .*\)", content).group()[8:-1]
-    print domain_name
+    print(domain_name)
 
     objects = re.search(objects_regex, content).group()
-    print objects
+    print(objects)
 
     locations = []
     parse_domain_specific_locations(domain_name, locations, objects, content)
     locations.sort()
-    print "locations:"
-    print locations
+    print("locations:")
+    print(locations)
 
     # connections is a list of tuples of locations, where a tuple (a,b) represents that there is a road between a and b in both directions.
     # The locations are sorted, s.t. there is never tuple (b,a) iff a < b
     connections = []
     parse_domain_specific_connections(domain_name, locations, connections, content)
-    print connections
+    print(connections)
 
     if con_total is not None:
         number_of_connections = min(con_total, len(connections))
@@ -151,7 +153,7 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
     random.seed(random_seed)
     connections_subset = [connections[i] for i in sorted(random.sample(xrange(len(connections)), number_of_connections))]
     #connections_subset = generate_random_connection_sublist(connections, number_of_connections)
-    print connections_subset
+    print(connections_subset)
 
     predicate = "(allowed_to_remove {0} {1})"
     predicates_to_insert = ""
@@ -159,7 +161,7 @@ def modify_problem_file(problem_file_name, new_problem_file_name):
         predicates_to_insert += "\n" + predicate.format(con[0], con[1])
     if domain_name == "sokoban-sequential":
         predicates_to_insert += generate_walls_for_sokoban(locations, content)
-    print predicates_to_insert
+    print(predicates_to_insert)
 
     i = content.find("(:init")
     new_content = content[0:i + 6] + predicates_to_insert + content[i + 6:]
@@ -178,7 +180,7 @@ args = p.parse_args(sys.argv[1:])
 
 dir = str(args.dir)
 files_in_dir = os.listdir(dir)
-print files_in_dir
+print(files_in_dir)
 
 random_seed = int(args.seed)
 
@@ -188,7 +190,7 @@ at_least_con = int(args.at_least_con)
 
 objects_regex = "\(:objects[^)]*\)"
 
-print dir
+print(dir)
 new_dir = dir + "-rs" + str(random_seed) + ("-tc" + str(con_total) if con_total is not None else "-pc" + str(con_percent))
 if not os.path.exists(new_dir):
     os.makedirs(new_dir)
@@ -200,7 +202,7 @@ for file in files_in_dir:
         copyfile(os.path.join(dir, file), os.path.join(new_dir, file))
 
 if makes_sense_to_increase_number_of_connections is False:
-    print "Increasing total number of connections makes no sense for this domain!"
+    print ("Increasing total number of connections makes no sense for this domain!")
     exit(1)
 else:
     exit(0)
