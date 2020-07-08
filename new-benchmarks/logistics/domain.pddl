@@ -1,5 +1,6 @@
-;; logistics domain
-;;
+;; Basically logistics domain with additional fix actions which remove connection in both directions at once between locations in the same city.
+;; Only connections for which the allowed_to_remove predicate is set, can be removed.
+;; The cost for removing a connection is 1
 
 (define (domain logistics)
   (:requirements :strips) 
@@ -11,7 +12,9 @@
 		(in-city ?obj ?city)
                 (city ?city)
 		(at ?obj ?loc)
-		(in ?obj ?obj))
+		(in ?obj ?obj)
+    (removed-connection ?loc1 ?loc2)
+    (allowed_to_remove ?loc1 ?loc2))
 
  
 (:action load-truck
@@ -82,4 +85,20 @@
 	(at ?airplane ?loc-from))
   :effect
    (and (not (at ?airplane ?loc-from)) (at ?airplane ?loc-to)))
+
+(:action fix_REMOVE-CONNECTION
+  :parameters
+   (?loc-1
+    ?loc-2
+    ?city)
+  :precondition
+   (and (LOCATION ?loc-1) (LOCATION ?loc-2) (CITY ?city)
+   (in-city ?loc-1 ?city)
+   (in-city ?loc-2 ?city)
+   (allowed_to_remove ?loc-1 ?loc-2)
+   (not (removed-connection ?loc-1 ?loc-2))
+   (not (removed-connection ?loc-2 ?loc-1)))
+  :effect
+   (and (removed-connection ?loc-1 ?loc-2)
+        (removed-connection ?loc-2 ?loc-1)))    
 )
