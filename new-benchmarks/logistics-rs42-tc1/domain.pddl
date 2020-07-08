@@ -71,7 +71,8 @@
    (and (truck ?truck) (location ?loc-from) (location ?loc-to) (city ?city)
    (at ?truck ?loc-from)
    (in-city ?loc-from ?city)
-   (in-city ?loc-to ?city))
+   (in-city ?loc-to ?city)
+   (not (removed-connection ?loc-from ?loc-to)))
   :effect
    (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
 
