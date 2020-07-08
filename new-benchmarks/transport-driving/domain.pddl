@@ -73,12 +73,40 @@
       )
   )
 
-  (:action fix_remove_road
-    :parameters (?l1 ?l2 - location)
+  (:action fix_drive
+    :parameters (?v - fix_vehicle ?l1 ?l2 - location)
+    :precondition (and
+        (at ?v ?l1)
+        (road ?l1 ?l2)
+      )
+    :effect (and
+        (not (at ?v ?l1))
+        (at ?v ?l2)
+        (increase (total-cost) 1);;(road-length ?l1 ?l2))
+      )
+  )  
+
+  (:action fix_remove_road_1
+    :parameters (?v - fix_vehicle ?l1 ?l2 - location)
     :precondition (and
         (road ?l1 ?l2)
         (road ?l2 ?l1)
         (allowed_to_remove ?l1 ?l2)
+        (at ?v ?l1)
+      )
+    :effect (and
+        (not (road ?l1 ?l2))
+        (not (road ?l2 ?l1))
+        (increase (total-cost) (road-length ?l1 ?l2))
+      )
+  ) 
+  (:action fix_remove_road_2
+    :parameters (?v - fix_vehicle ?l1 ?l2 - location)
+    :precondition (and
+        (road ?l1 ?l2)
+        (road ?l2 ?l1)
+        (allowed_to_remove ?l1 ?l2)
+        (at ?v ?l2)
       )
     :effect (and
         (not (road ?l1 ?l2))
