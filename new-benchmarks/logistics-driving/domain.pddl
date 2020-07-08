@@ -19,7 +19,7 @@
     (allowed_to_remove ?loc1 ?loc2))
 
  
-(:action load-truck
+(:action attack_load-truck
   :parameters
    (?obj
     ?truck
@@ -30,7 +30,7 @@
   :effect
    (and (not (at ?obj ?loc)) (in ?obj ?truck)))
 
-(:action load-airplane
+(:action attack_load-airplane
   :parameters
    (?obj
     ?airplane
@@ -41,7 +41,7 @@
   :effect
    (and (not (at ?obj ?loc)) (in ?obj ?airplane)))
 
-(:action unload-truck
+(:action attack_unload-truck
   :parameters
    (?obj
     ?truck
@@ -52,7 +52,7 @@
   :effect
    (and (not (in ?obj ?truck)) (at ?obj ?loc)))
 
-(:action unload-airplane
+(:action attack_unload-airplane
   :parameters
    (?obj
     ?airplane
@@ -63,7 +63,7 @@
   :effect
    (and (not (in ?obj ?airplane)) (at ?obj ?loc)))
 
-(:action drive-truck
+(:action attack_drive-truck
   :parameters
    (?truck
     ?loc-from
@@ -73,11 +73,12 @@
    (and (truck ?truck) (location ?loc-from) (location ?loc-to) (city ?city)
    (at ?truck ?loc-from)
    (in-city ?loc-from ?city)
-   (in-city ?loc-to ?city))
+   (in-city ?loc-to ?city)
+   (not (removed-connection ?loc-from ?loc-to)))
   :effect
    (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
 
-(:action fly-airplane
+(:action attack_fly-airplane
   :parameters
    (?airplane
     ?loc-from
