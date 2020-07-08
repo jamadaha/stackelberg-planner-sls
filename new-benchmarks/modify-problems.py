@@ -6,7 +6,7 @@ import os
 from shutil import copyfile
 
 
-domain_location_regex_dic = {"logistics-strips": "city\d+-\d+",
+domain_location_regex_dic = {"logistics-strips": "c\d+",
                              "Rover": "waypoint\d+",
                              "TPP-Propositional": "market\d+|depot\d+",
                              "transport": "city-?\d*-loc-\d+",
@@ -21,7 +21,7 @@ connection_predicate_regex = {"no-mystery-strips": "connected",
 makes_sense_to_increase_number_of_connections = False
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips":
+    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -32,7 +32,7 @@ def parse_domain_specific_locations(domain_name, locations, objects, content):
 
 
 def parse_domain_specific_connections(domain_name, locations, connections, content):
-    if domain_name == "logistics":
+    if domain_name == "logistics-strips":
         for i, loc1 in enumerate(locations):
             for loc2 in locations[i + 1:]:
                 city1 = loc1[0:loc1.find('-')]
@@ -196,7 +196,9 @@ if not os.path.exists(new_dir):
     os.makedirs(new_dir)
 
 for file in files_in_dir:
-    if file.find("domain") == -1:
+    if file.find("pddl") == -1:
+        print(file + " skipped!")
+    elif file.find("domain") == -1:
         modify_problem_file(os.path.join(dir, file), os.path.join(new_dir, file))
     else:
         copyfile(os.path.join(dir, file), os.path.join(new_dir, file))
