@@ -12,16 +12,18 @@ domain_location_regex_dic = {"logistics-strips": "c\d+",
                              "transport": "city-?\d*-loc-\d+",
                              "grid-visit-all": "loc-x\d+-y\d+",
                              "sokoban-sequential": "pos-\d+-\d+",
-                             "pipesworld_strips": "B\d+"}
+                             "pipesworld_strips": "B\d+",
+                             "transport-strips": "l\d+"} # This is Alvaros new (2020) nomystery domain
 connection_predicate_regex = {"no-mystery-strips": "connected",
                               "TPP-Propositional": "connected",
                               "transport": "road",
-                              "grid-visit-all": "connected"}
+                              "grid-visit-all": "connected",
+                              "transport-strips": "connected"}# This is Alvaros new (2020) nomystery domain
 
 makes_sense_to_increase_number_of_connections = False
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips":
+    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips" or domain_name == "transport-strips":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -39,7 +41,7 @@ def parse_domain_specific_connections(domain_name, locations, connections, conte
                 city2 = loc2[0:loc2.find('-')]
                 if city1 == city2:
                     connections.append((loc1, loc2))
-    elif domain_name == "no-mystery-strips" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all":
+    elif domain_name == "no-mystery-strips" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "transport-strips":
         for i, loc1 in enumerate(locations):
             for loc2 in locations[i + 1:]:
                 if content.find("(" + connection_predicate_regex[domain_name] + " " + loc1 + " " + loc2 + ")") != -1 :
