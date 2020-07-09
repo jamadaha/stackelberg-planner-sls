@@ -73,7 +73,7 @@
        :precondition (and
         (connected ?l1 ?l2)
         (connected ?l2 ?l1)
-        (allowed_to_remove ?n1 ?n2))
+        (allowed_to_remove ?l1 ?l2))
        :effect (and (not (connected ?l1 ?l2))
                     (not (connected ?l2 ?l1))
                     ))
