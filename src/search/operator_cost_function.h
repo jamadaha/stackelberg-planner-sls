@@ -11,6 +11,7 @@ class OperatorCostFunction {
 public:
     virtual int get_adjusted_cost(const GlobalOperator * op) const = 0;
     virtual int get_adjusted_cost(int op_id) const = 0;
+    virtual ~OperatorCostFunction() = default;
     static std::shared_ptr<OperatorCostFunction> default_cost_function;
     static std::shared_ptr<OperatorCostFunction> get_cost_function(const std::vector<int> & costs = std::vector<int>());
 
