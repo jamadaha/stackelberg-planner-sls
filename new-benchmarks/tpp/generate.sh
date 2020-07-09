@@ -1,10 +1,10 @@
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 10 -t 2 -d 1 -l 3 >  p-3-3-10.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 12 -t 2 -d 1 -l 3 >  p-3-3-12.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 14 -t 2 -d 1 -l 3 >  p-3-3-14.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 16 -t 2 -d 1 -l 3 >  p-3-3-16.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 18 -t 2 -d 1 -l 3 >  p-3-3-18.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 10 -t 2 -d 1 -l 2 >  p-4-2-10.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 12 -t 2 -d 1 -l 2 >  p-4-2-12.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 14 -t 2 -d 1 -l 2 >  p-4-2-14.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 16 -t 2 -d 1 -l 2 >  p-4-2-16.pddl
-/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 18 -t 2 -d 1 -l 2 >  p-4-2-18.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 10 -t 2 -d 1 -l 3   p-3-3-10.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 12 -t 2 -d 1 -l 3   p-3-3-12.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 14 -t 2 -d 1 -l 3   p-3-3-14.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 16 -t 2 -d 1 -l 3   p-3-3-16.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 3 -m 18 -t 2 -d 1 -l 3   p-3-3-18.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 10 -t 2 -d 1 -l 2   p-4-2-10.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 12 -t 2 -d 1 -l 2   p-4-2-12.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 14 -t 2 -d 1 -l 2   p-4-2-14.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 16 -t 2 -d 1 -l 2   p-4-2-16.pddl
+/home/alvaro/projects/benchmarks/code/pddl-generators/tpp/tpp -s 1 -p 4 -m 18 -t 2 -d 1 -l 2   p-4-2-18.pddl
