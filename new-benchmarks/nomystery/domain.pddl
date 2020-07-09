@@ -1,8 +1,12 @@
+;; Basically no-mystery domain with fix actions to remove connections
+;; A connection is always removed in both directions at once. Only connections for which the allowed_to_remove predicate is set, can be removed.
+;; The cost for removing a segment is also 1.
+
 (define (domain transport-strips)
 (:requirements :typing :action-costs)
 
 (:types location fuellevel locatable - object 
-	package truck - locatable
+	package truck fix_truck - locatable
 )
 
 (:predicates 
@@ -12,12 +16,13 @@
 (fuel ?t - truck ?level - fuellevel)
 (fuelcost ?level - fuellevel ?l1 ?l2 - location)
 (sum ?a ?b ?c - fuellevel)
+(allowed_to_remove ?loc1 ?loc2 - location)
 )
 
 (:functions 
 (total-cost) - number)
 
-(:action LOAD
+(:action attack_LOAD
 :parameters
 (?p - package
 ?t - truck
@@ -28,7 +33,7 @@
 (and (not (at ?p ?l)) (in ?p ?t) (increase (total-cost) 1))
 )
 
-(:action UNLOAD
+(:action attack_UNLOAD
 :parameters
 (?p - package
 ?t - truck
@@ -39,7 +44,7 @@
 (and (at ?p ?l) (not (in ?p ?t)) (increase (total-cost) 1))
 )
 
-(:action DRIVE
+(:action attack_DRIVE
 :parameters
 (?t - truck
 ?l1 - location
@@ -62,6 +67,16 @@
      (fuel ?t ?fuelpost)
      (increase (total-cost) 1))
 )
+
+(:action fix_remove_road
+       :parameters (?l1 ?l2 - location)
+       :precondition (and
+        (connected ?l1 ?l2)
+        (connected ?l2 ?l1)
+        (allowed_to_remove ?n1 ?n2))
+       :effect (and (not (connected ?l1 ?l2))
+                    (not (connected ?l2 ?l1))
+                    ))
 
 )
 
