@@ -59,6 +59,7 @@ namespace stackelberg {
     PlanReuse() : check_all_cuts(false) {
         }
         
+    virtual ~PlanReuse() = default;
         void initialize(std::shared_ptr<SymbolicStackelbergManager> mgr);
 
         virtual void initialize() = 0;

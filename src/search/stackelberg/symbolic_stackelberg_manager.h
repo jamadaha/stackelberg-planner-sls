@@ -55,6 +55,8 @@ namespace stackelberg {
                       std::map<int, std::vector <symbolic::TransitionRelation>> trs,
                       const MutexBDDs & mutex_bdds, const std::vector<bool> &  _pattern);
 
+        virtual ~StackelbergSS() = default;
+
 
         //For plan solution reconstruction. Only avaialble in original state space
         virtual const std::map<int, std::vector <symbolic::TransitionRelation>> &getIndividualTRs() const override {

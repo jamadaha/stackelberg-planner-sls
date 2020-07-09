@@ -16,6 +16,8 @@ public:
     OriginalStateSpace(SymVariables *v, const SymParamsMgr &params, 
 		       std::shared_ptr<OperatorCostFunction> cost_type_);
 
+    virtual ~OriginalStateSpace() = default;
+
     //Individual TRs: Useful for shrink and plan construction
     std::map<int, std::vector <TransitionRelation>> indTRs;
 

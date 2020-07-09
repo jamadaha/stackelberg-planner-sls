@@ -92,6 +92,8 @@ namespace stackelberg {
     public:
         FollowerSearchEngine(const Options &opts);
 
+        virtual ~FollowerSearchEngine() = default;
+
         void initialize(StackelbergTask * _task, std::shared_ptr<SymbolicStackelbergManager> mgr) {
             task = _task;
             stackelberg_mgr = mgr;

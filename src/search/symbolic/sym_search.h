@@ -30,6 +30,8 @@ protected:
 public:
     SymSearch (SymController * eng, const SymParamsSearch &params);
 
+    virtual ~SymSearch() = default;
+
     SymStateSpaceManager * getStateSpace() {
 	return mgr.get();
     }

@@ -81,6 +81,7 @@ namespace symbolic {
     OppositeFrontierComposite(std::shared_ptr<OppositeFrontier> f1_,
                               std::shared_ptr<OppositeFrontier> f2_) : f1(f1_), f2(f2_) {
         }
+    virtual ~OppositeFrontierComposite() = default;
 
         virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 

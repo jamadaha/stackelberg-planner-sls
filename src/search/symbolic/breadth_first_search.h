@@ -51,11 +51,12 @@ class BreadthFirstSearch : public UnidirectionalSearch  {
       return 0;
   }
 
+  using PlanReconstruction::getPlan;
   virtual void getPlan(const BDD &, int , int , std::vector <const GlobalOperator *> &) const {
   }
   BDD pop();
 
-  virtual bool finished() const {
+  virtual bool finished() const override {
     return open.empty(); 
   }
   
@@ -82,14 +83,14 @@ class BreadthFirstSearch : public UnidirectionalSearch  {
       
   }
 
-  virtual bool stepImage(int maxTime, int maxNodes);
+  virtual bool stepImage(int maxTime, int maxNodes) override;
 
-  virtual long nextStepTime() const;
-  virtual long nextStepNodes() const;
-  virtual long nextStepNodesResult() const;
+  virtual long nextStepTime() const override;
+  virtual long nextStepNodes() const override;
+  virtual long nextStepNodesResult() const override;
 
   virtual bool isUseful(double ratio) const;
-  virtual bool isSearchableWithNodes(int maxNodes) const; 
+  virtual bool isSearchableWithNodes(int maxNodes) const override;
   void violated(TruncatedReason reason , double time, int maxTime, int maxNodes);
 
   void notifyMutexes (const BDD & bdd);
