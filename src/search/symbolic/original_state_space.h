@@ -52,7 +52,7 @@ public:
         return bdd;
     }
 
-    virtual const std::map<int, std::vector <TransitionRelation>> &getIndividualTRs() const {
+    virtual const std::map<int, std::vector <TransitionRelation>> &getIndividualTRs() const override {
 	return indTRs;
     }
 

@@ -72,7 +72,7 @@ public:
         return closed;
     }
 
-    inline int getHNotClosed() const {
+    inline int getHNotClosed() const override {
         return hNotClosed;
     }
 

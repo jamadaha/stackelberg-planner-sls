@@ -68,7 +68,7 @@ namespace symbolic {
 	    return false;
 	}
 
-	virtual int getHNotClosed() const {
+	virtual int getHNotClosed() const override {
 	    return hNotGoal;
 	}
     };
@@ -83,16 +83,16 @@ namespace symbolic {
 
         virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
-	virtual BDD notClosed () const {
+	virtual BDD notClosed () const override {
             return f1->notClosed();
         }
 
 	//Returns true only if all not closed states are guaranteed to be dead ends
-	virtual bool exhausted () const{
+	virtual bool exhausted () const override {
             return f1->exhausted();
         }
 	
-	virtual int getHNotClosed() const{
+	virtual int getHNotClosed() const override {
             return f1->getHNotClosed();
         }
     };
@@ -113,7 +113,7 @@ namespace symbolic {
 	    return fw;
 	}
 
-	void statistics() const;
+	void statistics() const override;
 
 	/* virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator
          * *> &path) const = 0; */
