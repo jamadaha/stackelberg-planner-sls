@@ -109,6 +109,8 @@ namespace symbolic {
 
 	UnidirectionalSearch(SymController * eng, const SymParamsSearch &params);
 
+    virtual ~UnidirectionalSearch() = default;
+
 	inline bool isFW() const {
 	    return fw;
 	}

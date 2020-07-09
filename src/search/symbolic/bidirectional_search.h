@@ -18,6 +18,7 @@ public:
 			const SymParamsSearch &params, std::unique_ptr<UnidirectionalSearch> fw,
 			std::unique_ptr<UnidirectionalSearch> bw); 
 
+    virtual ~BidirectionalSearch() = default;
 
     virtual bool finished() const override;
 

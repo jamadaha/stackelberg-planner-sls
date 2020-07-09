@@ -85,13 +85,13 @@ namespace symbolic {
 	virtual ~UniformCostSearch() = default;
 
 
-	virtual bool finished() const {
+	virtual bool finished() const override {
 	    assert(!open_list.empty() || !frontier.empty() || 
 		   closed->getHNotClosed() == std::numeric_limits<int>::max());
 	    return open_list.empty() && frontier.empty(); 
 	}
 
-	virtual bool stepImage(int maxTime, int maxNodes);
+	virtual bool stepImage(int maxTime, int maxNodes) override;
 
 	bool init(std::shared_ptr<SymStateSpaceManager> manager, bool fw, 
 		  std::shared_ptr<OppositeFrontier> closed_opposite = nullptr); // Init forward or backward search
@@ -101,7 +101,7 @@ namespace symbolic {
 
 	virtual ADD getHeuristic() const;
 
-	virtual bool isSearchableWithNodes(int maxNodes) const;
+	virtual bool isSearchableWithNodes(int maxNodes) const override;
 
 	// Pointer to the closed list Used to set as heuristic of other explorations.
 	inline ClosedList * getClosed() const{
