@@ -57,7 +57,8 @@ namespace symbolic {
 	BDD goal;
 	int hNotGoal;
     public:
-	OppositeFrontierFixed (BDD g, const SymStateSpaceManager & mgr); 
+	OppositeFrontierFixed (BDD g, const SymStateSpaceManager & mgr);
+	virtual ~OppositeFrontierFixed() = default;
 	virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
 	virtual BDD notClosed () const override {

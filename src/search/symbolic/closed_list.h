@@ -40,6 +40,8 @@ public:
 
     ClosedList(const ClosedList & other, const BDD & subset);
 
+    virtual ~ClosedList() = default;
+
     
     void init(SymStateSpaceManager *manager);
     void init(SymStateSpaceManager *manager, const ClosedList &other);
