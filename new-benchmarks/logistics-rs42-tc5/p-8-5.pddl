@@ -2,7 +2,7 @@
 
 
 (define (problem logistics-c3-s8-p5-a1)
-(:domain logistics-strips)
+(:domain logistics)
 (:objects a0 
           c0 c1 c2 
           t0 t1 t2 
@@ -73,11 +73,11 @@
     (AIRPORT l00)
     (AIRPORT l10)
     (AIRPORT l20)
-    (OBJ p0)
-    (OBJ p1)
-    (OBJ p2)
-    (OBJ p3)
-    (OBJ p4)
+    (PACKAGE p0)
+    (PACKAGE p1)
+    (PACKAGE p2)
+    (PACKAGE p3)
+    (PACKAGE p4)
     (at t0 l07)
     (at t1 l16)
     (at t2 l21)
