@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # encoding: utf-8
 
 import sys
@@ -32,7 +32,7 @@ def get_script(config):
 
     SUITE = ["logistics-rs42-tcall", "nomystery-rs42-tcall", "rovers-rs42-tcall", "tpp-rs42-tcall", "transport-rs42-tcall", "visitall-rs42-tcall"] 
     
-    return """#! /usr/bin/env python
+    return """#! /usr/bin/env python2
 
 import os
 import subprocess
