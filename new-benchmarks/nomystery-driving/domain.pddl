@@ -73,7 +73,8 @@
        :parameters (?v - fix_truck ?l1 ?l2 - location)
        :precondition (and (at ?v ?n1)
         (connected ?l1 ?l2))
-       :effect (and (not (at ?v ?l1))
+       :effect (and (increase (total-cost) 1) 
+                    (not (at ?v ?l1))
                     (at ?v ?l2))) 
 
    (:action fix_remove_road_1
@@ -82,7 +83,8 @@
         (connected ?l1 ?l2)
         (connected ?l2 ?l1)
         (allowed_to_remove ?l1 ?l2))
-       :effect (and (not (connected ?l1 ?l2))
+       :effect (and (increase (total-cost) 1) 
+                    (not (connected ?l1 ?l2))
                     (not (connected ?l2 ?l1))
                     ))
     (:action fix_remove_road_2
@@ -91,7 +93,8 @@
         (connected ?l1 ?l2)
         (connected ?l2 ?l1)
         (allowed_to_remove ?l1 ?l2))
-       :effect (and (not (connected ?l1 ?l2))
+       :effect (and (increase (total-cost) 1) 
+                    (not (connected ?l1 ?l2))
                     (not (connected ?l2 ?l1))
                     )) 
 
