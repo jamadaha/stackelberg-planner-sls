@@ -13,7 +13,7 @@ domain_location_regex_dic = {"logistics-strips": "l\d+",
                              "grid-visit-all": "loc-x\d+-y\d+",
                              "sokoban-sequential": "pos-\d+-\d+",
                              "pipesworld_strips": "B\d+",
-                             "transport-strips": "l\d+"} # This is Alvaros new (2020) nomystery domain
+                             "transport-strips": "\\bl\d+"} # This is Alvaros new (2020) nomystery domain
 connection_predicate_regex = {"no-mystery-strips": "connected",
                               "TPP-Propositional": "connected",
                               "transport": "road",

@@ -74,7 +74,8 @@
         (connected ?l1 ?l2)
         (connected ?l2 ?l1)
         (allowed_to_remove ?l1 ?l2))
-       :effect (and (not (connected ?l1 ?l2))
+       :effect (and (increase (total-cost) 1) 
+                    (not (connected ?l1 ?l2))
                     (not (connected ?l2 ?l1))
                     ))
 

@@ -9,12 +9,12 @@ level0 level1 level2 level3 level4 level5 level6 level7 level8 level9 level10 le
 )
 
 (:init
-(allowed_to_remove l0 l6)
-(allowed_to_remove l10 l3)
+(allowed_to_remove l0 l17)
+(allowed_to_remove l10 l13)
 (allowed_to_remove l10 l3)
 (allowed_to_remove l15 l18)
-(allowed_to_remove l16 l4)
-(allowed_to_remove l16 l9)
+(allowed_to_remove l15 l4)
+(allowed_to_remove l16 l17)
 (sum level0 level0 level0)
 (sum level0 level1 level1)
 (sum level0 level2 level2)
