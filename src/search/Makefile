@@ -461,7 +461,6 @@ endif # LP code
 CUDD_ROOT = cudd-3.0.0/cudd/.libs/libcudd.a
 
 $(CUDD_ROOT):
-	cd cudd-3.0.0 && ./configure --enable-obj --build=i686-pc-linux-gnu "CFLAGS= $(BITWIDTHOPT) -Wall -Wextra -g -O3" "CXXFLAGS=-$(BITWIDTHOPT) -Wall -Wextra -std=c++0x -g -O3" "LDFLAGS=-$(BITWIDTHOPT)" && make
 
 CUDD_CCOPT = -Icudd-3.0.0/cudd -Icudd-3.0.0/cplusplus
 
