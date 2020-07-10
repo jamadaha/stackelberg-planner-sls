@@ -102,7 +102,7 @@
    (in-city ?loc-to ?city)
    (not (removed-connection ?loc-from ?loc-to)))
   :effect
-   (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
+   (and (increase (total-cost) 1) (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))
 
 (:action fix_FLY-TRUCK
   :parameters
@@ -113,7 +113,7 @@
    (and (FIX_TRUCK ?truck) (AIRPORT ?loc-from) (AIRPORT ?loc-to)
   (at ?truck ?loc-from))
   :effect
-   (and (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))   
+   (and (increase (total-cost) 1) (not (at ?truck ?loc-from)) (at ?truck ?loc-to)))   
 
 (:action fix_REMOVE-CONNECTION_1
   :parameters
@@ -131,7 +131,8 @@
    (not (removed-connection ?loc-1 ?loc-2))
    (not (removed-connection ?loc-2 ?loc-1)))
   :effect
-   (and (removed-connection ?loc-1 ?loc-2)
+   (and (increase (total-cost) 1) 
+        (removed-connection ?loc-1 ?loc-2)
         (removed-connection ?loc-2 ?loc-1)))
 
 (:action fix_REMOVE-CONNECTION_2
@@ -150,6 +151,7 @@
    (not (removed-connection ?loc-1 ?loc-2))
    (not (removed-connection ?loc-2 ?loc-1)))
   :effect
-   (and (removed-connection ?loc-1 ?loc-2)
+   (and (increase (total-cost) 1)
+        (removed-connection ?loc-1 ?loc-2)
         (removed-connection ?loc-2 ?loc-1)))            
 )

@@ -100,6 +100,7 @@
    (not (removed-connection ?loc-1 ?loc-2))
    (not (removed-connection ?loc-2 ?loc-1)))
   :effect
-   (and (removed-connection ?loc-1 ?loc-2)
+   (and (increase (total-cost) 1)
+        (removed-connection ?loc-1 ?loc-2)
         (removed-connection ?loc-2 ?loc-1)))    
 )
