@@ -30,8 +30,7 @@ def get_script(config):
 
     # SUITE = [domain for domain in SUITE if not domain.endswith("tc1") and not domain.endswith("tc3") and not domain.endswith("tc5") and not domain.endswith("tc12") and not "transport-opt14" in domain and not domain.endswith("tc25") and not domain.endswith("tc50") and not domain.endswith("tc6") and not domain.endswith("tc10")]
 
-    SUITE = ["rovers-rs42-tcall"]
-
+    SUITE = ["logistics-rs42-tcall", "nomystery-rs42-tcall", "rovers-rs42-tcall", "tpp-rs42-tcall", "transport-rs42-tcall", "visitall-rs42-tcall"] 
     
     return """#! /usr/bin/env python
 
