@@ -6,7 +6,7 @@ import os
 from shutil import copyfile
 
 
-domain_location_regex_dic = {"logistics-strips": "c\d+",
+domain_location_regex_dic = {"logistics-strips": "l\d+",
                              "Rover": "waypoint\d+",
                              "TPP-Propositional": "market\d+|depot\d+",
                              "transport": "city-?\d*-loc-\d+",

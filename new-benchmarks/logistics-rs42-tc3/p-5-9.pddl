@@ -10,9 +10,9 @@
           p0 p1 p2 p3 p4 p5 p6 p7 p8 
 )
 (:init
-(allowed_to_remove c0 c1)
-(allowed_to_remove c0 c2)
-(allowed_to_remove c1 c2)
+(allowed_to_remove l00 l01)
+(allowed_to_remove l02 l04)
+(allowed_to_remove l13 l14)
     (AIRPLANE a0)
     (CITY c0)
     (CITY c1)
