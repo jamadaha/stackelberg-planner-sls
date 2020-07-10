@@ -20,7 +20,8 @@
 :precondition (and (connected ?pos1 ?pos2)
 				   (connected ?pos2 ?pos1)
 				   (allowed_to_remove ?pos1 ?pos2))
-:effect (and (not (connected ?pos1 ?pos2))
+:effect (and (increase (total-cost) 1) 
+			 (not (connected ?pos1 ?pos2))
 			 (not (connected ?pos2 ?pos1)))
 )
 

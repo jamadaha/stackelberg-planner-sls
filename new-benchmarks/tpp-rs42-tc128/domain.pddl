@@ -72,7 +72,8 @@
  :precondition (and (connected ?from ?to)
  					(connected ?to ?from)
  					(allowed_to_remove ?to ?from))
- :effect (and (not (connected ?from ?to))
+ :effect (and (increase (total-cost) 1) 
+ 			  (not (connected ?from ?to))
  			  (not (connected ?to ?from)) ))		      
 
 )
