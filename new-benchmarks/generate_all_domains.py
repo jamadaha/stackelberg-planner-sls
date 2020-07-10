@@ -17,5 +17,10 @@ for domain in domains_array:
 #        print("python modify-problems.py --dir " + domain + " --con-total " + cons + " --at-least-con " + number_of_cons_array[i-1])
         ret_code = os.system("python modify-problems.py --dir " + domain + " --con-total " + cons + " --at-least-con " + number_of_cons_array[i-1]) >> 8
         if ret_code == 1:
-            # Increasing total number of connections makes no sense for this domain. Continue with next domain
+            # Increasing total number of connections makes no sense for this domain.
+            # Final call to python modify-problems.py to generate folder with all problem files and maximum number of
+            # removable connections
+            os.system("python modify-problems.py --dir " + domain + " --con-total " + str(sys.maxsize) + " --at-least-con 0")
+
+            # Continue with next domain
             break

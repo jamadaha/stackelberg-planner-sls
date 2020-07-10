@@ -177,7 +177,7 @@ p.add_argument("--dir", type=str, help="The director in which the problem files 
 p.add_argument("--seed", type=int, help="Seed for random generator", default=42)
 p.add_argument("--con-percent", type=int, help="Percentage of connections which should be included", default=100)
 p.add_argument("--con-total", type=int, help="total number of connections which should be included", default=None)
-p.add_argument("--at-least-con", type=int, help="Only generate new problems if there are actually more connections then given here ", default=0)
+p.add_argument("--at-least-con", type=int, help="Only generate new problems if there are actually more connections than given here ", default=0)
 args = p.parse_args(sys.argv[1:])
 
 dir = str(args.dir)
@@ -193,7 +193,15 @@ at_least_con = int(args.at_least_con)
 objects_regex = "\(:objects[^)]*\)"
 
 print(dir)
-new_dir = dir + "-rs" + str(random_seed) + ("-tc" + str(con_total) if con_total is not None else "-pc" + str(con_percent))
+
+if con_total is None:
+    tc_substring = "-pc" + str(con_percent)
+elif con_total == sys.maxsize:
+    tc_substring = "-tcall"
+else:
+    tc_substring = "-tc" + str(con_total)
+new_dir = dir + "-rs" + str(random_seed) + tc_substring
+
 if not os.path.exists(new_dir):
     os.makedirs(new_dir)
 
