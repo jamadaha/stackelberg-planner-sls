@@ -70,14 +70,15 @@
 (:action fix_drive
  :parameters (?t - fix_truck ?from ?to - place)
  :precondition (and (at ?t ?from) (connected ?from ?to))
- :effect (and (not (at ?t ?from)) (at ?t ?to)))	      
+ :effect (and (increase (total-cost) 1) (not (at ?t ?from)) (at ?t ?to)))	      
 
 (:action fix_remove_connection_1
  :parameters (?t - fix_truck ?from ?to - place)
  :precondition (and (at ?t ?from) (connected ?from ?to)
  					(connected ?to ?from)
  					(allowed_to_remove ?to ?from))
- :effect (and (not (connected ?from ?to))
+ :effect (and (increase (total-cost) 1) 
+ 			  (not (connected ?from ?to))
  			  (not (connected ?to ?from)) ))
 
 (:action fix_remove_connection_2
@@ -85,7 +86,8 @@
  :precondition (and (at ?t ?to) (connected ?from ?to)
  					(connected ?to ?from)
  					(allowed_to_remove ?to ?from))
- :effect (and (not (connected ?from ?to))
+ :effect (and (increase (total-cost) 1) 
+ 			  (not (connected ?from ?to))
  			  (not (connected ?to ?from)) )) 		      
 
 )

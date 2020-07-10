@@ -18,7 +18,7 @@
 (:action fix_move
 :parameters (?curpos ?nextpos - place)
 :precondition (and (at-fix-robot ?curpos) (connected ?curpos ?nextpos))
-:effect (and (at-fix-robot ?nextpos) (not (at-fix-robot?curpos)))
+:effect (and (increase (total-cost) 1) (at-fix-robot ?nextpos) (not (at-fix-robot?curpos)))
 )
 
 (:action fix_remove_connection_1
@@ -27,7 +27,8 @@
 				   (connected ?pos2 ?pos1)
 				   (allowed_to_remove ?pos1 ?pos2)
 				   (at-fix-robot ?pos1))
-:effect (and (not (connected ?pos1 ?pos2))
+:effect (and (increase (total-cost) 1) 
+			 (not (connected ?pos1 ?pos2))
 			 (not (connected ?pos2 ?pos1)))
 )
 (:action fix_remove_connection_2
@@ -36,7 +37,8 @@
 				   (connected ?pos2 ?pos1)
 				   (allowed_to_remove ?pos1 ?pos2)
 				   (at-fix-robot ?pos2))
-:effect (and (not (connected ?pos1 ?pos2))
+:effect (and (increase (total-cost) 1) 
+			 (not (connected ?pos1 ?pos2))
 			 (not (connected ?pos2 ?pos1)))
 )
 
