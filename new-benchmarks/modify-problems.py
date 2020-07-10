@@ -8,7 +8,7 @@ from shutil import copyfile
 
 domain_location_regex_dic = {"logistics-strips": "l\d+",
                              "Rover": "waypoint\d+",
-                             "TPP-Propositional": "market\d+|depot\d+",
+                             "TPP-Propositional": "market\d+", # If you want to include the depot: "market\d+|depot\d+"
                              "transport": "city-?\d*-loc-\d+",
                              "grid-visit-all": "loc-x\d+-y\d+",
                              "sokoban-sequential": "pos-\d+-\d+",

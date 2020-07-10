@@ -12,12 +12,12 @@
 	level0 level1 level2 level3 - level)
 
 (:init
-(allowed_to_remove depot1 market6)
-(allowed_to_remove market1 market6)
-(allowed_to_remove market10 market2)
+(allowed_to_remove market1 market10)
+(allowed_to_remove market1 market9)
+(allowed_to_remove market10 market7)
 (allowed_to_remove market3 market6)
 (allowed_to_remove market3 market9)
-(allowed_to_remove market7 market9)
+(allowed_to_remove market4 market5)
 	(next level1 level0)
 	(next level2 level1)
 	(next level3 level2)

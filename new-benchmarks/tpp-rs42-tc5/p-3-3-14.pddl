@@ -13,7 +13,7 @@
 
 (:init
 (allowed_to_remove market1 market12)
-(allowed_to_remove market10 market14)
+(allowed_to_remove market10 market6)
 (allowed_to_remove market10 market8)
 (allowed_to_remove market14 market4)
 (allowed_to_remove market2 market5)

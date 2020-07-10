@@ -12,8 +12,8 @@
 	level0 level1 level2 level3 - level)
 
 (:init
-(allowed_to_remove market1 market11)
-(allowed_to_remove market10 market6)
+(allowed_to_remove market1 market13)
+(allowed_to_remove market10 market8)
 (allowed_to_remove market16 market2)
 	(next level1 level0)
 	(next level2 level1)
