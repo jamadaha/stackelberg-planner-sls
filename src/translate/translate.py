@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
@@ -646,7 +646,7 @@ def parse_args():
         help="output relaxed task (no delete effects)")
 
     argparser.add_argument("--soft",dest="soft",
-                           type=int, default=0,
+                           type=int, default=10000,
                            help="soft goal compilation where each goal can be obtained via a high cost")
 
     return argparser.parse_args()

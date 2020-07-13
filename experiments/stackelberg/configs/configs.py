@@ -1,12 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # encoding: utf-8
 
 from collections import defaultdict
 
 
-PREPROCESS_REVISION_DEFAULT = "f503350c800543392b4054ca91b074252776dd34"
+PREPROCESS_REVISION_DEFAULT = "92845ada3fd61a733f99702ffcfff2b3b99260f0"
 
-PREPROCESS_REVISION_SOFT = "0ab0299b306776810922f24fe1c65df7bf82d3f8"
+PREPROCESS_REVISION_SOFT = "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc"
 
 
 class Config:    
