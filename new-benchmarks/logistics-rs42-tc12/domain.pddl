@@ -2,7 +2,7 @@
 ;; Only connections for which the allowed_to_remove predicate is set, can be removed.
 ;; The cost for removing a connection is 1
 
-(define (domain logistics-strips)
+(define (domain logistics)
   (:requirements :strips) 
   (:predicates 	(package ?obj)
 	       	(truck ?truck)
