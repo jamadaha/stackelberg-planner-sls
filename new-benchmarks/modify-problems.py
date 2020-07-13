@@ -6,7 +6,7 @@ import os
 from shutil import copyfile
 
 
-domain_location_regex_dic = {"logistics-strips": "l\d+",
+domain_location_regex_dic = {"logistics": "l\d+",
                              "Rover": "waypoint\d+",
                              "TPP-Propositional": "market\d+", # If you want to include the depot: "market\d+|depot\d+"
                              "transport": "city-?\d*-loc-\d+",
@@ -23,7 +23,7 @@ connection_predicate_regex = {"no-mystery-strips": "connected",
 makes_sense_to_increase_number_of_connections = False
 
 def parse_domain_specific_locations(domain_name, locations, objects, content):
-    if domain_name == "logistics-strips" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips" or domain_name == "transport-strips":
+    if domain_name == "logistics" or domain_name == "Rover" or domain_name == "TPP-Propositional" or domain_name == "transport" or domain_name == "grid-visit-all" or domain_name == "sokoban-sequential" or domain_name == "pipesworld_strips" or domain_name == "transport-strips":
         for x in re.findall(domain_location_regex_dic[domain_name], objects):
             locations.append(x)
     elif domain_name == "no-mystery-strips":
@@ -34,7 +34,7 @@ def parse_domain_specific_locations(domain_name, locations, objects, content):
 
 
 def parse_domain_specific_connections(domain_name, locations, connections, content):
-    if domain_name == "logistics-strips":
+    if domain_name == "logistics":
         for i, loc1 in enumerate(locations):
             for loc2 in locations[i + 1:]:
                 city1 = loc1[0:loc1.find('-')]
