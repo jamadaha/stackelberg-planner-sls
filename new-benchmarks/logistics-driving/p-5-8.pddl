@@ -7,7 +7,8 @@
           c0 c1 c2 
           t0 t1 t2 
           l00 l01 l02 l03 l04 l10 l11 l12 l13 l14 l20 l21 l22 l23 l24 
-          p0 p1 p2 p3 p4 p5 p6 p7 
+          p0 p1 p2 p3 p4 p5 p6 p7
+          tf 
 )
 (:init
     (AIRPLANE a0)
@@ -70,6 +71,8 @@
     (at p6 l10)
     (at p7 l02)
     (at a0 l00)
+    (fix_truck tf)
+    (at tf l00)
 )
 (:goal
     (and
