@@ -36,6 +36,7 @@
   capacity-2 - capacity-number
   capacity-3 - capacity-number
   capacity-4 - capacity-number
+  truck_f - fix_vehicle
  )
  (:init
   (= (total-cost) 0)
@@ -363,6 +364,7 @@
   (capacity truck-1 capacity-4)
   (at truck-2 city-loc-3)
   (capacity truck-2 capacity-3)
+  (at truck_f city-loc-1)
  )
  (:goal (and
   (at package-1 city-loc-18)
