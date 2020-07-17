@@ -9,7 +9,8 @@
 	truck1 truck2 - truck
 	market1 market2 market3 market4 market5 market6 market7 market8 market9 market10 market11 market12 market13 market14 - market
 	depot1 - depot
-	level0 level1 level2 level3 - level)
+	level0 level1 level2 level3 - level
+	truck_f - fix_truck)
 
 (:init
 	(next level1 level0)
@@ -189,7 +190,8 @@
 	(on-sale goods2 market14 level0)
 	(on-sale goods3 market14 level0)
 	(at truck1 depot1)
-	(at truck2 depot1))
+	(at truck2 depot1)
+	(at truck_f depot1))
 
 (:goal (and
 	(stored goods1 level2)
