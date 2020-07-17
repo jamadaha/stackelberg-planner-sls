@@ -191,6 +191,7 @@
  	(connected loc-x5-y5 loc-x5-y6)
  	(connected loc-x5-y6 loc-x4-y6)
  	(connected loc-x5-y6 loc-x5-y5)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

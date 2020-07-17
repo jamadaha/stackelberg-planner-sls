@@ -112,6 +112,7 @@
  	(connected loc-x4-y3 loc-x4-y4)
  	(connected loc-x4-y4 loc-x3-y4)
  	(connected loc-x4-y4 loc-x4-y3)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal

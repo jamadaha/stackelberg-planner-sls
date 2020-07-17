@@ -135,6 +135,7 @@
  	(connected loc-x4-y4 loc-x4-y5)
  	(connected loc-x4-y5 loc-x3-y5)
  	(connected loc-x4-y5 loc-x4-y4)
+ 	(at-fix-robot loc-x0-y0)
  
 )
 (:goal
