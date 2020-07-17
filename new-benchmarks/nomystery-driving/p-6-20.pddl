@@ -6,6 +6,7 @@ l0 l1 l2 l3 l4 l5 l6 l7 l8 l9 l10 l11 l12 l13 l14 l15 l16 l17 l18 l19 - location
 t0 - truck
 p0 p1 p2 p3 p4 p5 - package
 level0 level1 level2 level3 level4 level5 level6 level7 level8 level9 level10 level11 level12 level13 level14 level15 level16 level17 level18 level19 level20 level21 level22 level23 level24 level25 level26 level27 level28 level29 level30 level31 level32 level33 level34 level35 level36 level37 level38 level39 level40 level41 level42 level43 level44 level45 level46 level47 level48 level49 level50 level51 level52 level53 level54 level55 level56 level57 - fuellevel
+tf - fix_truck
 )
 
 (:init
@@ -1932,6 +1933,7 @@ level0 level1 level2 level3 level4 level5 level6 level7 level8 level9 level10 le
 (at p3 l4)
 (at p4 l2)
 (at p5 l0)
+(at tf l0)
 )
 
 (:goal
