@@ -7,6 +7,7 @@
 	waypoint0 waypoint1 waypoint2 waypoint3 waypoint4 waypoint5 waypoint6 waypoint7 waypoint8 waypoint9 waypoint10 waypoint11 waypoint12 waypoint13 waypoint14 - Waypoint
 	camera0 camera1 camera2 - Camera
 	objective0 objective1 - Objective
+	rover_f - fix_rover
 	)
 (:init
 	(visible waypoint0 waypoint4)
@@ -225,6 +226,7 @@
 	(visible_from objective1 waypoint11)
 	(visible_from objective1 waypoint12)
 	(visible_from objective1 waypoint13)
+	(at_fix_rover rover_f waypoint0)
 )
 
 (:goal (and
