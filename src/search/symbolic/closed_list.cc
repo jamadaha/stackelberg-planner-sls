@@ -125,6 +125,9 @@ namespace symbolic {
 	}
 	closedTotal += S;
 
+        
+        DEBUG_MSG(cout << "closedH: " << closed[h].nodeCount() << "  closed Total: " << closedTotal.nodeCount() << endl;);
+
 	// //Introduce in closedUpTo
 	// auto c = closedUpTo.lower_bound(h);
 	// while (c != std::end(closedUpTo)) {
@@ -162,6 +165,8 @@ namespace symbolic {
 	}
         
 	closedTotal += S;
+
+        DEBUG_MSG(cout << "closedH: " << closed[h].nodeCount() << "  closed Total: " << closedTotal.nodeCount() << endl;);
 
 	// //Introduce in closedUpTo
 	// auto c = closedUpTo.lower_bound(h);
