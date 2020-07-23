@@ -1,5 +1,6 @@
 #include "opt_order.h"
 
+#include <algorithm>
 #include <ostream>
 #include "../globals.h"
 #include "../causal_graph.h"
@@ -32,6 +33,49 @@ void InfluenceGraph::compute_gamer_ordering(std::vector <int> &var_order) {
     // cout << "Var ordering: ";
     // for(int v : var_order) cout << v << " ";
     // cout  << endl;
+}
+
+
+vector <int> InfluenceGraph::compute_gamer_ordering_local(const std::vector<std::vector<int>> & partitions) {
+    InfluenceGraph ig_partitions(g_variable_domain.size());
+    for (const auto & partition : partitions) {
+        for (int v : partition) {
+            for (int v2 : g_causal_graph->get_successors(v)) {
+                if ((int)v != v2 && std::find (partition.begin(), partition.end(), v2) != partition.end()) {
+                    ig_partitions.set_influence(v, v2);
+                }
+            }
+        }
+    }
+
+    vector<int> ordering;
+ 
+    vector<int> partition_begin, partition_sizes;
+    int i = 0;
+    for (const auto & partition : partitions) {
+        partition_sizes.push_back(partition.size());
+        partition_begin.push_back(i);
+        i += partition.size();
+    }
+
+    double value_optimization_function = std::numeric_limits<double>::max();
+    
+    for (int counter = 0; counter < 20; counter++) {
+        vector <int> new_order;
+        //Copy the order randomly into new_order respecting the partitions
+        for (const auto & partition : partitions) {
+            randomize(partition, new_order); 
+        }
+        
+        double new_value = ig_partitions.optimize_variable_ordering_gamer(new_order, partition_begin, partition_sizes);
+
+        if (new_value < value_optimization_function) {
+            value_optimization_function = new_value;
+            ordering.swap(new_order);
+        }
+    }
+
+    return ordering;
 }
 
 

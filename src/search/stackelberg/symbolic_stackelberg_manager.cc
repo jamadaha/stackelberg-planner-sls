@@ -51,7 +51,7 @@ namespace stackelberg {
                 var_order_partitions[partition].push_back(var);
             }
             
-            auto var_order = InfluenceGraph::compute_gamer_ordering(var_order_partitions);
+            auto var_order = InfluenceGraph::compute_gamer_ordering_local(var_order_partitions);
 
             vars->init(var_order);
         } else {

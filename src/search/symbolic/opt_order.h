@@ -35,6 +35,7 @@ public:
     static void compute_gamer_ordering(std::vector <int> &ordering);
     
     static std::vector<int> compute_gamer_ordering(const std::vector<std::vector<int>> & partitions);
+    static std::vector<int> compute_gamer_ordering_local(const std::vector<std::vector<int>> & partitions);
 };
 }
 
