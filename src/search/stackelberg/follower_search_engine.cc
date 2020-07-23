@@ -160,7 +160,8 @@ namespace stackelberg {
 
     ExplicitFollowerSearchEngine::ExplicitFollowerSearchEngine(const Options &opts) : FollowerSearchEngine(opts), 
                                                                                       search_engine (opts.get<SearchEngine *>("search_engine")),
-                                                                                      is_optimal_solver(opts.get<bool>("is_optimal_solver"))  {
+                                                                                      is_optimal_solver(opts.get<bool>("is_optimal_solver")),
+                                                                                      debug(opts.get<bool>("debug")) {
         if (opts.contains("follower_heuristic")) {
             follower_heuristic =
                 opts.get<Heuristic *>("follower_heuristic"); 
@@ -218,12 +219,12 @@ namespace stackelberg {
         search_engine->reset();
         g_state_registry->reset();
 
-#ifdef NDEBUG
-        streambuf *old = cout.rdbuf(); // <-- save
-        stringstream ss;
-        cout.rdbuf(ss.rdbuf());        // <-- redirect
-#endif   
-
+        streambuf *old = nullptr;
+        if (!debug) {
+            old = cout.rdbuf(); // <-- save
+            stringstream ss;
+            cout.rdbuf(ss.rdbuf());        // <-- redirect
+        }
         search_engine->set_bound(bound);
 
         if(plan_reuse && plan_reuse_upper_bound) {
@@ -249,9 +250,9 @@ namespace stackelberg {
         } 
 
 
-#ifdef NDEBUG
-        cout.rdbuf(old);   			// <-- restore
-#endif
+        if (!debug) {
+            cout.rdbuf(old);
+        }
 
         search_engine->set_bound(std::numeric_limits<int>::max()); // restore bound.
         
@@ -267,6 +268,7 @@ namespace stackelberg {
         if(is_optimal_solver) {
             return FollowerSolution(plan_cost, plan, search_engine->get_search_progress().get_f_value());
         }else {
+            assert(!FollowerSolution(plan_cost, plan).is_optimal());
             return FollowerSolution(plan_cost, plan);
         }
     }
@@ -319,6 +321,7 @@ static stackelberg::FollowerSearchEngine *_parse_explicit(OptionParser &parser) 
     stackelberg::FollowerSearchEngine::add_options_to_parser(parser);
     parser.add_option<SearchEngine *> ("search_engine", "engine", "");
     parser.add_option<bool> ("is_optimal_solver", "engine", "");
+    parser.add_option<bool> ("debug", "show output of follower search ", "false");
         
     Options opts = parser.parse();
 

@@ -35,10 +35,10 @@ namespace stackelberg {
         }
 
         FollowerSolution (int cost, const std::vector <const GlobalOperator *> & plan_,
-                          int lb = std::numeric_limits<int>::max()) :
+                          int lb = 0) :
         solved(true), plan_cost (cost), lower_bound(lb), plan(plan_)  {}
 
-        FollowerSolution (int cost, int lb = std::numeric_limits<int>::max()) : solved(true), plan_cost (cost), lower_bound(lb) {}
+        FollowerSolution (int cost, int lb = 0) : solved(true), plan_cost (cost), lower_bound(lb) {}
 
         FollowerSolution (const symbolic::SymSolution & sol,
                           const std::vector<int> & leader_state,
@@ -123,6 +123,7 @@ namespace stackelberg {
         SearchProgress follower_statistics;
 
         const bool is_optimal_solver;
+        const bool debug;
         
         virtual void initialize_follower_search_engine() override; 
 
