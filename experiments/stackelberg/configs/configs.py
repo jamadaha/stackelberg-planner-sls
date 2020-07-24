@@ -46,18 +46,42 @@ class Config:
         return Config (self.folder + "-aaai18", self.nick, self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, "aaai18")
 
 
-import baseline
-import symbolic_leader
-import symbolic_leader_lmcut
+
+REVISION = "adeb756f50388450a3c15e295d7d45abd98812fe"
+SERVERS = "old_servers" 
 
 
 CONFIGS = defaultdict(list)
-for config_list in [baseline.CONFIGS, symbolic_leader.CONFIGS, symbolic_leader_lmcut.CONFIGS]:
-    for k in config_list:
-        for config in config_list[k]:
-            CONFIGS[k].append(config)
-            CONFIGS[k].append(config.with_soft_goals())
-            CONFIGS[k].append(config.with_aaai18_suite())
+
+config_list = {}
+config_list["symbolic_leader"] = [
+    configs.Config('ss-sbd', 'ss-sbd', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
+    configs.Config('ss-sbd-up', 'ss-sbd-up', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=true)"], REVISION, SERVERS), 
+    configs.Config('ss-sbd-ubreuse', 'ss-sbd-ubreuse', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS), 
+    configs.Config('ss-sbd-up-ubreuse-tlim', 'ss-sbd-up-ubreuse-tlim', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true, force_bw_search_minimum_task_seconds=30, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION, SERVERS),
+]
+
+CONFIGS["baseline"] = [
+    configs.Config('original-lmcut-pdbs', 'original-lmcut-pdbs', ["--heuristic", "h1=deadpdbs(max_time=120)", "--heuristic", "h2=lmcut", "--search", "fixsearch(search_engine=astar(max([h1,h2]), pruning=null), attack_heuristic=h2, initial_attack_budget=2147483647, initial_fix_budget=2147483647, attack_op_dom_pruning=false, sort_fix_ops=true, greedy=false, upper_bound_pruning=true)"], REVISION, SERVERS),
+    configs.Config('baseline-lmcut-pdbs', 'baseline-lmcut-pdbs', ["--heuristic", "h1=deadpdbs(max_time=120)", "--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(max([h1,h2])), follower_heuristic=h2)"], REVISION, SERVERS),
+    configs.Config('baseline-lmcut', 'baseline-lmcut', ["--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(h2), follower_heuristic=h2)"], REVISION, SERVERS),
+    configs.Config('baseline-sbd', 'baseline-sbd', ["--search", "stackelberg(search_engine=sbd())"], REVISION, SERVERS)
+
+]
+
+CONFIGS["symbolic_leader_lmcut"] = [
+    configs.Config('ss-lmcut', 'ss-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
+    configs.Config('ss-lmcut-pdbs', 'ss-lmcut-pdbs', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
+    configs.Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
+    configs.Config('ss-lmcut-pdbs-ubreuse', 'ss-lmcut-pdbs-ubresuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
+
+
+
+for k in config_list:
+    for config in config_list[k]:
+        CONFIGS[k].append(config)
+        CONFIGS[k].append(config.with_soft_goals())
+        CONFIGS[k].append(config.with_aaai18_suite())
 
             
 
