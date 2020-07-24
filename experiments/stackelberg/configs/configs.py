@@ -22,7 +22,7 @@ SUITE_AAAI18 = [dom for dom in SUITE_AAAI18_COMPLETE if dom.endswith('all') or i
 
 class Config:    
     def __init__(self, folder, nick, config, revision, machines, preprocess_revision=PREPROCESS_REVISION_DEFAULT, suite = "aaai21"):
-        self.folder = folder + "-" + suite
+        self.folder = folder
         self.nick = nick
         self.config = config
         self.revision = revision
@@ -42,8 +42,8 @@ class Config:
     def with_soft_goals(self):
         return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
 
-    def with_soft_goals(self):
-        return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, "aaai18")
+    def with_aaai18_suite(self):
+        return Config (self.folder + "-aaai18", self.nick, self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, "aaai18")
 
 
 import baseline

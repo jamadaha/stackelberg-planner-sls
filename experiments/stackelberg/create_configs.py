@@ -25,7 +25,7 @@ def get_queue(machines):
 
 def get_script(config):
     QUEUES = get_queue(config.machines)
-    SUITE = config.get_suite()
+    SUITE = config.SUITE
     
     return """#! /usr/bin/env python2
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         
     CONFIGS_TO_PROCESS = configs.get_configs(experiment)
     for config in CONFIGS_TO_PROCESS:
-        data = get_script(config, suite)
+        data = get_script(config)
 
         EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{}/{}/{}'.format(config.machines, config.revision, config.folder)
         if os.path.isdir(EXPPATH):
