@@ -95,10 +95,9 @@ namespace stackelberg {
             BDD leader_states = closed_list.at(L);
             BDD follower_initial_states =
                 stackelberg_mgr->get_follower_initial_state_projection(leader_states);
-            
-            cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)
-                 << ", follower subproblems: " << vars->numStates(follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars())  << ", " << flush;
 
+            double num_follower_initial_states = vars->numStates(follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars());
+            
 
             follower_initial_states =
                 plan_reuse->find_plan_follower_initial_states(follower_initial_states);
@@ -110,10 +109,12 @@ namespace stackelberg {
                 auto state = stackelberg_mgr->sample_follower_initial_state(follower_initial_states);
 
                 FollowerSolution solution; 
-                if  (cost_bounded_engine) {
+                if  (cost_bounded_engine && newF > -1) {
                     auto t1 = chrono::high_resolution_clock::now();
                     solution = cost_bounded_engine->solve(state, plan_reuse.get(), newF);
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
+
+                    cout << " cb: " << runtime.count()/1000.0;
 
                     statistics.follower_search_finished(runtime, false, solution);
                 }
@@ -124,12 +125,14 @@ namespace stackelberg {
                     solution = optimal_engine->solve(state, plan_reuse.get(), std::numeric_limits<int>::max());
 
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
-                    
+                    cout << " opt: " << runtime.count()/1000.0;
+
                     statistics.follower_search_finished(runtime, true, solution);
                 }
 
-
+                
                 if (solution.has_plan()) {
+
                     const auto plan = solution.get_plan();
 #ifndef NDEBUG
                     auto state_aux  = state;
@@ -142,9 +145,12 @@ namespace stackelberg {
                     cout << endl;
                     assert(test_goal(state_aux));
 #endif
+                    auto t1 = chrono::high_resolution_clock::now();
 
                     follower_initial_states = plan_reuse->regress_plan_to_follower_initial_states(solution.get_plan(), follower_initial_states);
+                    auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
 
+                    cout << " reg: " << runtime.count()/1000.0;
                     // BDD aux = vars->getPartialStateBDD(state,stackelberg_mgr->get_pattern_vars_follower_subproblems());
                     // assert(follower_initial_states-aux !=follower_initial_states);
                     // follower_initial_states -= aux;
@@ -153,6 +159,9 @@ namespace stackelberg {
                     assert(solution.solution_cost() == std::numeric_limits<int>::max());
                 }
                 int follower_cost  = solution.solution_cost();
+
+                cout << " solved: " << follower_cost  << " total time: " << g_timer() << endl ;
+
        
                 if (follower_cost > newF) {
                     newF = follower_cost;
@@ -161,10 +170,11 @@ namespace stackelberg {
                     plan_reuse->set_follower_bound(newF);
                 }
             }
-
+            
 
             if (newF > F) {
                 F = newF;
+
 
                 // cout << "Extract leader path" << endl;
                 // cout << "leader state: " << endl; for (size_t i =0; i < g_fact_names.size(); ++i) { cout << g_fact_names[i][current_best[i]] << endl; }
@@ -181,7 +191,7 @@ namespace stackelberg {
                 
            }
 
-            cout << "F: " << F << ", total time: " << g_timer() <<  endl;
+            cout << "L = " << L << ", leader states: " << vars->numStates(leader_states)  << ", follower subproblems: " << num_follower_initial_states  << ", " << "F:" << F << ", total time: " << g_timer() <<  endl;
 
             //Generate the next layer
             while(!leader_search->finished() && leader_search->getG() == L) {
