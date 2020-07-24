@@ -25,108 +25,7 @@ def get_queue(machines):
 
 def get_script(config):
     QUEUES = get_queue(config.machines)
-
-    SUITE = ['logistics-rs42-tc1', 
-             'logistics-rs42-tc10',
-             'logistics-rs42-tc12',
-             'logistics-rs42-tc128',
-             'logistics-rs42-tc16',
-             'logistics-rs42-tc2',
-             'logistics-rs42-tc25',
-             'logistics-rs42-tc3',
-             'logistics-rs42-tc32',
-             'logistics-rs42-tc4',
-             'logistics-rs42-tc5',
-             'logistics-rs42-tc50',
-             'logistics-rs42-tc6',
-             'logistics-rs42-tc64',
-             'logistics-rs42-tc8',
-             'logistics-rs42-tcall',
-             'nomystery-rs42-tc1',
-             'nomystery-rs42-tc10',
-             'nomystery-rs42-tc12',
-             'nomystery-rs42-tc128',
-             'nomystery-rs42-tc16',
-             'nomystery-rs42-tc2',
-             'nomystery-rs42-tc25',
-             'nomystery-rs42-tc3',
-             'nomystery-rs42-tc32',
-             'nomystery-rs42-tc4',
-             'nomystery-rs42-tc5',
-             'nomystery-rs42-tc50',
-             'nomystery-rs42-tc6',
-             'nomystery-rs42-tc64',
-             'nomystery-rs42-tc8',
-             'nomystery-rs42-tcall',
-             'rovers-rs42-tc1',
-             'rovers-rs42-tc10',
-             'rovers-rs42-tc12',
-             'rovers-rs42-tc16',
-             'rovers-rs42-tc2',
-             'rovers-rs42-tc25',
-             'rovers-rs42-tc3',
-             'rovers-rs42-tc32',
-             'rovers-rs42-tc4',
-             'rovers-rs42-tc5',
-             'rovers-rs42-tc50',
-             'rovers-rs42-tc6',
-             'rovers-rs42-tc8',
-             'rovers-rs42-tcall',
-             'tpp-rs42-tc1',
-             'tpp-rs42-tc10',
-             'tpp-rs42-tc12',
-             'tpp-rs42-tc128',
-             'tpp-rs42-tc16',
-             'tpp-rs42-tc2',
-             'tpp-rs42-tc25',
-             'tpp-rs42-tc256',
-             'tpp-rs42-tc3',
-             'tpp-rs42-tc32',
-             'tpp-rs42-tc4',
-             'tpp-rs42-tc5',
-             'tpp-rs42-tc50',
-             'tpp-rs42-tc6',
-             'tpp-rs42-tc64',
-             'tpp-rs42-tc8',
-             'tpp-rs42-tcall',
-             'transport-rs42-tc1',
-             'transport-rs42-tc10',
-             'transport-rs42-tc12',
-             'transport-rs42-tc128',
-             'transport-rs42-tc16',
-             'transport-rs42-tc2',
-             'transport-rs42-tc25',
-             'transport-rs42-tc256',
-             'transport-rs42-tc3',
-             'transport-rs42-tc32',
-             'transport-rs42-tc4',
-             'transport-rs42-tc5',
-             'transport-rs42-tc50',
-             'transport-rs42-tc6',
-             'transport-rs42-tc64',
-             'transport-rs42-tc8',
-             'transport-rs42-tcall',
-             'visitall-rs42-tc1',
-             'visitall-rs42-tc10',
-             'visitall-rs42-tc12',
-             'visitall-rs42-tc128',
-             'visitall-rs42-tc16',
-             'visitall-rs42-tc2',
-             'visitall-rs42-tc25',
-             'visitall-rs42-tc3',
-             'visitall-rs42-tc32',
-             'visitall-rs42-tc4',
-             'visitall-rs42-tc5',
-             'visitall-rs42-tc50',
-             'visitall-rs42-tc6',
-             'visitall-rs42-tc64',
-             'visitall-rs42-tc8',
-             'visitall-rs42-tcall',
-    ]
-    
-    SUITE = [domain for domain in SUITE if not domain.endswith("tc1") and not domain.endswith("tc3") and not domain.endswith("tc5") and not domain.endswith("tc12") and not "transport-opt14" in domain and not domain.endswith("tc25") and not domain.endswith("tc50") and not domain.endswith("tc6") and not domain.endswith("tc10")]
-
-    # SUITE = ["logistics-rs42-tcall", "nomystery-rs42-tcall", "rovers-rs42-tcall", "tpp-rs42-tcall", "transport-rs42-tcall", "visitall-rs42-tcall"] 
+    SUITE = config.get_suite()
     
     return """#! /usr/bin/env python2
 
@@ -164,7 +63,7 @@ exp.add_search_parser(REPO + '/lab_parser.py')
 
 exp.add_config('{config.nick}' + REVISION, {config.config})
 
-exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pentest-what-if/new-benchmarks')
+exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pentest-what-if/new-benchmarks/{config.benchmarks_dir}/')
 
 
 def remove_work_tag(run):
@@ -207,8 +106,7 @@ if __name__ == '__main__':
         
     CONFIGS_TO_PROCESS = configs.get_configs(experiment)
     for config in CONFIGS_TO_PROCESS:
-        print config
-        data = get_script(config)
+        data = get_script(config, suite)
 
         EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{}/{}/{}'.format(config.machines, config.revision, config.folder)
         if os.path.isdir(EXPPATH):
