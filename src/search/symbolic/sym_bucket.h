@@ -12,6 +12,10 @@ void copyBucket(const Bucket &bucket, Bucket &res);
 void moveBucket(Bucket &bucket, Bucket &res);
 int nodeCount(const Bucket &bucket);
 bool extract_states(Bucket &list, const Bucket &pruned, Bucket &res);
+
+bool empty_intersection(const Bucket &list, const BDD & bdd);
+BDD get_non_empty_intersection(const Bucket &list, const BDD & bdd);
+
 }
 
 #endif

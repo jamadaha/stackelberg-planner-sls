@@ -6,6 +6,7 @@
 #include "../global_operator.h"
 
 #include "../symbolic/sym_variables.h"
+#include "../symbolic/closed_list_disj.h"
 
 #include "symbolic_stackelberg_manager.h"
 
@@ -17,19 +18,19 @@ namespace stackelberg {
     std::shared_ptr<symbolic::OppositeFrontier>
     PlanReuse::get_opposite_frontier(const std::vector<int> & leader_state) const {
         BDD bdd = stackelberg_mgr->get_static_follower(leader_state);
-        return make_shared<ClosedList> (*closed_list, bdd);
+        return make_shared<ClosedListDisj> (*closed_list_upper, bdd);
     }
 
     std::shared_ptr<OppositeFrontierExplicit>
     PlanReuse::get_opposite_frontier_explicit(const std::vector<int> & leader_state) const {
         BDD bdd = stackelberg_mgr->get_static_follower(leader_state);
-        return make_shared<OppositeFrontierExplicit> (make_shared<ClosedList> (*closed_list, bdd), current_follower_bound);
+        return make_shared<OppositeFrontierExplicit> (make_shared<ClosedListDisj> (*closed_list_upper, bdd), current_follower_bound);
     }
 
 
     void OppositeFrontierExplicit::getPlan(const GlobalState & state, int g, std::vector <const GlobalOperator *> &path) const {
-        BDD cut = closed_list->getVars()->getStateBDD(state); 
-        closed_list->getPlan(cut, g, false, path );
+        BDD cut = closed_list_upper->getVars()->getStateBDD(state); 
+        closed_list_upper->getPlan(cut, g, false, path );
     }
 
 
@@ -41,13 +42,13 @@ namespace stackelberg {
         current_follower_bound = 0;
 
         mockup_mgr = mgr->get_empty_manager();
-        closed_list = make_shared<ClosedList>();
-        closed_list->init(mockup_mgr.get());
+        closed_list_upper = make_shared<ClosedListDisj>();
+        closed_list_upper->init(mockup_mgr.get());
         initialize();
     }
 
     void PlanReuse::load_plans (const ClosedList & closed) const {
-        closed_list->load(closed);
+        closed_list_upper->load(closed);
     }
 
     PlanReuseSimple::PlanReuseSimple (const Options & opts) :
@@ -77,7 +78,7 @@ namespace stackelberg {
         int cost = 0;
         int zeroCostSteps = 0;
         
-        closed_list->insertWithZeroCostSteps(cost, zeroCostSteps, current);
+        closed_list_upper->insertWithZeroCostSteps(cost, zeroCostSteps, current);
         for (int i = plan.size() -1; i >= 0; --i ){
             if (accumulate_intermediate_states) {
                 result += current;
@@ -94,7 +95,7 @@ namespace stackelberg {
                 zeroCostSteps = 0;
             }
             
-            closed_list->insertWithZeroCostSteps(cost, zeroCostSteps, current);
+            closed_list_upper->insertWithZeroCostSteps(cost, zeroCostSteps, current);
         }
 
         result += current;

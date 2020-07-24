@@ -1,9 +1,10 @@
-#ifndef SYMBOLIC_CLOSED_LIST_H
-#define SYMBOLIC_CLOSED_LIST_H
+#ifndef SYMBOLIC_CLOSED_LIST_DISJ_H
+#define SYMBOLIC_CLOSED_LIST_DISJ_H
 
 #include "sym_variables.h"
 #include "unidirectional_search.h"
 #include "sym_solution.h"
+#include "sym_bucket.h"
 
 #include <vector>
 #include <set>
@@ -15,19 +16,20 @@ class SymStateSpaceManager;
 class SymSolution;
 class UnidirectionalSearch;
 class SymSearch;
+class ClosedList;
 
-class ClosedList : public OppositeFrontier, PlanReconstruction { 
+class ClosedListDisj : public OppositeFrontier, PlanReconstruction { 
 private:
     SymStateSpaceManager *mgr;  //Symbolic manager to perform bdd operations
 
-    std::map<int, BDD> closed;   // Mapping from cost to set of states
+    std::map<int, Bucket> closed;   // Mapping from cost to set of states
 
     // Auxiliar BDDs for the number of 0-cost action steps
     // ALERT: The information here might be wrong
     // It is just used to extract path more quickly, but the information
     // here is an (admissible) estimation and this should be taken into account
-    std::map<int, std::vector<BDD>> zeroCostClosed;
-    BDD closedTotal;             // All closed states.
+    std::map<int, std::vector<Bucket>> zeroCostClosed;
+    Bucket closedTotal;             // All closed states.
 
     int hNotClosed, fNotClosed; // Bounds on h and g for those states not in closed
     //std::map<int, BDD> closedUpTo;  // Disjunction of BDDs in closed  (auxiliar useful to take the maximum between several BDDs)
@@ -36,15 +38,17 @@ private:
     void newHValue(int h_value); 
 
 public:
-    ClosedList();
+    ClosedListDisj();
 
-    ClosedList(const ClosedList & other, const BDD & subset);
+    ClosedListDisj(const ClosedListDisj & other, const BDD & subset);
 
-    virtual ~ClosedList() = default;
+    virtual ~ClosedListDisj() = default;
 
     
     void init(SymStateSpaceManager *manager);
-    void init(SymStateSpaceManager *manager, const ClosedList &other);
+    void init(SymStateSpaceManager *manager, const ClosedListDisj &other);
+
+    void load(const ClosedListDisj &other);
 
     void load(const ClosedList &other);
 
@@ -62,15 +66,16 @@ public:
     void extract_path(const BDD &cut, int h, bool fw,
 		      std::vector <const GlobalOperator *> &path) const;
 
-    inline BDD getClosed() const {
+    inline Bucket getClosed() const {
         return closedTotal;
     }
 
     virtual BDD notClosed() const override {
-        return !closedTotal;
+        exit(0);
+        return !closedTotal[0];
     }
 
-    inline const std::map<int, BDD> & getClosedList() const {
+    inline const std::map<int, Bucket> & getClosedList() const {
         return closed;
     }
 
@@ -103,7 +108,6 @@ public:
 
     int check_goal_cost(const GlobalState & state) const;
 
-    friend class ClosedListDisj;
 
 };
 }

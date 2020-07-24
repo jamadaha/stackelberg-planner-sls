@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -54,4 +55,27 @@ bool extract_states(Bucket &list,
     removeZero(list);
     return somethingPruned;
 }
+
+
+bool empty_intersection(const Bucket &list, const BDD & bdd) {
+    for (const BDD & b : list) {
+        if(!((b*bdd).IsZero())) {
+            return false;
+        }
+    }
+    return true;
+}
+    
+    BDD get_non_empty_intersection(const Bucket &list, const BDD & bdd) {
+        for (const BDD & b : list) {
+            BDD res = b*bdd;
+            if(!((res).IsZero())) {
+                return res;
+            }
+        }
+        std::cerr << "Error in get_non_empty_intersection " << std::endl;
+        exit(-1);
+        return BDD();
+    }
+
 }

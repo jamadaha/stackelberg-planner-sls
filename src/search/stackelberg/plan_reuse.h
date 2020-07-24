@@ -6,6 +6,8 @@
 #include "../symbolic/sym_variables.h"
 #include "../symbolic/unidirectional_search.h"
 #include "../symbolic/sym_solution.h"
+
+#include "../symbolic/closed_list_disj.h"
 #include "../symbolic/closed_list.h"
 
 /* We keep a plan_registry, where each action sequence is mapped to a unique_id, which is
@@ -16,7 +18,6 @@
 class Options;
 class OptionParser;
 
-
 namespace stackelberg {
 
     class SymbolicStackelbergManager;
@@ -24,15 +25,19 @@ namespace stackelberg {
 
     
     class OppositeFrontierExplicit {
-        std::shared_ptr<symbolic::ClosedList> closed_list;
+        //We keep two different frontiers: one for the lower and one for the upper bound.
+
+        std::shared_ptr<symbolic::ClosedListDisj> closed_list_lower;        
+        std::shared_ptr<symbolic::ClosedListDisj> closed_list_upper;
         int desired_bound;
+        
 
     public:
-    OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedList> closed, int desired_bound_) :
-        closed_list (closed), desired_bound(desired_bound_) {}
+    OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedListDisj> closed, int desired_bound_) :
+        closed_list_upper (closed), desired_bound(desired_bound_) {}
         
         int check_goal_cost(const GlobalState & state){
-            return closed_list->check_goal_cost(state);
+            return closed_list_upper->check_goal_cost(state);
         }
 
         void getPlan(const GlobalState & state, int g, std::vector <const GlobalOperator *> &path) const;
@@ -51,7 +56,7 @@ namespace stackelberg {
         std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
         std::shared_ptr<symbolic::SymVariables> vars;
 
-        std::shared_ptr<symbolic::ClosedList> closed_list;
+        std::shared_ptr<symbolic::ClosedListDisj> closed_list_upper;
         int current_follower_bound;
         
     public:
@@ -72,8 +77,8 @@ namespace stackelberg {
             return current_follower_bound;
         }
 
-        std::shared_ptr<symbolic::ClosedList> get_closed() {
-            return closed_list;
+        std::shared_ptr<symbolic::ClosedListDisj> get_closed() {
+            return closed_list_upper;
         }
 
         // Regress the plan and filter the BDD of follower initial states to eliminate the

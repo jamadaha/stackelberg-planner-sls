@@ -204,6 +204,7 @@ HEADERS +=  symbolic/sym_variables.h \
         symbolic/original_state_space.h \
         symbolic/sym_pdb.h \
 	symbolic/closed_list.h \
+	symbolic/closed_list_disj.h \
 	symbolic/open_list.h \
 	symbolic/frontier.h \
         symbolic/sym_heuristic.h \
