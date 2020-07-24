@@ -78,4 +78,17 @@ bool empty_intersection(const Bucket &list, const BDD & bdd) {
         return BDD();
     }
 
+    void insert_disjunctive(Bucket &list, const BDD & bdd, double limit_single, double limit_mult) {
+        if (!list.empty() && list.back().nodeCount() < limit_single &&
+            list.back().nodeCount() < limit_mult/bdd.nodeCount()) {
+            list.back() += bdd;
+        } else {
+            list.push_back(bdd);
+        }
+        // for (auto & item : list) {
+        //     cout << item.nodeCount() << " ";
+        // }
+        // cout << endl;    
+    }
+
 }

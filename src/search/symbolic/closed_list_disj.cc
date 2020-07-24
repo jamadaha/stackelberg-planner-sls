@@ -56,36 +56,37 @@ namespace symbolic {
         fNotClosed = 0;        
     }
 
-    void ClosedListDisj::load(const ClosedListDisj &other) {
-        for (const auto & entry  : other.closed) {
-            int hval = entry.first;
-            for (const BDD & bdd : entry.second) {
-                closed[hval].push_back(bdd);
-            }
+    // void ClosedListDisj::load(const ClosedListDisj &other) {
+    //     for (const auto & entry  : other.closed) {
+    //         int hval = entry.first;
+    //         for (const BDD & bdd : entry.second) {
+    //             closed[hval].push_back(bdd);
+    //         }
 
-            h_values.insert(hval);
-            if (other.zeroCostClosed.count(hval)) {
-                const auto & bdds = other.zeroCostClosed.at(hval);
-                for(size_t i = 0; i < bdds.size(); ++i) {
-                    if  (i >= zeroCostClosed[hval].size()) {
-                        zeroCostClosed[hval].push_back(Bucket());
-                    }                    
-                    for (const BDD & bdd : bdds[i]) {
-                        zeroCostClosed[hval][i].push_back(bdd);
-                    }
+    //         h_values.insert(hval);
+    //         if (other.zeroCostClosed.count(hval)) {
+    //             const auto & bdds = other.zeroCostClosed.at(hval);
+    //             for(size_t i = 0; i < bdds.size(); ++i) {
+    //                 if  (i >= zeroCostClosed[hval].size()) {
+    //                     zeroCostClosed[hval].push_back(Bucket());
+    //                 }                    
+    //                 for (const BDD & bdd : bdds[i]) {
+    //                     zeroCostClosed[hval][i].push_back(bdd);
+    //                 }
 
-                }
-            }
-        }
-        for (const BDD & bdd : other.closedTotal) {
-            closedTotal.push_back(bdd);
-        }
-    }
+    //             }
+    //         }
+    //     }
+    //     for (const BDD & bdd : other.closedTotal) {
+    //         closedTotal.push_back(bdd);
+    //     }
+    // }
 
      void ClosedListDisj::load(const ClosedList &other) {
         for (const auto & entry  : other.closed) {
             int hval = entry.first;
-            closed[hval].push_back(entry.second);
+
+            insert_disjunctive(closed[hval], entry.second);
 
             h_values.insert(hval);
             if (other.zeroCostClosed.count(hval)) {
@@ -100,7 +101,7 @@ namespace symbolic {
             }
         }
 
-        closedTotal.push_back(other.closedTotal);
+        insert_disjunctive(closedTotal, other.closedTotal);
         
     }
 
@@ -133,35 +134,35 @@ namespace symbolic {
 	h_values.insert(h_value);
     }
 
-    void ClosedListDisj::insert(int h, const BDD &S) {
-	DEBUG_MSG(cout << "Inserting on closed "  << "g=" << h << ": " << S.nodeCount() << " nodes and "
-		  << mgr->getVars()->numStates(S) << " states" << endl;
-	    );
+//     void ClosedListDisj::insert(int h, const BDD &S) {
+// 	DEBUG_MSG(cout << "Inserting on closed "  << "g=" << h << ": " << S.nodeCount() << " nodes and "
+// 		  << mgr->getVars()->numStates(S) << " states" << endl;
+// 	    );
 
-#ifdef DEBUG_GST
-	gst_plan.checkClose(S, h, exploration);
-#endif
+// #ifdef DEBUG_GST
+// 	gst_plan.checkClose(S, h, exploration);
+// #endif
 
-        if (!closed.count(h)) {
-	    newHValue(h);
-	}
+//         if (!closed.count(h)) {
+// 	    newHValue(h);
+// 	}
 
-        closed[h].push_back(S);
+//         closed[h].push_back(S);
 
-	if (mgr->hasTransitions0()) {
-	    zeroCostClosed[h].push_back(Bucket(S));
-	}
-	closedTotal.push_back(S);
+// 	if (mgr->hasTransitions0()) {
+// 	    zeroCostClosed[h].push_back(Bucket(S));
+// 	}
+// 	closedTotal.push_back(S);
 
         
-	// //Introduce in closedUpTo
-	// auto c = closedUpTo.lower_bound(h);
-	// while (c != std::end(closedUpTo)) {
-	//     c->second += S;
-	//     c++;
-	// }
-        // Warning: We should introduce items in closedUpTo
-    }
+// 	// //Introduce in closedUpTo
+// 	// auto c = closedUpTo.lower_bound(h);
+// 	// while (c != std::end(closedUpTo)) {
+// 	//     c->second += S;
+// 	//     c++;
+// 	// }
+//         // Warning: We should introduce items in closedUpTo
+//     }
 
 
     void ClosedListDisj::insertWithZeroCostSteps(int h, int zeroCostSteps, const BDD &S) {
@@ -178,7 +179,7 @@ namespace symbolic {
 	    newHValue(h);
 	}
 
-        closed[h].push_back(S);
+        insert_disjunctive(closed[h], S);
 
 	if (mgr->hasTransitions0()) {
             assert ((size_t)zeroCostSteps <= zeroCostClosed[h].size());
@@ -187,8 +188,8 @@ namespace symbolic {
             }
             zeroCostClosed[h][zeroCostSteps].push_back(S);
 	}
-        
-	closedTotal.push_back(S);
+
+        insert_disjunctive(closedTotal, S);
 
 	// //Introduce in closedUpTo
 	// auto c = closedUpTo.lower_bound(h);

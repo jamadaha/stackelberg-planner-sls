@@ -48,11 +48,11 @@ public:
     void init(SymStateSpaceManager *manager);
     void init(SymStateSpaceManager *manager, const ClosedListDisj &other);
 
-    void load(const ClosedListDisj &other);
+    /* void load(const ClosedListDisj &other); */
 
     void load(const ClosedList &other);
 
-    void insert(int h, const BDD &S);
+    /* void insert(int h, const BDD &S); */
     void insertWithZeroCostSteps(int h, int zero_cost_steps, const BDD &S);
     void setHNotClosed(int h);
     void setFNotClosed(int f);
@@ -63,21 +63,20 @@ public:
     //In case positive, return a solution pair <f_value, S>
     virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
-    void extract_path(const BDD &cut, int h, bool fw,
-		      std::vector <const GlobalOperator *> &path) const;
+    void extract_path(const BDD &cut, int h, bool fw, std::vector <const GlobalOperator *> &path) const;
 
-    inline Bucket getClosed() const {
-        return closedTotal;
-    }
+    /* inline Bucket getClosed() const { */
+    /*     return closedTotal; */
+    /* } */
 
     virtual BDD notClosed() const override {
         exit(0);
         return !closedTotal[0];
     }
 
-    inline const std::map<int, Bucket> & getClosedList() const {
-        return closed;
-    }
+    /* inline const std::map<int, Bucket> & getClosedList() const { */
+    /*     return closed; */
+    /* } */
 
     inline int getHNotClosed() const override {
         return hNotClosed;
@@ -87,15 +86,15 @@ public:
         return fNotClosed;
     }
 
-    ADD getHeuristic(int previousMaxH = -1) const;
+    /* ADD getHeuristic(int previousMaxH = -1) const; */
 
-    void getHeuristic(std::vector<ADD> &heuristics,
-                      std::vector <int> &maxHeuristicValues) const;
+    /* void getHeuristic(std::vector<ADD> &heuristics, */
+    /*                   std::vector <int> &maxHeuristicValues) const; */
 
     void statistics() const;
 
 
-    double average_hvalue() const;
+    /* double average_hvalue() const; */
 
     virtual bool exhausted () const override {
 	return fNotClosed == std::numeric_limits<int>::max();

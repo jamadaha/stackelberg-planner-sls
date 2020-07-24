@@ -15,7 +15,7 @@ bool extract_states(Bucket &list, const Bucket &pruned, Bucket &res);
 
 bool empty_intersection(const Bucket &list, const BDD & bdd);
 BDD get_non_empty_intersection(const Bucket &list, const BDD & bdd);
-
+void insert_disjunctive(Bucket &list, const BDD & bdd, double limit_single = 20000.0, double limit_mult = 500000.0);
 }
 
 #endif
