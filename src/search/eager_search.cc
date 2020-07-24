@@ -20,7 +20,8 @@ EagerSearch::EagerSearch(
       do_pathmax(opts.get<bool>("pathmax")),
       use_multi_path_dependence(opts.get<bool>("mpd")),
       open_list(opts.get<OpenList<pair<StateID, int>> *>("open")),
-	  pruning_method(opts.get<PruningMethod*>("pruning")){
+      pruning_method(opts.get<PruningMethod*>("pruning")),
+      use_heuristics_for_bound_pruning(opts.get<bool>("use_heuristics_for_bound_pruning")){
     if (opts.contains("f_eval")) {
         f_evaluator = opts.get<ScalarEvaluator *>("f_eval");
     } else {
@@ -152,6 +153,7 @@ SearchStatus EagerSearch::step() {
         }
 
         int new_budget = compute_remaining_budget(node.get_budget(), op->get_cost2());
+
         if(new_budget != UNLTD_BUDGET && new_budget < 0) {
         	continue;
         }
@@ -195,8 +197,18 @@ SearchStatus EagerSearch::step() {
         if (succ_node.is_new()) {
             // We have not seen this state before.
             // Evaluate and create a new node.
-            for (size_t j = 0; j < heuristics.size(); ++j)
+            bool above_bound = false;
+            for (size_t j = 0; j < heuristics.size(); ++j) {
                 heuristics[j]->evaluate(succ_state, new_budget);
+                if (use_heuristics_for_bound_pruning && node.get_real_g() + op->get_cost() + heuristics[j]->get_value() >= bound) {
+                    above_bound = true;
+                    break;
+                }
+            }
+            if (above_bound) {
+                continue;
+            }
+            
             succ_node.clear_h_dirty();
             search_progress.inc_evaluated_states();
             search_progress.inc_evaluations(heuristics.size());
@@ -208,6 +220,7 @@ SearchStatus EagerSearch::step() {
             // may want to refactor this later.
             open_list->evaluate(node.get_g() + get_adjusted_cost(*op), is_preferred);
             bool dead_end = open_list->is_dead_end();
+
             if (dead_end) {
                 succ_node.mark_as_dead_end();
                 search_progress.inc_dead_ends();
@@ -398,6 +411,10 @@ static SearchEngine *_parse(OptionParser &parser) {
                             "reopen closed nodes", "false");
     parser.add_option<bool>("pathmax",
                             "use pathmax correction", "false");
+    
+    parser.add_option<bool>("use_heuristics_for_bound_pruning",
+                            "use search heuristics for pruning against the bound", "false");
+
     parser.add_option<ScalarEvaluator *>(
         "f_eval",
         "set evaluator for jump statistics. "
@@ -447,6 +464,8 @@ static SearchEngine *_parse_astar(OptionParser &parser) {
                             "use pathmax correction", "false");
     parser.add_option<bool>("mpd",
                             "use multi-path dependence (LM-A*)", "false");
+    parser.add_option<bool>("use_heuristics_for_bound_pruning",
+                            "use search heuristics for pruning against the bound", "false");
 
     add_pruning_option(parser);
 
@@ -525,6 +544,9 @@ static SearchEngine *_parse_greedy(OptionParser &parser) {
     parser.add_option<int>(
         "boost",
         "boost value for preferred operator open lists", "0");
+
+    parser.add_option<bool>("use_heuristics_for_bound_pruning",
+                            "use search heuristics for pruning against the bound", "false");
 
     add_pruning_option(parser);
 

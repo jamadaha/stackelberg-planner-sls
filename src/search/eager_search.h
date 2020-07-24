@@ -30,6 +30,8 @@ class EagerSearch : public SearchEngine {
     PruningMethod* pruning_method;
 
     bool pruning_already_initialized = false;
+    const bool use_heuristics_for_bound_pruning;
+    
 protected:
     SearchStatus step();
     std::pair<SearchNode, bool> fetch_next_node();
