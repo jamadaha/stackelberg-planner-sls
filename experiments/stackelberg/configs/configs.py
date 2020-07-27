@@ -17,23 +17,27 @@ SUITE_AAAI18_COMPLETE = ['aaai18-logistics98-robustness-driving-rs42-tc1', 'aaai
 SUITE_AAAI21 = [dom for dom in SUITE_AAAI21_COMPLETE if dom.endswith('all') or int(dom.split('tc')[-1])% 2 == 0]
 SUITE_AAAI18 = [dom for dom in SUITE_AAAI18_COMPLETE if dom.endswith('all') or int(dom.split('tc')[-1])% 2 == 0]
 
-
+SUITES = {"aaai18ipc" : [dom for dom in SUITE_AAAI18 if "pentesting" not in dom],
+          "aaai21ipc" : [dom for dom in SUITE_AAAI21 if "pentesting" not in dom],
+          "aaai18pentesting" : [dom for dom in SUITE_AAAI18 if "pentesting" in dom],
+          "aaai21pentesting" : [dom for dom in SUITE_AAAI21 if "pentesting" in dom]
+}
 
 
 class Config:    
-    def __init__(self, folder, nick, config, revision, machines, preprocess_revision=PREPROCESS_REVISION_DEFAULT, suite = "aaai21"):
+    def __init__(self, folder, nick, config, revision, machines, preprocess_revision=PREPROCESS_REVISION_DEFAULT, suite = "aaai21ipc"):
         self.folder = folder
         self.nick = nick
         self.config = config
         self.revision = revision
         self.machines = machines
         self.preprocess_revision = preprocess_revision
-        if suite == "aaai21": 
+        if "aaai21" in suite: 
             self.benchmarks_dir = "robustness-aaai21"
-            self.SUITE = SUITE_AAAI21
         else:
             self.benchmarks_dir = "robustness-aaai18"
-            self.SUITE = SUITE_AAAI18
+        self.SUITE = SUITES[suite]
+                        
 
     def __repr__(self):
         return ", ".join(map(str, [self.folder, self.nick, self.config,  self.revision, self.machines]))
@@ -42,8 +46,8 @@ class Config:
     def with_soft_goals(self):
         return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
 
-    def with_aaai18_suite(self):
-        return Config (self.folder + "-aaai18", self.nick, self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, "aaai18")
+    def with_suite(self, suite):
+        return Config (self.folder + "-" + suite, self.nick + "-" + suite, self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, suite)
 
 
 
@@ -61,7 +65,7 @@ config_list["symbolic_leader"] = [
     Config('ss-sbd-up-ubreuse-tlim', 'ss-sbd-up-ubreuse-tlim', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true, force_bw_search_minimum_task_seconds=30, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION, SERVERS),
 ]
 
-CONFIGS["baseline"] = [
+config_list["baseline"] = [
     Config('original-lmcut-pdbs', 'original-lmcut-pdbs', ["--heuristic", "h1=deadpdbs(max_time=120)", "--heuristic", "h2=lmcut", "--search", "fixsearch(search_engine=astar(max([h1,h2]), pruning=null), attack_heuristic=h2, initial_attack_budget=2147483647, initial_fix_budget=2147483647, attack_op_dom_pruning=false, sort_fix_ops=true, greedy=false, upper_bound_pruning=true)"], REVISION, SERVERS),
     Config('baseline-lmcut-pdbs', 'baseline-lmcut-pdbs', ["--heuristic", "h1=deadpdbs(max_time=120)", "--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(max([h1,h2])), follower_heuristic=h2)"], REVISION, SERVERS),
     Config('baseline-lmcut', 'baseline-lmcut', ["--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(h2), follower_heuristic=h2)"], REVISION, SERVERS),
@@ -69,7 +73,7 @@ CONFIGS["baseline"] = [
 
 ]
 
-CONFIGS["symbolic_leader_lmcut"] = [
+config_list["symbolic_leader_lmcut"] = [
     Config('ss-lmcut', 'ss-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
     Config('ss-lmcut-pdbs', 'ss-lmcut-pdbs', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
     Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
@@ -80,12 +84,13 @@ CONFIGS["symbolic_leader_lmcut"] = [
 
 for k in config_list:
     for config in config_list[k]:
-        CONFIGS[k].append(config)
-        CONFIGS[k].append(config.with_soft_goals())
-        CONFIGS[k].append(config.with_aaai18_suite())
-
+        for suite in SUITES:
+            print (k, suite)
+            config_suite = config.with_suite(suite)
+            CONFIGS[k].append(config_suite)
+            if "aaai21" in suite: 
+                CONFIGS[k].append(config_suite.with_soft_goals())
             
-
 
 def get_configs(experiment):
     if experiment == "all":
@@ -99,6 +104,10 @@ def get_configs(experiment):
 
 
 
-# for conf in CONFIGS:
-#     print conf
-#     print ""
+for conf in CONFIGS:
+    print conf
+    for aux in CONFIGS[conf]:
+        print aux
+        print
+        print
+    
