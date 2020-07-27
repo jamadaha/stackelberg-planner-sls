@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 """Solve some tasks with A* and the LM-Cut heuristic."""
 
@@ -47,8 +47,9 @@ exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pe
 for config in configs.get_configs(NAME):
 #         config.revision
         EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{}/{}/{}'.format(config.machines, config.revision, config.folder)
+        if os.path.isdir(EXPPATH):
         #exp.add_fetcher(EXPPATH, parsers=[PARSER])
-        exp.add_fetcher(EXPPATH)
+                exp.add_fetcher(EXPPATH)
 
 # Make a report containing absolute numbers (this is the most common report).
 report = os.path.join(exp.eval_dir, 'report.html')
