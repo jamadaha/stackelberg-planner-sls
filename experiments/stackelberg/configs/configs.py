@@ -47,7 +47,7 @@ class Config:
         return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
 
     def with_suite(self, suite):
-        return Config (self.folder + "-" + suite, self.nick + "-" + suite, self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, suite)
+        return Config (self.folder + "-" + suite, self.nick + "-" + suite, self.config, self.revision, self.machines, PREPROCESS_REVISION_DEFAULT, suite)
 
 
 

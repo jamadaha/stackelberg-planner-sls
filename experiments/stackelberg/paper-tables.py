@@ -28,7 +28,11 @@ REVISIONS = [
     '92845ada3fd61a733f99702ffcfff2b3b99260f0',
     '8afa96ef3ce86a6b39ea031ac396f7b732dc43a5',
     'f503350c800543392b4054ca91b074252776dd34',
-    '0ab0299b306776810922f24fe1c65df7bf82d3f8'
+    '0ab0299b306776810922f24fe1c65df7bf82d3f8',
+    'adeb756f50388450a3c15e295d7d45abd98812fe',
+    '-aaai18ipc',
+    '-aaai21ipc',
+    'aaai18ipc',    'aaai21ipc'
 ]
 
 def rename_algorithm_and_domain(run):
