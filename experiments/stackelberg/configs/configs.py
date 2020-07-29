@@ -9,7 +9,7 @@ PREPROCESS_REVISION_DEFAULT = "92845ada3fd61a733f99702ffcfff2b3b99260f0"
 PREPROCESS_REVISION_SOFT = "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc"
 
 REVISION = "d059552e393f05e01d52bb8bd880873acf4dce78"
-SERVERS = "old_servers" 
+SERVERS = "new_servers" 
 
 
 
