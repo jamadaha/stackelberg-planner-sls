@@ -232,8 +232,8 @@ namespace symbolic {
 		steps0++;
 	    }
 	    //DEBUG_MSG(cout << "Steps0 of h=" << h << " is " << steps0 << endl;);
-	    if (steps0 < zeroCostClosed.at(h).size()) {
-		cut  = get_non_empty_intersection(zeroCostClosed.at(h)[steps0], cut);
+	    if (steps0 < zeroCostClosed.at(h).size() && !empty_intersection(zeroCostClosed.at(h)[steps0], cut)) {
+		cut  = get_non_empty_intersection(zeroCostClosed.at(h)[steps0], cut).value();
 	    } else {
 		DEBUG_MSG(cout << "cut not found with steps0. Try to find with preimage: " << trs.count(0) << endl;
 		    );
@@ -252,8 +252,10 @@ namespace symbolic {
 		    }
 
 		    for (size_t newSteps0 = 0; newSteps0 < steps0; newSteps0++) {
-			BDD intersection = get_non_empty_intersection(zeroCostClosed.at(h)[newSteps0], succ);
-			if (!intersection.IsZero()) {
+                        const auto intersection_opt = get_non_empty_intersection(zeroCostClosed.at(h)[newSteps0], succ);
+                        
+			if (intersection_opt) {
+                            BDD intersection = intersection_opt.value();
 			    steps0 = newSteps0;
 			    cut = succ;
 			    //DEBUG_MSG(cout << "Adding " << (*(tr.getOps().begin()))->get_name() << endl;);
@@ -298,8 +300,7 @@ namespace symbolic {
 				  succ.print(0, 1);
 			    );
 			for (size_t newSteps0 = 0; newSteps0 < steps0; newSteps0++) {
-			    BDD intersection = get_non_empty_intersection(zeroCostClosed.at(h)[newSteps0], succ);
-			    if (!intersection.IsZero()) {
+			    if (!empty_intersection(zeroCostClosed.at(h)[newSteps0], succ)) {
 				steps0 = newSteps0;
 				cut = succ;
 				//DEBUG_MSG(cout << "Adding " << (*(tr.getOps().begin()))->get_name() << endl;);
@@ -354,8 +355,9 @@ namespace symbolic {
 			/*DEBUG_MSG(cout << "Image computed: "; succ.print(0,1);
 			  cout << "closed at newh: "; closed.at(newH).print(0,1);
 			  cout << "Intersection: "; intersection.print(0,1););*/
-			if (!empty_intersection(closed.at(newH), succ)) {
-                            BDD intersection = get_non_empty_intersection(closed.at(newH), succ);
+                        const auto intersection_opt = get_non_empty_intersection(closed.at(newH), succ);
+			if (intersection_opt) {
+                            BDD intersection = intersection_opt.value();
 			    h = newH;
 			    cut = succ;
 			    steps0 = 0;
@@ -368,7 +370,7 @@ namespace symbolic {
 
 				//DEBUG_MSG(cout << "r Steps0 of h=" << h << " is " << steps0 << endl;);
 
-				cut = get_non_empty_intersection(zeroCostClosed.at(h)[steps0], cut);
+				cut = get_non_empty_intersection(zeroCostClosed.at(h)[steps0], cut).value();
 			    }
 			    path.push_back(*(tr.getOps().begin()));
 
@@ -395,14 +397,15 @@ namespace symbolic {
         if (empty_intersection(closedTotal, states)) {
             return SymSolution(); //No solution yet :(
         }
-	BDD cut_candidate = get_non_empty_intersection(closedTotal, states);
+	BDD cut_candidate = get_non_empty_intersection(closedTotal, states).value();
 
 	for (const auto &closedH : closed) {
 	    int h = closedH.first;
 
 	    DEBUG_MSG(cout << "Check cut of g=" << g << " with h=" << h << endl;);
-            if (!empty_intersection(closedH.second, cut_candidate)) {
-                BDD cut = get_non_empty_intersection(closedH.second, cut_candidate);
+            const auto intersection_opt = get_non_empty_intersection(closedH.second, cut_candidate);
+            if (intersection_opt) {
+                BDD cut = intersection_opt.value();
             
                 if (!cut.IsZero()) {
                     if (fw) { //Solution reconstruction will fail

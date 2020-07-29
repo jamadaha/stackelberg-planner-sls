@@ -65,17 +65,16 @@ bool empty_intersection(const Bucket &list, const BDD & bdd) {
     }
     return true;
 }
-    
-    BDD get_non_empty_intersection(const Bucket &list, const BDD & bdd) {
+
+
+    std::optional<BDD> get_non_empty_intersection(const Bucket &list, const BDD & bdd) {
         for (const BDD & b : list) {
             BDD res = b*bdd;
             if(!((res).IsZero())) {
-                return res;
+                return std::make_optional<BDD>(res);
             }
         }
-        std::cerr << "Error in get_non_empty_intersection " << std::endl;
-        exit(-1);
-        return BDD();
+        return std::nullopt;
     }
 
     void insert_disjunctive(Bucket &list, const BDD & bdd, double limit_single, double limit_mult) {

@@ -2,6 +2,8 @@
 #define SYMBOLIC_SYM_BUCKET_H
 
 #include <vector>
+#include <optional>
+
 #include "cuddObj.hh"
 
 namespace symbolic {
@@ -14,7 +16,9 @@ int nodeCount(const Bucket &bucket);
 bool extract_states(Bucket &list, const Bucket &pruned, Bucket &res);
 
 bool empty_intersection(const Bucket &list, const BDD & bdd);
-BDD get_non_empty_intersection(const Bucket &list, const BDD & bdd);
+
+std::optional<BDD> get_non_empty_intersection(const Bucket &list, const BDD & bdd);
+
 void insert_disjunctive(Bucket &list, const BDD & bdd, double limit_single = 20000.0, double limit_mult = 500000.0);
 }
 
