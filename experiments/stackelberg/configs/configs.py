@@ -85,9 +85,9 @@ config_list["symbolic_leader_lmcut"] = [
 for (cb_name, cb_engine) in [("cbff-1s","explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
                              ("cbff-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
                              ("cbffpr-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),]:
-    config_list["symbolic_leader_cb"] += [
-        Config('ss-sbd-{}'.format(cb_name), 'ss-sbd-{}'.format(cb_name) ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS),
-        Config('ss-sbd-ubreuse-{}'.format(cb_name), 'ss-sbd-ubreuse-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS), 
+
+    config_list["symbolic_leader_cb"] += [Config('ss-sbd-{}'.format(cb_name), 'ss-sbd-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS),
+                                          Config('ss-sbd-ubreuse-{}'.format(cb_name), 'ss-sbd-ubreuse-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS), 
     ]
 
 
