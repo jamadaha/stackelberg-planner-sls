@@ -56,9 +56,9 @@ class Config:
 
 
 
-CONFIGS = defaultdict(list)
 
-config_list = {}
+
+config_list = defaultdict(list)
 config_list["symbolic_leader"] = [
     Config('ss-sbd', 'ss-sbd', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
     # Config('ss-sbd-up', 'ss-sbd-up', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=true)"], REVISION, SERVERS), 
@@ -92,6 +92,7 @@ for (cb_name, cb_engine) in [("cbff-1s","explicit(search_engine=eager_greedy(ff(
 
 
 
+CONFIGS = defaultdict(list)
 for k in config_list:
     for config in config_list[k]:
         for suite in SUITES:
