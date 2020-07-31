@@ -71,7 +71,6 @@ config_list["baseline"] = [
     Config('baseline-lmcut-pdbs', 'baseline-lmcut-pdbs', ["--heuristic", "h1=deadpdbs(max_time=120)", "--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(max([h1,h2])), follower_heuristic=h2)"], REVISION, SERVERS),
     Config('baseline-lmcut', 'baseline-lmcut', ["--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(h2), follower_heuristic=h2)"], REVISION, SERVERS),
     Config('baseline-sbd', 'baseline-sbd', ["--search", "stackelberg(search_engine=sbd())"], REVISION, SERVERS)
-
 ]
 
 config_list["symbolic_leader_lmcut"] = [
@@ -80,6 +79,15 @@ config_list["symbolic_leader_lmcut"] = [
     Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
     Config('ss-lmcut-pdbs-ubreuse', 'ss-lmcut-pdbs-ubresuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
     ]
+
+
+for (cb_name, cb_engine) in [("cbff-1s","explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
+                             ("cbff-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
+                             ("cbffpr-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),]:
+config_list["symbolic_leader_cb"] += [
+    Config('ss-sbd-{}'.format(cb_name), 'ss-sbd-{}'.format(cb_name) ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS),
+    Config('ss-sbd-ubreuse-{}'.format(cb_name), 'ss-sbd-ubreuse-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS), 
+]
 
 
 
