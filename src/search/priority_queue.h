@@ -207,9 +207,11 @@ public:
 
     virtual AbstractQueue<Value> *convert_if_necessary(int key) {
         if (key >= MIN_BUCKETS_BEFORE_SWITCH && key > num_pushes) {
+            #ifndef NDEBUG
             std::cout << "Switch from bucket-based to heap-based queue "
                       << "at key = " << key
                       << ", num_pushes = " << num_pushes << std::endl;
+            #endif
             std::vector<Entry> entries;
             extract_sorted_entries(entries);
             return HeapQueue<Value>::create_from_sorted_entries_destructively(
