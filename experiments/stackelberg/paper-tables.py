@@ -30,16 +30,15 @@ REVISIONS = [
     'f503350c800543392b4054ca91b074252776dd34',
     '0ab0299b306776810922f24fe1c65df7bf82d3f8',
     'adeb756f50388450a3c15e295d7d45abd98812fe',
-    '-aaai18ipc',
-    '-aaai21ipc',
-    'aaai18ipc',    'aaai21ipc'
+    'd059552e393f05e01d52bb8bd880873acf4dce78',
+    'aaai18ipc',
+    'aaai21ipc',
 ]
 
 def rename_algorithm_and_domain(run):
     algo = run['config']
     dom = run['domain']
     for rev in REVISIONS:
-        algo = algo.replace('{}-'.format(rev), '')
         algo = algo.replace('{}'.format(rev), '')
 
     dom = dom.replace("-robustness", "")
@@ -47,6 +46,11 @@ def rename_algorithm_and_domain(run):
     if "-soft" in algo:
         algo = algo.replace("-soft", "")
         dom = dom + "-soft"
+
+
+    algo_parts = [x for x in algo.split("-") if x]
+    algo = "-".join(algo_parts)
+    
 
     run['algorithm'] = algo
     run['config'] = algo
