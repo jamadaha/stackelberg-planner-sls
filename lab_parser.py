@@ -70,9 +70,18 @@ def set_coverage (content, props):
     if 'pareto_frontier' in props:
         props['coverage'] = 1
 
+def set_no_leader_actions(content, props): 
+    if re.search("Warning: running stackelberg search on a task without fix actions", content):
+        props["no_leader_actions"] = 1
+    else:
+        props["no_leader_actions"] = 0
+    
+
+    
 eval.add_function(parse_regexps)        
 eval.add_function(set_coverage)
-eval.add_function(change_domain) 
+eval.add_function(change_domain)
+eval.add_function(set_no_leader_actions) 
 
 
 eval.parse()
