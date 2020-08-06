@@ -37,25 +37,52 @@ REVISIONS = [
 
 def rename_algorithm_and_domain(run):
     algo = run['config']
+
     dom = run['domain']
+    if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
+        return False
+
+    if "aaai18" in dom:
+        return False
+    
     for rev in REVISIONS:
         algo = algo.replace('{}'.format(rev), '')
 
     dom = dom.replace("-robustness", "")
+    dom = dom.replace("-rs42", "")
+
+    if "-tc" in dom:
+        parts = dom.split("-tc")
+
+        
+        if "-" in parts[1]:
+            tcpart = "-tc" + parts[1].split("-")[0]
+            dompart = parts[1].split("-")[1]
+        else:
+            tcpart = "-tc" + parts[1].split("-")[0]
+            dompart = ""
+
+            
+        run["problem"] += tcpart
+        dom = parts[0] + dompart
+
 
     if "-soft" in algo:
         algo = algo.replace("-soft", "")
         dom = dom + "-soft"
 
-
     algo_parts = [x for x in algo.split("-") if x]
-    algo = "-".join(algo_parts)
+    algo = "-".join(algo_parts) 
     
-
     run['algorithm'] = algo
     run['config'] = algo
     run['domain'] = dom
+
+    if "coverage" not in run:
+        print ("Warning: Run without coverage is excluded: {} {} {}".format(algo, dom, run["problem"]))
+        return False
     return run
+
 
 
 
@@ -74,10 +101,14 @@ def correct_statistics(run):
 
     return run
 
-exp.add_fetcher('data/all',filter=[rename_algorithm_and_domain, correct_statistics, add_histogram])
+def add_component_options(run):
+    run["component_options"] = run["commandline_config"]
+    return run
+
+exp.add_fetcher('data/all',filter=[rename_algorithm_and_domain, correct_statistics, add_histogram, add_component_options ])
 
 
-attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'leader_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches'] + ['histogram_follower_searches_{}'.format(a) for a in [3, 5, 10, 20, 50, 100] ]
+attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches'] + ['histogram_follower_searches_{}'.format(a) for a in [3, 5, 10, 20, 50, 100] ]
 # attributes.extend(extra_attributes)
 
 
@@ -90,8 +121,12 @@ exp.add_report(AbsoluteReport(attributes=attributes))
 ## expansion plots for bisim
 
 
+
 for atr in ['optimally_solved_subproblems', "search_time", 'total_time', 'total_follower_searches', 'follower_time']:
-    for alg1, alg2 in [('ss-sbd','ss-sbd-ubreuse'), ('ss-sbd','ss-sbd-up'), ('ss-sbd', 'ss-sbd-up-ubreuse-tlim') , ('ss-lmcut','ss-lmcut-ubreuse')]: 
+    for alg1, alg2 in [('ss-sbd','ss-sbd-ubreuse'), ('ss-lmcut','ss-lmcut-ubreuse')]: # ('ss-sbd','ss-sbd-up'), ('ss-sbd', 'ss-sbd-up-ubreuse-tlim')
+        outf = os.path.join(exp.eval_dir, '{}-{}-vs-{}'.format(atr, alg1, alg2))
+        if os.path.exists(outf + ".png"):
+            continue
         exp.add_report(
             ScatterPlotReport(
                 filter_algorithm=[
@@ -102,13 +137,17 @@ for atr in ['optimally_solved_subproblems', "search_time", 'total_time', 'total_
                 attributes=[atr],
                 format='png',
             ),
-            outfile=os.path.join(exp.eval_dir, '{}-{}-vs-{}'.format(atr, alg1, alg2)),
+            outfile=outf,
         )
 
 
 
 for atr in ['expansions']:
-    for alg1, alg2 in [('ss-lmcut','ss-lmcut-ubreuse')]: 
+    for alg1, alg2 in [('ss-lmcut','ss-lmcut-ubreuse')]:
+        outf = os.path.join(exp.eval_dir, '{}-{}-vs-{}'.format(atr, alg1, alg2))
+        if os.path.exists(outf + ".png"):
+            continue
+
         exp.add_report(
             ScatterPlotReport(
                 filter_algorithm=[
@@ -124,7 +163,11 @@ for atr in ['expansions']:
 
 
 for atr in ["search_time", 'total_time', 'total_follower_searches', 'follower_time']:
-    for alg1, alg2 in [('baseline-sbd','ss-sbd'), ('baseline-lmcut','ss-lmcut'), ('baseline-sbd','ss-sbd-up'),]: 
+    for alg1, alg2 in [('baseline-sbd','ss-sbd'), ('baseline-lmcut','ss-lmcut'),  ('ss-sbd','ss-sbd-cbff-1s'), ('ss-sbd-ubreuse-cbffpr-10s','ss-sbd-ubreuse-cbff-1s'), ('ss-sbd-ubreuse-cbff-10s','ss-sbd-ubreuse-cbffpr-10s'),]: # ('baseline-sbd','ss-sbd-up'),
+        outf = os.path.join(exp.eval_dir, '{}-{}-vs-{}'.format(atr, alg1, alg2))
+        if os.path.exists(outf + ".png"):
+            continue
+
         exp.add_report(
             ScatterPlotReport(
                 filter_algorithm=[
