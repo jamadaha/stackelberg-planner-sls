@@ -152,4 +152,18 @@
     )
 )
 
+(:action fix_remove_connection_2
+:parameters (?x - fix_rover ?y - waypoint ?z - waypoint) 
+:precondition (and (at_fix_rover ?x ?z) 
+                (visible ?y ?z)
+                (allowed_to_remove ?y ?z)
+                (not (removed-connection ?y ?z))
+                (not (removed-connection ?z ?y))
+      )
+:effect (and (increase (total-cost) 1)
+             (removed-connection ?y ?z)
+             (removed-connection ?z ?y)
+    )
+)
+
 )
