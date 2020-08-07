@@ -38,6 +38,11 @@ public:
     inline int getCost() const {
         return g + h;
     }
+
+    const BDD & getCut() const {
+        return cut;
+    }
+
 };
 }
 #endif

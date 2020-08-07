@@ -36,8 +36,11 @@ namespace stackelberg {
     }
 
 
-    FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern,  int lb) : solved(true), plan_cost(sol.getCost()),
-                                                                                                                                             lower_bound(lb) {
+    FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern,  int lb,
+                                       std::shared_ptr<symbolic::ClosedList> _closed_fw,
+                                       std::shared_ptr<symbolic::ClosedList> _closed_bw) : solved(true), plan_cost(sol.getCost()),
+                                                                                           lower_bound(lb), closed_fw(_closed_fw),
+                                                                                           closed_bw(_closed_bw), cut(sol.getCut()) {
 
         sol.getPlan(plan, initial_state, pattern);
     }
@@ -55,6 +58,7 @@ namespace stackelberg {
         unique_ptr<BidirectionalSearch> bd_search;
         SymSearch * search;
 
+        shared_ptr<ClosedList> bw_search_closed;
         // if(plan_reuse) {
         //     fw_search->init(mgr, true, plan_reuse->get_closed());
         //     search = fw_search.get();
@@ -63,7 +67,8 @@ namespace stackelberg {
             auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
 
             if (plan_reuse && plan_reuse_upper_bound) {
-                fw_search->init(mgr, true, make_shared<OppositeFrontierComposite>(bw_search->getClosedShared(), plan_reuse-> get_opposite_frontier (leader_state)));
+                fw_search->init(mgr, true, make_shared<OppositeFrontierComposite>(bw_search->getClosedShared(),
+                                                                                  plan_reuse-> get_opposite_frontier (leader_state)));
             } else {
                 fw_search->init(mgr, true, bw_search->getClosedShared());
             }
@@ -71,6 +76,7 @@ namespace stackelberg {
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
+            bw_search_closed = bw_search->getClosedShared();
         }else{
             fw_search->init(mgr, true);
             search = fw_search.get();
@@ -80,7 +86,7 @@ namespace stackelberg {
             if (plan_reuse && controller->getUpperBound() <= plan_reuse->get_follower_bound()) {
                 return FollowerSolution(*(controller->get_solution()),
                                         leader_state, mgr->get_relevant_vars(),
-                                        controller->getLowerBound());
+                                        controller->getLowerBound(), fw_search->getClosedShared(), bw_search_closed);
             }
         
             search->step();
@@ -91,7 +97,7 @@ namespace stackelberg {
             assert(controller->solved());
             return FollowerSolution(*(controller->get_solution()),
                                     leader_state, mgr->get_relevant_vars(),
-                                    controller->getLowerBound());
+                                    controller->getLowerBound(), fw_search->getClosedShared(), bw_search_closed);
         } else {
             return FollowerSolution(controller->getUpperBound(), controller->getLowerBound());
         }
@@ -108,6 +114,8 @@ namespace stackelberg {
         auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
     
         unique_ptr<BidirectionalSearch> bd_search;
+
+        shared_ptr<ClosedList> bw_search_closed;
         SymSearch * search;
         UniformCostSearch * bw_search_ptr = nullptr;
         if (bidir) {
@@ -128,6 +136,8 @@ namespace stackelberg {
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
+
+            bw_search_closed = bw_search->getClosedShared();
         }else{
             fw_search->init(mgr, true);
             search = fw_search.get();
@@ -145,7 +155,7 @@ namespace stackelberg {
         if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
             cout << "Max upper bound: " << controller->getUpperBound() << endl;
             assert(controller->solved());
-            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars(), controller->getLowerBound());
+            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars(), controller->getLowerBound(),  fw_search->getClosedShared(), bw_search_closed);
         } else {
                 cout << "Max upper bound: unsolvable " << endl;
                 return FollowerSolution(controller->getUpperBound(), controller->getLowerBound());

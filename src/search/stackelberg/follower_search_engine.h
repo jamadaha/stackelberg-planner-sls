@@ -12,6 +12,7 @@
 namespace symbolic {
     class SymVariables;
     class SymSolution;
+    class ClosedList;
 }
 
 class SearchEngine;
@@ -28,6 +29,12 @@ namespace stackelberg {
         
         std::vector <const GlobalOperator *> plan;
 
+
+        // If symbolic bidirectional search was used as a sub-solver, then we have both
+        // frontiers, which can be used for plan reconstruction strategies
+        std::shared_ptr<symbolic::ClosedList> closed_fw, closed_bw;
+        BDD cut;
+
     public:
         
     FollowerSolution() :
@@ -40,10 +47,14 @@ namespace stackelberg {
 
         FollowerSolution (int cost, int lb = 0) : solved(true), plan_cost (cost), lower_bound(lb) {}
 
+
+        //Constructor for symbolic search solver
         FollowerSolution (const symbolic::SymSolution & sol,
                           const std::vector<int> & leader_state,
                           const std::vector<bool> & pattern,
-                          int lb);
+                          int lb, std::shared_ptr<symbolic::ClosedList> closed_fw,
+                          std::shared_ptr<symbolic::ClosedList> closed_bw);
+ 
 
         int solution_cost() const{
             return plan_cost;
