@@ -102,9 +102,8 @@ namespace stackelberg {
         
         BDD static_follower_initial_state;
         
-
-        
         //List of transition relations by ID. Needed for plan reconstruction
+        mutable std::unique_ptr<std::map<int, std::vector<symbolic::TransitionRelation>>> transition_relation;
         std::vector<std::unique_ptr<symbolic::TransitionRelation>> transitions_by_id;
         std::vector<std::unique_ptr<symbolic::TransitionRelation>> follower_transitions_by_id;
         std::map <LeaderPrecondition, std::map<int, std::vector<symbolic::TransitionRelation>>> follower_transitions_by_leader_precondition;
@@ -148,6 +147,7 @@ namespace stackelberg {
 
 
         const symbolic::TransitionRelation &  get_transition_relation(const GlobalOperator * op) const;
+        const std::map<int, std::vector<symbolic::TransitionRelation> > &  get_transition_relation() const;
 
         std::vector<int> sample_follower_initial_state(BDD follower_initial_states) const;
 

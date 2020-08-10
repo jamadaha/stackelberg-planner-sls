@@ -254,6 +254,26 @@ namespace stackelberg {
     }
 
 
+    
+    const std::map<int, vector<TransitionRelation>> &  SymbolicStackelbergManager::get_transition_relation() const {
+        if (!transition_relation) {
+            transition_relation = make_unique<map<int, vector<TransitionRelation> > > ();
+
+            for (int op_no : task->get_global_operator_id_follower_ops()) {
+                int cost = cost_type->get_adjusted_cost(&g_operators[op_no]);
+                (*transition_relation)[cost].push_back(*(transitions_by_id[op_no]));
+
+            }
+            for (auto it = transition_relation->begin(); it != transition_relation->end(); ++it) {
+                merge(vars.get(), it->second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
+            }            
+        }
+
+        return *transition_relation;
+            
+        
+    }
+
     const TransitionRelation &  SymbolicStackelbergManager::get_transition_relation(const GlobalOperator * op) const {
         return *(transitions_by_id.at(op->get_op_id()));
     }

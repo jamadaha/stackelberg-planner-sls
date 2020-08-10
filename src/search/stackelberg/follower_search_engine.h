@@ -34,6 +34,7 @@ namespace stackelberg {
         // frontiers, which can be used for plan reconstruction strategies
         std::shared_ptr<symbolic::ClosedList> closed_fw, closed_bw;
         BDD cut;
+        int cut_cost;
 
     public:
         
@@ -77,6 +78,22 @@ namespace stackelberg {
 
         const std::vector <const GlobalOperator *>  & get_plan() const{
             return plan;
+        }
+
+        std::shared_ptr<symbolic::ClosedList>  get_closed_fw() const {
+            return closed_fw;
+        }
+        
+        std::shared_ptr<symbolic::ClosedList>  get_closed_bw() const {
+            return closed_bw;
+        }
+
+        BDD getCut() const {
+            return cut;
+        }
+
+        int getCutCost() const {
+            return cut_cost;
         }
 
     };

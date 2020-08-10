@@ -40,7 +40,8 @@ namespace stackelberg {
                                        std::shared_ptr<symbolic::ClosedList> _closed_fw,
                                        std::shared_ptr<symbolic::ClosedList> _closed_bw) : solved(true), plan_cost(sol.getCost()),
                                                                                            lower_bound(lb), closed_fw(_closed_fw),
-                                                                                           closed_bw(_closed_bw), cut(sol.getCut()) {
+                                                                                           closed_bw(_closed_bw), cut(sol.getCut()),
+                                                                                           cut_cost(sol.getCutCostFw()) {
 
         sol.getPlan(plan, initial_state, pattern);
     }
@@ -54,7 +55,7 @@ namespace stackelberg {
         auto mgr = stackelberg_mgr->get_follower_manager(leader_state);
 
         auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-    
+        auto fw_search_closed = fw_search->getClosedShared();
         unique_ptr<BidirectionalSearch> bd_search;
         SymSearch * search;
 
@@ -73,7 +74,7 @@ namespace stackelberg {
                 fw_search->init(mgr, true, bw_search->getClosedShared());
             }
             bw_search->init(mgr, false, fw_search->getClosedShared());
-            bw_search_closed = bw_search->getClosedShared();
+                        bw_search_closed = bw_search->getClosedShared();
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
@@ -87,7 +88,7 @@ namespace stackelberg {
             if (plan_reuse && controller->getUpperBound() <= plan_reuse->get_follower_bound()) {
                 return FollowerSolution(*(controller->get_solution()),
                                         leader_state, mgr->get_relevant_vars(),
-                                        controller->getLowerBound(), fw_search->getClosedShared(), bw_search_closed);
+                                        controller->getLowerBound(), fw_search_closed, bw_search_closed);
             }
         
             search->step();
@@ -98,7 +99,7 @@ namespace stackelberg {
             assert(controller->solved());
             return FollowerSolution(*(controller->get_solution()),
                                     leader_state, mgr->get_relevant_vars(),
-                                    controller->getLowerBound(), fw_search->getClosedShared(), bw_search_closed);
+                                    controller->getLowerBound(), fw_search_closed, bw_search_closed);
         } else {
             return FollowerSolution(controller->getUpperBound(), controller->getLowerBound());
         }
@@ -113,7 +114,8 @@ namespace stackelberg {
         auto mgr = stackelberg_mgr->get_follower_manager_minimal();
 
         auto fw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
-    
+        auto fw_search_closed = fw_search->getClosedShared();
+
         unique_ptr<BidirectionalSearch> bd_search;
 
         shared_ptr<ClosedList> bw_search_closed;
@@ -157,7 +159,7 @@ namespace stackelberg {
         if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
             cout << "Max upper bound: " << controller->getUpperBound() << endl;
             assert(controller->solved());
-            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars(), controller->getLowerBound(),  fw_search->getClosedShared(), bw_search_closed);
+            return FollowerSolution(*(controller->get_solution()), g_initial_state_data, mgr->get_relevant_vars(), controller->getLowerBound(),  fw_search_closed, bw_search_closed);
         } else {
                 cout << "Max upper bound: unsolvable " << endl;
                 return FollowerSolution(controller->getUpperBound(), controller->getLowerBound());

@@ -98,20 +98,6 @@ namespace stackelberg {
 
         void load_plans (const symbolic::ClosedList & closed) const; 
 
-        
-        /* symbolic::SymSolution checkCut(const symbolic::PlanReconstruction * search, const BDD &states, int g, bool fw) const override; */
-
-	/* virtual BDD notClosed () const override; */
-
-	/* //Returns true only if all not closed states are guaranteed to be dead ends */
-	/* virtual bool exhausted () const override { */
-        /*     return false; */
-        /* } */
-	
-	/* virtual int getHNotClosed() const override { */
-        /*     return 0; */
-        /* } */
-
     };
 
 
@@ -134,10 +120,21 @@ namespace stackelberg {
                                                              const BDD & follower_initial_states) override; 
         virtual BDD find_plan_follower_initial_states (const BDD & bdd) const override; 
         /* virtual bool find_plan (const GlobalState & state, int desired_bound) const override;       */
+
+        BDD regress_multiple_plans_to_follower_initial_states (const FollowerSolution & sol,
+                                                               const BDD & follower_initial_states);
+
     };
 
     class PlanReuseRegressionSearch : public PlanReuse {
 
+        BDD solvedFollowerInitialStates;
+
+        std::map<int, BDD> boundsForFollowerStates;
+
+        const bool accumulate_intermediate_states;
+
+        const int max_nodes_regression;
     public:
 
         PlanReuseRegressionSearch (const Options & opts);

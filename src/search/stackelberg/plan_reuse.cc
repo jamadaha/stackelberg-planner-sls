@@ -1,3 +1,4 @@
+
 #include "plan_reuse.h"
 
 #include "../option_parser.h"
@@ -7,6 +8,7 @@
 
 #include "../symbolic/sym_variables.h"
 #include "../symbolic/closed_list_disj.h"
+#include "../symbolic/open_list.h"
 #include "follower_search_engine.h"
 
 #include "symbolic_stackelberg_manager.h"
@@ -112,6 +114,145 @@ namespace stackelberg {
     }
 
 
+
+    
+    PlanReuseRegressionSearch::PlanReuseRegressionSearch (const Options & opts) :
+        accumulate_intermediate_states (opts.get<bool>("accumulate_intermediate_states")),
+        max_nodes_regression(opts.get<int>("max_nodes_regression")) {
+    }
+        
+    void PlanReuseRegressionSearch::initialize() {
+        solvedFollowerInitialStates = vars->zeroBDD();
+    }
+
+   
+    BDD PlanReuseRegressionSearch::find_plan_follower_initial_states (const BDD & bdd) const {
+        return bdd - solvedFollowerInitialStates;
+    }
+
+
+
+    // Auxiliary function to perform preimages with the limit
+    BDD PlanReuseRegressionSearch::preimage(const BDD & origin, const TransitionRelation & tr, BDD accum_result, int nodeLimit, const BDD & heuristic) {
+        
+        BDD newStates;
+        try {
+            newStates = tr.preimage(origin, max_nodes_regression);
+        }catch(BDDError) {
+            newStates = tr.preimage(origin*heuristic_;
+        }
+
+        try {
+            if (accum_result.nodeCount() > max_nodes_regression) {
+                accum_result *= heuristic;
+                accum_result += newStates*heuristic;
+            }else {
+                accum_result = accum_result.Or(newStates, max_nodes_regression);
+            }
+        }catch(BDDError) {
+            accum_result *= (solvedWith.count(cost-g-c) ? solvedWith.at(cost-g-c) : vars->zeroBDD());
+            accum_result += newStates*(solvedWith.count(cost-g-c) ? solvedWith.at(cost-g-c) : vars->zeroBDD());
+        }
+
+        return accum_result;
+    }
+        
+    BDD PlanReuseRegressionSearch::regress_plan_to_follower_initial_states (const FollowerSolution & sol,
+                                                                            const BDD & follower_initial_states) {
+        BDD result = vars->zeroBDD();
+        int cost = sol.solution_cost();
+
+        std::shared_ptr<symbolic::ClosedList> closed_fw = sol.get_closed_fw();
+        std::map<int, BDD> solvedWith;
+
+        BDD reached = vars->zeroBDD();
+        for (const auto & entry :  closed_fw->getClosedList()) {
+            reached += entry.second;            
+            solvedWith[entry.first] = reached;
+        }
+
+        BDD cut_fw = sol.getCut();
+        int cut_cost_fw = sol.getCutCost();
+
+        
+        
+
+
+        
+        std::map<int, BDD> open;
+
+        const auto &  trs = stackelberg_mgr->get_transition_relation();
+        open[0] = vars->getPartialStateBDD(g_goal);
+        
+        while (!open.empty()) {
+            int g = open.begin()->first;
+            BDD current = open.begin()->second;
+            if (current.nodeCount() > max_nodes_regression) {
+                current *= solvedWith.count(cost-g) ? solvedWith.at(cost-g) : vars->zeroBDD()  ;
+            }
+
+            cout << "Reconstructing " << g << "/" << cost  << endl;
+
+            if (accumulate_intermediate_states || g == cost) {
+                result += stackelberg_mgr->get_follower_initial_state_projection(current*stackelberg_mgr->get_static_follower_initial_state ());
+            }
+
+            closed_list_upper->insertWithZeroCostSteps(g, 0, current);
+            
+            if (trs.count(0)) {
+                int zeroCostSteps = 1;
+                BDD currentzero = current;
+                for (const auto & tr : trs[0]) {
+                    
+                    closed_list_upper->insertWithZeroCostSteps(g, zeroCostSteps, currentzero);
+                }                               
+            }
+
+            for (const auto & trcost : trs){
+                int c = trcost.first;
+                if (c == 0 || g + c > cost) continue;
+                // cout << "Applying " << c << endl;
+                for (const auto & tr : trcost.second) {
+
+                    
+                    BDD newStates;
+                    try {
+                        newStates = tr.preimage(current, max_nodes_regression);
+                    }catch(BDDError) {
+                        newStates = tr.preimage(current*(solvedWith.count(cost-g) ? solvedWith.at(cost-g) : vars->zeroBDD()));
+                    }
+                    // cout << "New states: " << newStates.nodeCount() << endl;
+
+                    if (!open.count(g+c)) {
+                        open[g+c] = vars->zeroBDD();
+                    }
+                    
+                    try {
+                        if (open[g+c].nodeCount() > max_nodes_regression) {
+                            open[g+c] *= (solvedWith.count(cost-g-c) ? solvedWith.at(cost-g-c) : vars->zeroBDD());
+                            open[g+c] += newStates*(solvedWith.count(cost-g-c) ? solvedWith.at(cost-g-c) : vars->zeroBDD());
+                        }else {
+                            open[g+c] = open[g+c].Or(newStates, max_nodes_regression);
+                        }
+                    }catch(BDDError) {
+                        open[g+c] *= (solvedWith.count(cost-g-c) ? solvedWith.at(cost-g-c) : vars->zeroBDD());
+                        open[g+c] += newStates*(solvedWith.count(cost-g-c) ? solvedWith.at(cost-g-c) : vars->zeroBDD());
+                    }
+
+                    // cout << "Open: " << newStates.nodeCount() << endl;
+
+                }
+            }
+            open.erase(open.begin());
+        }
+
+        assert(!result.IsZero());
+      
+        solvedFollowerInitialStates += result;
+        return follower_initial_states - result;
+    }
+
+
     PlanReuse *_parse_simple(OptionParser &parser) {
         parser.add_option<bool>("accumulate_intermediate_states", "Accumulate intermediate states in the plan.", "false");
     
@@ -124,6 +265,21 @@ namespace stackelberg {
 
     Plugin<PlanReuse> _plugin_plan_reuse_simple("simple", _parse_simple);
 
+
+    
+
+    PlanReuse *_parse_regress(OptionParser &parser) {
+        parser.add_option<bool>("accumulate_intermediate_states", "Accumulate intermediate states in the plan.", "false");
+        parser.add_option<int>("max_nodes_regression", "Maximum number of nodes to establish regression", "0");
+    
+        Options opts = parser.parse();
+        if (!parser.dry_run()) {
+            return new stackelberg::PlanReuseRegressionSearch(opts);
+        }
+        return NULL;
+    }
+
+    Plugin<PlanReuse> _plugin_plan_reuse_regress("regress", _parse_regress);
     
 }
 

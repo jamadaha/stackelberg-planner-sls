@@ -39,6 +39,15 @@ public:
         return g + h;
     }
 
+    inline int getCutCostFw() const {
+        return g;
+    }
+
+    inline int getCutCostBw() const {
+        return h;
+    }
+
+
     const BDD & getCut() const {
         return cut;
     }
