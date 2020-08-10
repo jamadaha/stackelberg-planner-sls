@@ -7,6 +7,7 @@
 
 #include "../symbolic/sym_variables.h"
 #include "../symbolic/closed_list_disj.h"
+#include "follower_search_engine.h"
 
 #include "symbolic_stackelberg_manager.h"
 
@@ -71,8 +72,9 @@ namespace stackelberg {
 
     
     BDD PlanReuseSimple::regress_plan_to_follower_initial_states
-    (const std::vector<const GlobalOperator *> & plan,  const BDD & follower_initial_states) {
+    (const FollowerSolution & sol,  const BDD & follower_initial_states) {
 
+        const std::vector<const GlobalOperator *> & plan = sol.get_plan();
         BDD current = vars->getPartialStateBDD(g_goal);
         BDD result = vars->zeroBDD();
         int cost = 0;

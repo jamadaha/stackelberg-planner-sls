@@ -147,7 +147,7 @@ namespace stackelberg {
 #endif
                     auto t1 = chrono::high_resolution_clock::now();
 
-                    follower_initial_states = plan_reuse->regress_plan_to_follower_initial_states(solution.get_plan(), follower_initial_states);
+                    follower_initial_states = plan_reuse->regress_plan_to_follower_initial_states(solution, follower_initial_states);
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
 
                     cout << " reg: " << runtime.count()/1000.0;

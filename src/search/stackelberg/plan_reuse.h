@@ -22,7 +22,7 @@ namespace stackelberg {
 
     class SymbolicStackelbergManager;
     class StackelbergSS;
-
+    class FollowerSolution;
     
     class OppositeFrontierExplicit {
         //We keep two different frontiers: one for the lower and one for the upper bound.
@@ -83,7 +83,7 @@ namespace stackelberg {
 
         // Regress the plan and filter the BDD of follower initial states to eliminate the
         // ones for which the plan applies
-        virtual BDD regress_plan_to_follower_initial_states(const std::vector<const GlobalOperator *> & plan,
+        virtual BDD regress_plan_to_follower_initial_states(const FollowerSolution & sol,
                                                             const BDD & follower_initial_states) = 0;
         
         // Filter the BDD of follower initial states to eliminate the ones for which a
@@ -130,7 +130,7 @@ namespace stackelberg {
         PlanReuseSimple(const Options & opts);
 
         virtual void initialize() override;
-        virtual  BDD regress_plan_to_follower_initial_states(const std::vector<const GlobalOperator *> & plan,
+        virtual  BDD regress_plan_to_follower_initial_states(const FollowerSolution & plan,
                                                              const BDD & follower_initial_states) override; 
         virtual BDD find_plan_follower_initial_states (const BDD & bdd) const override; 
         /* virtual bool find_plan (const GlobalState & state, int desired_bound) const override;       */
@@ -144,7 +144,7 @@ namespace stackelberg {
 
         virtual void initialize() override;
 
-        virtual  BDD regress_plan_to_follower_initial_states(const std::vector<const GlobalOperator *> & plan,
+        virtual  BDD regress_plan_to_follower_initial_states(const FollowerSolution & plan,
                                                              const BDD & follower_initial_states) override; 
         virtual BDD find_plan_follower_initial_states (const BDD & bdd) const override; 
         /* virtual bool find_plan (const GlobalState & state, int desired_bound) const override;       */

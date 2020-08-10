@@ -72,11 +72,12 @@ namespace stackelberg {
             } else {
                 fw_search->init(mgr, true, bw_search->getClosedShared());
             }
-            bw_search->init(mgr, false, fw_search->getClosedShared());	
+            bw_search->init(mgr, false, fw_search->getClosedShared());
+            bw_search_closed = bw_search->getClosedShared();
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
-            bw_search_closed = bw_search->getClosedShared();
+
         }else{
             fw_search->init(mgr, true);
             search = fw_search.get();
@@ -132,12 +133,13 @@ namespace stackelberg {
                     bw_search->step();
                 }
             }
-            
+
+            bw_search_closed = bw_search->getClosedShared();
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
 
-            bw_search_closed = bw_search->getClosedShared();
+
         }else{
             fw_search->init(mgr, true);
             search = fw_search.get();
