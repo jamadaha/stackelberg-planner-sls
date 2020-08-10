@@ -26,6 +26,8 @@ SUITES = {"aaai18ipc" : [dom for dom in SUITE_AAAI18 if "pentesting" not in dom]
           "aaai21ipc" : [dom for dom in SUITE_AAAI21 if "pentesting" not in dom],
           "aaai18pentesting" : [dom for dom in SUITE_AAAI18 if "pentesting" in dom],
           "aaai21pentesting" : [dom for dom in SUITE_AAAI21 if "pentesting" in dom]
+          "aaai21ipcfixed" : [dom.replace("driving", "drivingfixed")  for dom in SUITE_AAAI21 if "rovers-driving" in dom or "logistics-driving" in dom ]
+          
 }
 
 
