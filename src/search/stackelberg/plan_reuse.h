@@ -135,6 +135,10 @@ namespace stackelberg {
         const bool accumulate_intermediate_states;
 
         const int max_nodes_regression;
+
+        BDD preimage(const BDD & origin, const symbolic::TransitionRelation & tr, int f, int g, int c,
+                     BDD accum_result, int nodeLimit, const std::map<int, BDD> & heuristic) const;
+
     public:
 
         PlanReuseRegressionSearch (const Options & opts);
