@@ -38,6 +38,7 @@ class Config:
         self.revision = revision
         self.machines = machines
         self.preprocess_revision = preprocess_revision
+        self.suite = suite
         if "aaai21" in suite: 
             self.benchmarks_dir = "robustness-aaai21"
         else:
@@ -50,7 +51,7 @@ class Config:
 
 
     def with_soft_goals(self):
-        return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT)
+        return Config (self.folder + "-soft", self.nick + "-soft", self.config, self.revision, self.machines, PREPROCESS_REVISION_SOFT, self.suite)
 
     def with_suite(self, suite):
         return Config (self.folder + "-" + suite, self.nick + "-" + suite, self.config, self.revision, self.machines, PREPROCESS_REVISION_DEFAULT, suite)
