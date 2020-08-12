@@ -48,7 +48,7 @@ for config in configs.get_configs(NAME):
 #         config.revision
         EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{}/{}/{}'.format(config.machines, config.revision, config.folder)
         if os.path.isdir(EXPPATH):
-        #exp.add_fetcher(EXPPATH, parsers=[PARSER])
+                #exp.add_fetcher(EXPPATH, parsers=[PARSER])
                 exp.add_fetcher(EXPPATH)
 
 # Make a report containing absolute numbers (this is the most common report).
