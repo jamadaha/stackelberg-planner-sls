@@ -33,6 +33,7 @@ REVISIONS = [
     'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
+    'fixed'
 ]
 
 def rename_algorithm_and_domain(run):
@@ -42,8 +43,10 @@ def rename_algorithm_and_domain(run):
     if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
         return False
 
-    if "aaai18" in dom:
+    if "ss-lmcut-pdbs" in algo:
         return False
+    # if "aaai18" in dom:
+    #     return False
     
     for rev in REVISIONS:
         algo = algo.replace('{}'.format(rev), '')
@@ -115,6 +118,8 @@ attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'paret
 ## HTML reports
 
 exp.add_report(AbsoluteReport(attributes=attributes))
+
+exp.add_report(AbsoluteReport(attributes=['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches']))
 
 ### Latex reports
 
