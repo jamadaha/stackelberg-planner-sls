@@ -119,10 +119,10 @@ def get_configs(experiment):
 
 
 
-for conf in CONFIGS:
-    print conf
-    for aux in CONFIGS[conf]:
-        print aux
-        print
-        print
+# for conf in CONFIGS:
+#     print conf
+#     for aux in CONFIGS[conf]:
+#         print aux
+#         print
+#         print
     
