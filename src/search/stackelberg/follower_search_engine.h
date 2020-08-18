@@ -35,6 +35,8 @@ namespace stackelberg {
         std::shared_ptr<symbolic::ClosedList> closed_fw, closed_bw;
         BDD cut;
         int cut_cost;
+        std::map<int, std::vector<symbolic::TransitionRelation>> trs;
+        
 
     public:
         
@@ -94,6 +96,10 @@ namespace stackelberg {
 
         int getCutCost() const {
             return cut_cost;
+        }
+
+        const std::map<int, std::vector<symbolic::TransitionRelation>> get_transition_relation() const {
+            return trs;
         }
 
     };

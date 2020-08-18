@@ -136,8 +136,13 @@ namespace stackelberg {
 
         const int max_nodes_regression;
 
-        BDD preimage(const BDD & origin, const symbolic::TransitionRelation & tr, int f, int g, int c,
+        BDD image(bool fw, const BDD & origin, const symbolic::TransitionRelation & tr, int f, int g, int c,
                      BDD accum_result, int nodeLimit, const std::map<int, BDD> & heuristic) const;
+
+        // Performs a search in forward or backward direction, starting from init (with a
+        // given g-value), given the perfect heuristic and the solution cost. If result is
+        // provided, it stores the results.
+        void astar_perfect_search(bool fw, const std::map<int, std::vector<symbolic::TransitionRelation>> & trs, int solution_cost, const BDD & init, int g, const std::map<int, BDD> & solvedWith, int max_nodes_limit, std::function<void(const BDD &, int, int )>  process_expanded) const;
 
     public:
 

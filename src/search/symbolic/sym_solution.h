@@ -5,13 +5,18 @@
 #include <vector>
 
 namespace symbolic {
+    class TransitionRelation;
+    
     class PlanReconstruction {
 
-    public: 
+    public:
 	virtual void getPlan(const BDD &cut, int g, bool fw,
                              std::vector <const GlobalOperator *> &path) const = 0;
 
         virtual SymVariables *getVars() const = 0;
+
+        virtual const std::map<int, std::vector<symbolic::TransitionRelation>> & get_transition_relation() const = 0;
+                
             
         
     };
@@ -47,10 +52,14 @@ public:
         return h;
     }
 
-
     const BDD & getCut() const {
         return cut;
     }
+
+    const std::map<int, std::vector<symbolic::TransitionRelation>> & get_transition_relation() const {
+        if (exp_fw) return exp_fw->get_transition_relation();
+        else return exp_bw->get_transition_relation();
+    }   
 
 };
 }

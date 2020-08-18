@@ -245,6 +245,10 @@ public:
         return hasTR0;
     }
 
+    const std::map<int, std::vector <TransitionRelation>> & getTransitions() const {
+        return transitions;
+    }
+        
     inline void zero_image(bool fw,
                            const BDD &bdd, std::vector<BDD> &res,
                            int maxNodes) {

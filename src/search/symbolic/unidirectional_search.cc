@@ -49,4 +49,10 @@ namespace symbolic {
     SymVariables *UnidirectionalSearch::getVars() const {
         return mgr->getVars();
     }
+
+    
+    const std::map<int, std::vector<symbolic::TransitionRelation>> & UnidirectionalSearch::get_transition_relation() const {
+        return mgr->getTransitions();
+    }
+
 }

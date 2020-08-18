@@ -99,11 +99,14 @@ public:
     // From plan reconstruction: 
     virtual void getPlan(const BDD &cut, int g, bool fw, std::vector <const GlobalOperator *> &path) const override;
     virtual SymVariables *getVars() const override;
+    virtual const std::map<int, std::vector<symbolic::TransitionRelation>> & get_transition_relation() const override;
+    
 
 
     int check_goal_cost(const GlobalState & state) const;
 
     friend class ClosedListDisj;
+
 
 };
 }

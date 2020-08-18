@@ -537,4 +537,9 @@ namespace symbolic {
 
     }
 
+    const std::map<int, std::vector<symbolic::TransitionRelation>> & ClosedList::get_transition_relation() const {
+        return mgr->getTransitions();
+    }
+
+
 }

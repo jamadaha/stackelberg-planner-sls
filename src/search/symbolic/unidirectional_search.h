@@ -122,7 +122,11 @@ namespace symbolic {
 	/* virtual void getPlan(const BDD &cut, int g, std::vector <const GlobalOperator
          * *> &path) const = 0; */
 
-        virtual SymVariables *getVars() const override;        
+        virtual SymVariables *getVars() const override;
+
+        virtual const std::map<int, std::vector<symbolic::TransitionRelation>> & get_transition_relation() const  override;
+
+        
 
 	virtual int getG() const = 0;
 

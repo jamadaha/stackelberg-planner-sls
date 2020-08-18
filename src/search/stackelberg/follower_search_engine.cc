@@ -41,7 +41,7 @@ namespace stackelberg {
                                        std::shared_ptr<symbolic::ClosedList> _closed_bw) : solved(true), plan_cost(sol.getCost()),
                                                                                            lower_bound(lb), closed_fw(_closed_fw),
                                                                                            closed_bw(_closed_bw), cut(sol.getCut()),
-                                                                                           cut_cost(sol.getCutCostFw()) {
+                                                                                           cut_cost(sol.getCutCostFw()), trs(sol.get_transition_relation()) {
 
         sol.getPlan(plan, initial_state, pattern);
     }
