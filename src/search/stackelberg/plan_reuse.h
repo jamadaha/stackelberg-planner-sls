@@ -58,6 +58,7 @@ namespace stackelberg {
 
         std::shared_ptr<symbolic::ClosedListDisj> closed_list_upper;
         int current_follower_bound;
+
         
     public:
 

@@ -202,7 +202,7 @@ namespace stackelberg {
                 continue;
             }
 
-//            cout << "Reconstructing " << g << "/" << solution_cost  << ": " << current.nodeCount() << endl;
+            //cout << "Reconstructing " << g << "/" << solution_cost  << ": " << current.nodeCount() << endl;
             if (current.nodeCount() > max_nodes_limit) {
                 current *= solvedWith.count(solution_cost-g) ? solvedWith.at(solution_cost-g) : vars->zeroBDD()  ;
             }
@@ -268,8 +268,6 @@ namespace stackelberg {
             // cout << "closed fw: ";
         
             closed_bw->insert(cost-cut_cost_fw, cut_fw);
-
-        
         
             //Perform forward search 
             astar_perfect_search(true, sol.get_transition_relation(), cost, cut_fw, cut_cost_fw, closed_bw->getClosedList(), 0,
@@ -277,8 +275,9 @@ namespace stackelberg {
                                      reached += current;
                                      solvedWith[g] = reached;
                                  });
-        } else { //Obtain the set of all states in the plan
-            
+
+        }
+        if (!solvedWith.count(cost) || solvedWith[cost].IsZero()) {      //If previous reconstruction failed just use the last plan      
             const std::vector<const GlobalOperator *> & plan = sol.get_plan();
 
             BDD current = stackelberg_mgr->get_follower_initial_state(sol.get_initial_state());

@@ -92,8 +92,7 @@ config_list["regress"] = [
     Config('ss-sbd-ubreuse-regress', 'ss-sbd-ubreuse-regress', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false, plan_reuse=regress(accumulate_intermediate_states=true, max_nodes_regression=0))))"], REVISION, SERVERS), 
     Config('ss-sbd-ubreuse-regress1k', 'ss-sbd-ubreuse-regress1k', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false, plan_reuse=regress(accumulate_intermediate_states=true, max_nodes_regression=1000))))"], REVISION, SERVERS), 
     Config('ss-sbd-ubreuse-regress10k', 'ss-sbd-ubreuse-regress10k', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false, plan_reuse=regress(accumulate_intermediate_states=true, max_nodes_regression=10000))))"], REVISION, SERVERS), 
-
-
+    
     ]
 
 
