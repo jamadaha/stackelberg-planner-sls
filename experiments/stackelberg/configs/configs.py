@@ -9,6 +9,8 @@ PREPROCESS_REVISION_DEFAULT = "92845ada3fd61a733f99702ffcfff2b3b99260f0"
 PREPROCESS_REVISION_SOFT = "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc"
 
 REVISION = "d059552e393f05e01d52bb8bd880873acf4dce78"
+REVISION_REGRESS = "541c807cd820ff14483d289c785ff65b8bba3a62"
+
 SERVERS = "new_servers" 
 
 
@@ -81,6 +83,15 @@ config_list["symbolic_leader_lmcut"] = [
     Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
     Config('ss-lmcut-pdbs-ubreuse', 'ss-lmcut-pdbs-ubresuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
     ]
+
+
+config_list["regress"] = [
+    Config('ss-lmcut-ubreuse-regress1k', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false, plan_reuse=regress(accumulate_intermediate_states=true, max_nodes_regression=1000)))"], REVISION_REGRESS, SERVERS),
+    Config('ss-lmcut-ubreuse-regress10k', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false, plan_reuse=regress(accumulate_intermediate_states=true, max_nodes_regression=10000)))"], REVISION_REGRESS, SERVERS),
+    Config('ss-lmcut-ubreuse-regress', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false, plan_reuse=regress(accumulate_intermediate_states=true, max_nodes_regression=0)))"], REVISION_REGRESS, SERVERS),
+    ]
+
+
 
 
 
