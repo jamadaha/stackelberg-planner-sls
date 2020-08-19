@@ -26,7 +26,8 @@ namespace stackelberg {
         bool solved;
         int plan_cost;
         int lower_bound;
-        
+
+        std::vector<int> initial_state;
         std::vector <const GlobalOperator *> plan;
 
 
@@ -44,9 +45,9 @@ namespace stackelberg {
         solved(false), plan_cost(-1), lower_bound(std::numeric_limits<int>::max()) {
         }
 
-        FollowerSolution (int cost, const std::vector <const GlobalOperator *> & plan_,
+        FollowerSolution (int cost, const std::vector<int> & initial_state_, const std::vector <const GlobalOperator *> & plan_,
                           int lb = 0) :
-        solved(true), plan_cost (cost), lower_bound(lb), plan(plan_)  {}
+            solved(true), plan_cost (cost), lower_bound(lb), initial_state(initial_state_), plan(plan_)  {}
 
         FollowerSolution (int cost, int lb = 0) : solved(true), plan_cost (cost), lower_bound(lb) {}
 
@@ -100,6 +101,10 @@ namespace stackelberg {
 
         const std::map<int, std::vector<symbolic::TransitionRelation>> get_transition_relation() const {
             return trs;
+        }
+
+        const std::vector<int> & get_initial_state () const {
+            return initial_state;
         }
 
     };

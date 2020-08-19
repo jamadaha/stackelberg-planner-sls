@@ -260,8 +260,11 @@ namespace stackelberg {
             transition_relation = make_unique<map<int, vector<TransitionRelation> > > ();
 
             for (int op_no : task->get_global_operator_id_follower_ops()) {
-                int cost = cost_type->get_adjusted_cost(&g_operators[op_no]);
-                (*transition_relation)[cost].push_back(*(transitions_by_id[op_no]));
+                const GlobalOperator & op = g_operators[op_no];
+            
+                assert (transitions_by_id[op.get_op_id()]);
+                int cost = cost_type->get_adjusted_cost(&op);
+                (*transition_relation)[cost].push_back(*(transitions_by_id[op.get_op_id()]));
 
             }
             for (auto it = transition_relation->begin(); it != transition_relation->end(); ++it) {
@@ -276,6 +279,10 @@ namespace stackelberg {
 
     const TransitionRelation &  SymbolicStackelbergManager::get_transition_relation(const GlobalOperator * op) const {
         return *(transitions_by_id.at(op->get_op_id()));
+    }
+
+    const TransitionRelation &  SymbolicStackelbergManager::get_follower_transition_relation(const GlobalOperator * op) const {
+        return *(follower_transitions_by_id.at(op->get_op_id()));
     }
 
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_leader_manager() {
@@ -540,6 +547,11 @@ namespace stackelberg {
         tr.edeletion(notMutexBDDsByFluentFw, notMutexBDDsByFluentBw, exactlyOneBDDsByFluent);
     }
 
+
+    BDD SymbolicStackelbergManager::get_follower_initial_state (const std::vector<int> & leader_state) const {
+        return vars->getPartialStateBDD(leader_state, pattern_vars_follower_search);
+    }
+    
 
 }
 

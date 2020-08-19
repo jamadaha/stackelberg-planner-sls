@@ -159,17 +159,14 @@ namespace stackelberg {
         try {
             if (accum_result.nodeCount() > nodeLimit) {
                 if (!heuristic.count(f-g-c)) {
-                    cout << "Should make zero because there is no " << f-g-c << endl;
+                    // cout << "Should make zero because there is no " << f-g-c << endl;
                     // for (auto entry  : heuristic){
                     //     cout << entry.first << endl;
                     // }
-                    // return vars->zeroBDD();
-                    accum_result += newStates;
-
+                    return vars->zeroBDD();
+                    //accum_result += newStates;
                 } else {
-                    cout << "Conjoin with heuristic: " << f-g-c << endl;
-                    cout << newStates.nodeCount() << endl;
-                    cout << heuristic.at(f-g-c).nodeCount() << endl;
+                    // cout << "Conjoin with heuristic: " << f-g-c << " before: "  << newStates.nodeCount() << " after: " << heuristic.at(f-g-c).nodeCount() << endl;
                 
                     accum_result *= heuristic.at(f-g-c);
                     accum_result += newStates*heuristic.at(f-g-c);
@@ -179,7 +176,7 @@ namespace stackelberg {
             }
         }catch(const BDDError &) {
             if (!heuristic.count(f-g-c)) {
-                cout << "Making zero because there is no " << f-g-c << endl;
+                // cout << "Making zero because there is no " << f-g-c << endl;
 
                 return vars->zeroBDD();
             }
@@ -205,7 +202,7 @@ namespace stackelberg {
                 continue;
             }
 
-            cout << "Reconstructing " << g << "/" << solution_cost  << ": " << current.nodeCount() << endl;
+//            cout << "Reconstructing " << g << "/" << solution_cost  << ": " << current.nodeCount() << endl;
             if (current.nodeCount() > max_nodes_limit) {
                 current *= solvedWith.count(solution_cost-g) ? solvedWith.at(solution_cost-g) : vars->zeroBDD()  ;
             }
@@ -252,65 +249,82 @@ namespace stackelberg {
         
     BDD PlanReuseRegressionSearch::regress_plan_to_follower_initial_states (const FollowerSolution & sol,
                                                                             const BDD & follower_initial_states) {
-        int cost = sol.solution_cost();
-
+        int cost = sol.solution_cost();        
         std::shared_ptr<symbolic::ClosedList> closed_bw = sol.get_closed_bw();
         std::shared_ptr<symbolic::ClosedList> closed_fw = sol.get_closed_fw();
-        
         std::map<int, BDD> solvedWith;
+                    
+        if (closed_fw) {   // Obtain the set of all states in any optimal plan
+            BDD reached = vars->zeroBDD();
+            for (const auto & entry :  closed_fw->getClosedList()) {
+                reached += entry.second;            
+                solvedWith[entry.first] = reached;
+            }
+        
+            BDD cut_fw = sol.getCut();
+            int cut_cost_fw = sol.getCutCost();
 
-        BDD reached = vars->zeroBDD();
-        for (const auto & entry :  closed_fw->getClosedList()) {
-            reached += entry.second;            
-            solvedWith[entry.first] = reached;
+            // cout << "regress_plan_to_follower_initial_states. cost " << cost << " cut cost: " << cut_cost_fw << endl;
+            // cout << "closed fw: ";
+        
+            closed_bw->insert(cost-cut_cost_fw, cut_fw);
+
+        
+        
+            //Perform forward search 
+            astar_perfect_search(true, sol.get_transition_relation(), cost, cut_fw, cut_cost_fw, closed_bw->getClosedList(), 0,
+                                 [&]  (const BDD & current, int g, int ) -> void {
+                                     reached += current;
+                                     solvedWith[g] = reached;
+                                 });
+        } else { //Obtain the set of all states in the plan
+            
+            const std::vector<const GlobalOperator *> & plan = sol.get_plan();
+
+            BDD current = stackelberg_mgr->get_follower_initial_state(sol.get_initial_state());
+            int current_cost = 0;
+            BDD reached = current;
+            solvedWith[current_cost] = reached;
+
+            for (auto & op : plan){   
+                current = stackelberg_mgr->get_follower_transition_relation(op).image(current);
+                int step_cost = stackelberg_mgr->get_cost(op);
+                current_cost += step_cost;
+
+                reached += current;            
+                solvedWith[current_cost] = reached;
+            }           
         }
         
-        BDD cut_fw = sol.getCut();
-        int cut_cost_fw = sol.getCutCost();
-
-        cout << "regress_plan_to_follower_initial_states. cost " << cost << " cut cost: " << cut_cost_fw << endl;
-        cout << "closed fw: ";
-        
-        closed_bw->insert(cost-cut_cost_fw, cut_fw);
-
-        
-        
-        //Perform forward search 
-        astar_perfect_search(true, sol.get_transition_relation(), cost, cut_fw, cut_cost_fw, closed_bw->getClosedList(), 0,
-                             [&]  (const BDD & current, int g, int ) -> void {
-                                 reached += current;
-                                 solvedWith[g] = reached;
-                             });
-
         BDD result = vars->zeroBDD();
 
 
-        cout << "H: ";
-        for (const auto & entry :  solvedWith) {
-            cout << entry.first << " ";
-            if (entry.second.IsZero()) {
-                cout << "z" << " ";
-            }
-        }
+        // cout << "H: ";
+        // for (const auto & entry :  solvedWith) {
+        //     cout << entry.first << " ";
+        //     if (entry.second.IsZero()) {
+        //         cout << "z" << " ";
+        //     }
+        // }
 
-        cout << endl;
+        // cout << endl;
 
         BDD goal = vars->getPartialStateBDD(g_goal);
 
-        cout << closed_bw->getClosedList().at(0).nodeCount() << endl;
-        cout << solvedWith[cost].nodeCount() << endl;
-        cout << (solvedWith[cost]*closed_bw->getClosedList().at(0)).nodeCount() << endl;
-        cout << goal.nodeCount() << endl;
-        cout << (goal*closed_bw->getClosedList().at(0)).nodeCount() << endl;
+        // cout << closed_bw->getClosedList().at(0).nodeCount() << endl;
+        // cout << solvedWith[cost].nodeCount() << endl;
+        // cout << (solvedWith[cost]*closed_bw->getClosedList().at(0)).nodeCount() << endl;
+        // cout << goal.nodeCount() << endl;
+        // cout << (goal*closed_bw->getClosedList().at(0)).nodeCount() << endl;
 
 
         assert(!(goal*solvedWith[cost]).IsZero());
 
         //Perform backward search 
-        astar_perfect_search(false, stackelberg_mgr->get_transition_relation(), cost, goal , 0, solvedWith , 0,
+        astar_perfect_search(false, stackelberg_mgr->get_transition_relation(), cost, goal , 0, solvedWith , max_nodes_regression,
                              [&]  (const BDD & current, int g, int g_zero ) -> void {
                                  
-                                 cout << "Closing " << g << " " <<                                      current.nodeCount() << endl;
+                                 // cout << "Closing " << g << " " <<                                      current.nodeCount() << endl;
                                  if (accumulate_intermediate_states || g == cost) {
                                      result += stackelberg_mgr->get_follower_initial_state_projection(current*stackelberg_mgr->get_static_follower_initial_state ());
                                  }

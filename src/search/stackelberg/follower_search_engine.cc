@@ -36,10 +36,11 @@ namespace stackelberg {
     }
 
 
-    FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & initial_state, const vector<bool> & pattern,  int lb,
+    FollowerSolution::FollowerSolution(const SymSolution & sol, const  vector<int> & _initial_state, const vector<bool> & pattern,  int lb,
                                        std::shared_ptr<symbolic::ClosedList> _closed_fw,
                                        std::shared_ptr<symbolic::ClosedList> _closed_bw) : solved(true), plan_cost(sol.getCost()),
-                                                                                           lower_bound(lb), closed_fw(_closed_fw),
+                                                                                           lower_bound(lb), initial_state(_initial_state),
+                                                                                           closed_fw(_closed_fw),
                                                                                            closed_bw(_closed_bw), cut(sol.getCut()),
                                                                                            cut_cost(sol.getCutCostFw()), trs(sol.get_transition_relation()) {
 
@@ -280,10 +281,10 @@ namespace stackelberg {
         }
 
         if(is_optimal_solver) {
-            return FollowerSolution(plan_cost, plan, search_engine->get_search_progress().get_f_value());
+            return FollowerSolution(plan_cost, leader_state, plan, search_engine->get_search_progress().get_f_value());
         }else {
-            assert(!FollowerSolution(plan_cost, plan).is_optimal());
-            return FollowerSolution(plan_cost, plan);
+            assert(!FollowerSolution(plan_cost, leader_state, plan).is_optimal());
+            return FollowerSolution(plan_cost, leader_state, plan);
         }
     }
 
