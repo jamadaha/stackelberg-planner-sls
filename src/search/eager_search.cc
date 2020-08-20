@@ -384,9 +384,7 @@ void EagerSearch::print_heuristic_values(const vector<int> &values) const {
 
 void EagerSearch::reset() {
     SearchEngine::reset();
-    search_space.reset();
     open_list->clear();
-    search_progress.reset();
 }
 
 void add_pruning_option(OptionParser &parser) {

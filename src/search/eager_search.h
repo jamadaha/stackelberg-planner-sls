@@ -50,7 +50,7 @@ protected:
 public:
     EagerSearch(const Options &opts);
     void statistics() const;
-    void reset();
+    virtual void reset() override;
     OpenList<std::pair<StateID, int>>* get_open_list() {return open_list; }
     void dump_search_space();
 };

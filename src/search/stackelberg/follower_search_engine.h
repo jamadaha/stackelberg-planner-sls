@@ -154,7 +154,7 @@ namespace stackelberg {
 
     class ExplicitFollowerSearchEngine : public FollowerSearchEngine {
         SearchEngine* search_engine;
-        Heuristic * follower_heuristic; //We need a pointer to the heuristic to reset it!
+        SearchEngine* search_engine_up;
 
         std::unique_ptr<SuccessorGenerator> successor_generator;
         std::vector <GlobalOperator> follower_operators_with_all_preconds;

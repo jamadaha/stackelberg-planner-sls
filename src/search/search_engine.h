@@ -59,7 +59,7 @@ public:
     bool found_solution() const;
     SearchStatus get_status() const;
     const Plan &get_plan() const;
-    void search();
+    void search(double max_time = 0);
     const SearchProgress & get_search_progress() const
     {
         return search_progress;
@@ -76,7 +76,10 @@ public:
         solution_found = false;
         plan.clear();
         current_plan_cost = std::numeric_limits<int>::max();
+       search_space.reset();
+       search_progress.reset();
     };
+
     SearchSpace *get_search_space()
     {
         return &search_space;

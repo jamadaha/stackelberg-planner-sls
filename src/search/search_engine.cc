@@ -61,11 +61,15 @@ void SearchEngine::set_plan(const Plan &p)
     cout << "current plan cost: " << current_plan_cost << endl;
 }
 
-void SearchEngine::search()
+void SearchEngine::search(double max_time_)
 {
     solution_found = false;
     status = IN_PROGRESS;
     initialize();
+
+    if (max_time_ > 0) {
+        max_time = max_time_;
+    }
 
     CountdownTimer timer(max_time);
     while (status == IN_PROGRESS) {

@@ -177,48 +177,69 @@ namespace stackelberg {
                                                                                       search_engine (opts.get<SearchEngine *>("search_engine")),
                                                                                       is_optimal_solver(opts.get<bool>("is_optimal_solver")),
                                                                                       debug(opts.get<bool>("debug")) {
-        if (opts.contains("follower_heuristic")) {
-            follower_heuristic =
-                opts.get<Heuristic *>("follower_heuristic"); 
+        if (opts.contains("search_engine_up")) {
+            search_engine_up =
+                opts.get<SearchEngine *>("search_engine_up"); 
         } else {
-            follower_heuristic = nullptr;
+            search_engine_up = nullptr;
         }
     }
 
 
     FollowerSolution ExplicitFollowerSearchEngine::solve_minimum_ftask (PlanReuse * /*plan_reuse*/) {
-        // auto * g_successor_generator_copy = g_successor_generator;
-        // g_successor_generator = successor_generator;
-        // g_operators.clear();
-    
-        // task->compute_always_applicable_follower_ops(g_operators);
-        // cout << "number of always applicable attack ops: " << g_operators.size() << endl;
-        // delete g_successor_generator;
 
-        // search_engine->reset();
-        // g_state_registry->reset();
-        // if(follower_heuristic) {
-        //     follower_heuristic->reset();
-        // }
+        assert(is_optimal_solver);
+        if (!search_engine_up) {
+            return FollowerSolution();
+        }
 
-        // int follower_cost_upper_bound = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE;
-        // search_engine->search();
-        // if (search_engine->found_solution()) {
-        //     search_engine->save_plan_if_necessary();
-        //     follower_cost_upper_bound = search_engine->calculate_plan_cost();
-        // }
-        // cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << endl;
+        auto * g_successor_generator_copy = g_successor_generator;
+        auto original_g_initial_state_data = g_initial_state_data;
+        auto original_g_operators = g_operators;
+        
+        g_operators.clear();    
+        task->compute_always_applicable_follower_ops(g_operators);
+        cout << "number of always applicable attack ops: " << g_operators.size() << endl;
+        g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
 
-        // g_operators.clear();
-        // for (const auto & op :task->get_follower_operators_with_all_preconds()) {
-        //     g_operators.push_back(op);
-        // }
-        // delete g_successor_generator;
-        // g_successor_generator = create_successor_generator(g_variable_domain, g_operators, g_operators);
-        // if(follower_heuristic) {
-        //     follower_heuristic->reset();    
-        // }
-        return FollowerSolution(); //follower_cost_upper_bound;
+        streambuf *old = nullptr;
+        if (!debug) {
+            old = cout.rdbuf(); // <-- save
+            stringstream ss;
+            cout.rdbuf(ss.rdbuf());        // <-- redirect
+        }
+
+        g_state_registry->reset();
+
+        search_engine_up->search(time_limit_seconds_minimum_task);
+
+        follower_statistics.accumulate(search_engine_up->get_search_progress());  
+
+        int follower_cost_upper_bound = StackelbergTask::FOLLOWER_TASK_UNSOLVABLE;
+        std::vector <const GlobalOperator *> plan;
+
+
+        if (search_engine_up->found_solution()) {
+             follower_cost_upper_bound = search_engine_up->calculate_plan_cost();
+             plan = search_engine_up->get_plan();
+         } 
+        
+        if (!debug) {
+            cout.rdbuf(old);
+        }
+
+        cout << "follower_cost_upper_bound: " << follower_cost_upper_bound << endl;
+
+        // //Restore globals
+        g_initial_state_data = original_g_initial_state_data;
+        g_successor_generator = g_successor_generator_copy;
+        g_operators = original_g_operators;
+        
+        g_state_registry->reset();
+        search_engine_up->reset();
+
+        return FollowerSolution(follower_cost_upper_bound, g_initial_state_data, plan, search_engine_up->get_search_progress().get_f_value());
+
     }
 
     FollowerSolution ExplicitFollowerSearchEngine::solve (const std::vector<int> & leader_state, PlanReuse * plan_reuse, int bound) {
@@ -335,9 +356,10 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
 static stackelberg::FollowerSearchEngine *_parse_explicit(OptionParser &parser) {
     stackelberg::FollowerSearchEngine::add_options_to_parser(parser);
     parser.add_option<SearchEngine *> ("search_engine", "engine", "");
+    parser.add_option<SearchEngine *> ("search_engine_up", "engine", "");
     parser.add_option<bool> ("is_optimal_solver", "engine", "");
     parser.add_option<bool> ("debug", "show output of follower search ", "false");
-        
+
     Options opts = parser.parse();
 
     if (!parser.dry_run()) {

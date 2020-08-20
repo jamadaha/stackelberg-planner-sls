@@ -33,7 +33,8 @@ REVISIONS = [
     'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
-    'fixed'
+    'fixed',
+    '3cd44a8df4b9332f3658295ccd85430f71ed410e'
 ]
 
 def rename_algorithm_and_domain(run):
@@ -117,13 +118,20 @@ attributes = ['search_time', 'memory', 'total_time', 'error', 'coverage', 'paret
 
 ## HTML reports
 
-# exp.add_report(AbsoluteReport(attributes=attributes))
+exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches', 'follower_time']))
 
 # exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches'], filter_algorithm=["ss-sbd", "baseline-lmcut", "ss-sbd-ubreuse", "ss-sbd-ubreuse-cbff-1s", "ss-sbd-ubreuse-cbff-10s", "ss-sbd-ubreuse-cbffpr-1s", "ss-sbd-ubreuse-cbffpr-5s", "ss-sbd-ubreuse-cbffpr-10s", "ss-sbd-cbff-1s", "ss-sbd-cbff-10s", "ss-sbd-cbffpr-10s" ]))
 
 exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches'], filter_algorithm=["ss-sbd", "ss-sbd-cbff-1s", "ss-sbd-cbff-10s", "ss-sbd-cbffpr-10s" ]), outfile='report-sbd-cbff.html')
 
 exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches'], filter_algorithm=["ss-sbd-ubreuse", "ss-sbd-ubreuse-cbff-1s", "ss-sbd-ubreuse-cbff-10s", "ss-sbd-ubreuse-cbffpr-1s", "ss-sbd-ubreuse-cbffpr-5s", "ss-sbd-ubreuse-cbffpr-10s"]),  outfile='report-sbd-ubreuse-cbff.html')
+
+exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches', 'follower_time', 'optimally_solved_subproblems'], filter_algorithm=["ss-sbd-ubreuse", "ss-sbd-ubreuse-regress"]), outfile='report-sbd-regress.html')
+
+exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches', 'follower_time'], filter_algorithm=["baseline-sbd", "ss-sbd", "ss-sbd-ubreuse", "ss-sbd-ubreuse-cbff-1s", 'ss-sbd-up-ubreuse-tlim']), outfile='report-sbd.html')
+exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches', 'follower_time'], filter_algorithm=["baseline-lmcut", "ss-lmcut", "ss-sbd-lmcut", 'ss-lmcut-ubreuse']), outfile='report-lmcut.html')
+
+exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches', 'follower_time'], filter_algorithm=["original-lmcut-pdbs","baseline-lmcut", "ss-lmcut", "ss-sbd-lmcut", 'ss-lmcut-ubreuse', "baseline-sbd", "ss-sbd", "ss-sbd-ubreuse", "ss-sbd-ubreuse-cbff-1s", 'ss-sbd-up-ubreuse-tlim']), outfile='report-lmcut-sbd.html')
 
 
 
