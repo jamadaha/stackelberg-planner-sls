@@ -15,7 +15,7 @@
 namespace stackelberg {
 
     class FollowerTask;
-
+    
     class StackelbergTask {
 
         std::vector<int> global_operator_id_leader_ops;
@@ -39,8 +39,6 @@ namespace stackelberg {
         int num_vars;
         int num_follower_vars;
         int num_leader_vars;
-
-
           
         std::vector<int> map_var_id_to_new_follower_var_id; // Vector indexed by old id, encloses new attack var id
         std::vector<int> map_var_id_to_new_leader_var_id; // Vector indexed by old id, encloses new attack var id

@@ -1,6 +1,9 @@
 #ifndef SYMBOLIC_STACKELBERG_MANAGER_H
 #define SYMBOLIC_STACKELBERG_MANAGER_H
 
+
+#include "dominance_stackelberg_task.h"
+
 #include "../symbolic/sym_state_space_manager.h"
 
 class OptionParser;
@@ -11,7 +14,8 @@ class MutexGroup;
 namespace stackelberg {
 
     class StackelbergTask;
-
+    class DominanceStackelbergTask;
+    
     class MutexBDDs {
 
         std::vector<BDD> notMutexBDDsFw, notMutexBDDsBw;
@@ -130,6 +134,8 @@ namespace stackelberg {
         /* std::map<int, std::vector <symbolic::TransitionRelation>> transitions_by_leader_precondition; //TRs by cost */
         /* std::vector<std::pair<LeaderPrecondition, BDD>> validStatesFw, validStatesBw; */
 
+
+        mutable std::unique_ptr<DominanceStackelbergTask> dominance;
                
     public:
         SymbolicStackelbergManager(StackelbergTask* task, const Options & opts);
@@ -177,7 +183,8 @@ namespace stackelberg {
         }
 
         std::shared_ptr<StackelbergSS> get_empty_manager() const;
-            
+
+        bool dominates(const std::vector<int> & leader_t, const std::vector<int> & leader_s) const;
 
         int get_cost (const GlobalOperator *op) const; 
 

@@ -185,6 +185,7 @@ namespace stackelberg {
         const bool bidir;
         const bool plan_reuse_minimal_task_upper_bound;
         const int force_bw_search_minimum_task_seconds;
+        const bool store_lower_bound;
         
         virtual void initialize_follower_search_engine() override;
         

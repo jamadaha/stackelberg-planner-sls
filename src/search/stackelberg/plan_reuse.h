@@ -27,19 +27,22 @@ namespace stackelberg {
     class OppositeFrontierExplicit {
         //We keep two different frontiers: one for the lower and one for the upper bound.
 
-        std::shared_ptr<symbolic::ClosedListDisj> closed_list_lower;        
+
         std::shared_ptr<symbolic::ClosedListDisj> closed_list_upper;
         int desired_bound;
-        
+        std::vector<std::shared_ptr<symbolic::ClosedList>> closed_list_lower;            
 
     public:
-    OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedListDisj> closed, int desired_bound_) :
-        closed_list_upper (closed), desired_bound(desired_bound_) {}
+        OppositeFrontierExplicit(std::shared_ptr<symbolic::ClosedListDisj> closed, int desired_bound_,
+                                 const std::vector<std::shared_ptr<symbolic::ClosedList>> & lower) :
+            closed_list_upper (closed), desired_bound(desired_bound_), closed_list_lower(lower) {}
         
         int check_goal_cost(const GlobalState & state){
             return closed_list_upper->check_goal_cost(state);
         }
 
+        int compute_heuristic(const GlobalState & state) const;
+        
         void getPlan(const GlobalState & state, int g, std::vector <const GlobalOperator *> &path) const;
 
         int get_desired_bound() const {
@@ -59,6 +62,7 @@ namespace stackelberg {
         std::shared_ptr<symbolic::ClosedListDisj> closed_list_upper;
         int current_follower_bound;
 
+        std::vector<std::pair<std::vector<int>, std::shared_ptr<symbolic::ClosedList>>> closed_list_lower;            
         
     public:
 
@@ -98,6 +102,11 @@ namespace stackelberg {
 
 
         void load_plans (const symbolic::ClosedList & closed) const; 
+
+        void load_closed_list (const std::vector<int> & leader_state, std::shared_ptr<symbolic::ClosedList> closed);
+
+
+
 
     };
 

@@ -7,6 +7,7 @@
 #include "g_evaluator.h"
 #include "sum_evaluator.h"
 #include "plugin.h"
+#include "stackelberg/plan_reuse.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -161,10 +162,13 @@ SearchStatus EagerSearch::step() {
         GlobalState succ_state = g_state_registry->get_successor_state(s, *op);
         search_progress.inc_generated();
         bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
+
+        int h_opposite = opposite_frontier->compute_heuristic(succ_state);
         
-        // if (lower_bound_heuristic && (node.get_real_g() + op->get_cost() + lower_bound_heuristic->compute_heuristic(succ_state)) >= bound) {
-        //     continue;
-        // }
+        if (h_opposite == std::numeric_limits<int>::max() ||
+            (node.get_real_g() + op->get_cost() + h_opposite) >= bound) {
+             continue;
+         }
 
         SearchNode succ_node = search_space.get_node(succ_state, new_budget);
 

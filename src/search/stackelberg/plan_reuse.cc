@@ -27,7 +27,15 @@ namespace stackelberg {
     std::shared_ptr<OppositeFrontierExplicit>
     PlanReuse::get_opposite_frontier_explicit(const std::vector<int> & leader_state) const {
         BDD bdd = stackelberg_mgr->get_static_follower(leader_state);
-        return make_shared<OppositeFrontierExplicit> (make_shared<ClosedListDisj> (*closed_list_upper, bdd), current_follower_bound);
+
+        std::vector<std::shared_ptr<symbolic::ClosedList>> dominated_closed_list_lower;
+        for (const auto & entry : closed_list_lower) {
+            if (stackelberg_mgr->dominates(entry.first, leader_state)) {
+                dominated_closed_list_lower.push_back(entry.second);
+            }
+        }
+        return make_shared<OppositeFrontierExplicit> (make_shared<ClosedListDisj> (*closed_list_upper, bdd),
+                                                      current_follower_bound, dominated_closed_list_lower);
     }
 
 
@@ -36,6 +44,18 @@ namespace stackelberg {
         closed_list_upper->getPlan(cut, g, false, path );
     }
 
+    int OppositeFrontierExplicit::compute_heuristic(const GlobalState & state) const {
+        int v = 0;
+        cout << "Compute lower bound: ";
+        for (const auto & l : closed_list_lower) {
+            cout << l.get() << " " ; 
+            v = std::max(v, l->compute_heuristic(state));
+        }
+        cout << v << endl;
+
+        return v;
+    }
+        
 
 
     void PlanReuse::initialize(std::shared_ptr<SymbolicStackelbergManager> mgr) {
@@ -52,6 +72,11 @@ namespace stackelberg {
 
     void PlanReuse::load_plans (const ClosedList & closed) const {
         closed_list_upper->load(closed);
+    }
+
+
+    void PlanReuse::load_closed_list (const vector<int> & leader_state, std::shared_ptr<ClosedList> closed) {
+        closed_list_lower.push_back(make_pair(leader_state, closed));
     }
 
     PlanReuseSimple::PlanReuseSimple (const Options & opts) :

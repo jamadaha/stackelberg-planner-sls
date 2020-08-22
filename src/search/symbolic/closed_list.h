@@ -103,7 +103,7 @@ public:
     
 
 
-    int check_goal_cost(const GlobalState & state) const;
+    int compute_heuristic(const GlobalState & state) const;
 
     friend class ClosedListDisj;
 

@@ -64,9 +64,12 @@ namespace stackelberg {
         // if(plan_reuse) {
         //     fw_search->init(mgr, true, plan_reuse->get_closed());
         //     search = fw_search.get();
-        // } else  
+        // } else
+
+        UniformCostSearch * bw_search_ptr = nullptr;
         if (bidir) {
             auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+            bw_search_ptr = bw_search.get();
 
             if (plan_reuse && plan_reuse_upper_bound) {
                 fw_search->init(mgr, true, make_shared<OppositeFrontierComposite>(bw_search->getClosedShared(),
@@ -95,7 +98,10 @@ namespace stackelberg {
             search->step();
         }
 
-   
+        if (store_lower_bound) {
+            plan_reuse->load_closed_list(leader_state, bw_search_ptr->getClosedShared());
+        }
+
         if (controller->getUpperBound() < std::numeric_limits<int>::max()) {
             assert(controller->solved());
             return FollowerSolution(*(controller->get_solution()),
@@ -315,7 +321,8 @@ namespace stackelberg {
         FollowerSearchEngine(opts), 
         mgrParams(opts), searchParams(opts), bidir(opts.get<bool>("bidir")),
         plan_reuse_minimal_task_upper_bound(opts.get<bool>("plan_reuse_minimal_task_upper_bound")),
-        force_bw_search_minimum_task_seconds (opts.get<int>("force_bw_search_minimum_task_seconds")) {
+        force_bw_search_minimum_task_seconds (opts.get<int>("force_bw_search_minimum_task_seconds")),
+        store_lower_bound(opts.get<bool>("store_lower_bound")) {
     }
 
     void SymbolicFollowerSearchEngine::initialize_follower_search_engine() {
@@ -338,6 +345,9 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
 
     parser.add_option<int> ("force_bw_search_minimum_task_seconds",
                              "Perform backward search on the minimum task for at least that many seconds", "0");    
+
+    
+    parser.add_option<bool> ("store_lower_bound", "Pass lower bound to the plan reuse", "false");
 
   
     Options opts = parser.parse();

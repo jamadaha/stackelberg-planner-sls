@@ -11,6 +11,7 @@ PREPROCESS_REVISION_SOFT = "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc"
 REVISION = "d059552e393f05e01d52bb8bd880873acf4dce78"
 REVISION_REGRESS = "3cd44a8df4b9332f3658295ccd85430f71ed410e"
 REVISION_UPEXPLICIT = "e9a4dbefd3848636f38b5a38c2a6a56173a73bfa"
+REVISION_FF = "e9a4dbefd3848636f38b5a38c2a6a56173a73bfa"
 
 SERVERS = "new_servers" 
 
@@ -105,15 +106,26 @@ config_list["regress"] = [
 
 
 
-for (cb_name, cb_engine) in [("cbff-1s","explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
-                             ("cbff-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
-                             ("cbffpr-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),
-                             ("cbffpr-1s","explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),
-                             ("cbffpr-5s","explicit(search_engine=eager_greedy(ff(), max_time=5, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),]:
+# for (cb_name, cb_engine) in [("cbff-1s","explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
+#                              ("cbff-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=false), is_optimal_solver=false)"),
+#                              ("cbffpr-10s","explicit(search_engine=eager_greedy(ff(), max_time=10, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),
+#                              ("cbffpr-1s","explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),
+#                              ("cbffpr-5s","explicit(search_engine=eager_greedy(ff(), max_time=5, use_heuristics_for_bound_pruning=true), is_optimal_solver=false)"),]:
 
-    config_list["symbolic_leader_cb"] += [Config('ss-sbd-{}'.format(cb_name), 'ss-sbd-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS),
-                                          Config('ss-sbd-ubreuse-{}'.format(cb_name), 'ss-sbd-ubreuse-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS), 
-    ]
+#     config_list["symbolic_leader_cb"] += [Config('ss-sbd-{}'.format(cb_name), 'ss-sbd-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS),
+#                                           Config('ss-sbd-ubreuse-{}'.format(cb_name), 'ss-sbd-ubreuse-{}'.format(cb_name), ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), cost_bounded_engine={}, upper_bound_pruning=false)".format(cb_engine)], REVISION, SERVERS), 
+#     ]
+
+
+
+
+config_list["symbolic_leader_cb"] = [Config('ss-sbd-cbfflb-1s', 'ss-sbd-cbfflb-1s',
+                                            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)".format(cb_engine)], REVISION_FF, SERVERS),
+
+                                     Config('ss-sbd-ubreuse-cbfflb-1s', 'ss-sbd-ubreuse-cbfflb-1s',
+                                            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)".format(cb_engine)], REVISION_FF, SERVERS),
+                                     
+                                     
 
 
 

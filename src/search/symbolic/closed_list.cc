@@ -515,12 +515,12 @@ namespace symbolic {
     }
 
 
-    int ClosedList::check_goal_cost(const GlobalState & state) const {
+    int ClosedList::compute_heuristic(const GlobalState & state) const {
         int * inputs = mgr->getBinaryDescription(state);
 
         auto evalNode = closedTotal.Eval(inputs);
         if (evalNode.IsZero()) {
-            return std::numeric_limits<int>::max();
+            return hNotClosed;
         }
         
         for (const auto &closedH : closed) {

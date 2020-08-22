@@ -38,6 +38,7 @@ namespace stackelberg {
 
     }
 
+
     void StackelbergTask::sort_operators()
     {
         cout << "Begin sort_operators()..." << endl;

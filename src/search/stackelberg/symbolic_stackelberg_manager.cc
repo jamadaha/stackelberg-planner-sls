@@ -2,7 +2,6 @@
 
 #include "stackelberg_task.h"
 
-
 #include "../option_parser.h"
 
 #include "../utils/debug_macros.h"
@@ -388,7 +387,14 @@ namespace stackelberg {
     }
 
 
+    bool SymbolicStackelbergManager::dominates(const std::vector<int> & t,
+                                               const std::vector<int> & s) const {
 
+        if (!dominance) {
+            dominance = make_unique<DominanceStackelbergTask> (*task);
+        }
+        return dominance->dominates(t, s); 
+    }
 
     MutexBDDs::MutexBDDs (SymVariables * vars,
                           const std::vector<MutexGroup> &mutex_groups,
