@@ -308,7 +308,13 @@ namespace stackelberg {
         }
 
         if(is_optimal_solver) {
-            return FollowerSolution(plan_cost, leader_state, plan, search_engine->get_search_progress().get_f_value());
+            int lower_bound = search_engine->get_search_progress().get_f_value();
+
+            if (search_engine->get_status() == FAILED) {
+                lower_bound = std::numeric_limits<int>::max();
+            }
+            
+            return FollowerSolution(plan_cost, leader_state, plan, lower_bound);
         }else {
             assert(!FollowerSolution(plan_cost, leader_state, plan).is_optimal());
             return FollowerSolution(plan_cost, leader_state, plan);

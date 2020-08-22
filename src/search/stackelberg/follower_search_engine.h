@@ -42,12 +42,13 @@ namespace stackelberg {
     public:
         
     FollowerSolution() :
-        solved(false), plan_cost(-1), lower_bound(std::numeric_limits<int>::max()) {
+        solved(false), plan_cost(-1), lower_bound(-1) {
         }
 
         FollowerSolution (int cost, const std::vector<int> & initial_state_, const std::vector <const GlobalOperator *> & plan_,
                           int lb = 0) :
-            solved(true), plan_cost (cost), lower_bound(lb), initial_state(initial_state_), plan(plan_)  {}
+            solved(true), plan_cost (cost), lower_bound(lb), initial_state(initial_state_), plan(plan_)  {
+        }
 
         FollowerSolution (int cost, int lb = 0) : solved(true), plan_cost (cost), lower_bound(lb) {}
 
@@ -69,12 +70,14 @@ namespace stackelberg {
         }
 
         bool is_optimal () const {
-            return plan_cost == lower_bound;
+            return plan_cost == lower_bound || lower_bound == std::numeric_limits<int>::max();
         }
+        
         bool is_solved() const {
             return solved;
         }
 
+       
         bool has_plan() const {
             return !plan.empty();
         }            

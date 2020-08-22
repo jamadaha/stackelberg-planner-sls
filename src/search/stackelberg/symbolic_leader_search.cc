@@ -113,13 +113,14 @@ namespace stackelberg {
                     auto t1 = chrono::high_resolution_clock::now();
                     solution = cost_bounded_engine->solve(state, plan_reuse.get(), newF);
                     auto runtime = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1);
-
                     cout << " cb: " << runtime.count()/1000.0;
 
                     statistics.follower_search_finished(runtime, false, solution);
                 }
 
-                if (!solution.is_solved() || solution.solution_cost() > newF) {
+
+
+                if (!solution.is_solved() || (!solution.is_optimal() && solution.solution_cost() > newF)) {
                     auto t1 = chrono::high_resolution_clock::now();
                     
                     solution = optimal_engine->solve(state, plan_reuse.get(), std::numeric_limits<int>::max());
