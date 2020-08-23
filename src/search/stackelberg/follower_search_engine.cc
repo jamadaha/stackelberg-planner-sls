@@ -311,7 +311,7 @@ namespace stackelberg {
             int lower_bound = search_engine->get_search_progress().get_f_value();
 
             if (search_engine->get_status() == FAILED) {
-                lower_bound = std::numeric_limits<int>::max();
+                lower_bound = bound;
             }
             
             return FollowerSolution(plan_cost, leader_state, plan, lower_bound);
