@@ -47,7 +47,7 @@ exp.add_suite(SUITE, benchmark_dir='/mnt/data_server/torralba/stackelberg/sim-pe
 for config in configs.get_configs(NAME):
 #         config.revision
         EXPPATH = '/mnt/data_server/torralba/stackelberg/results/{}/{}/{}'.format(config.machines, config.revision, config.folder)
-        if os.path.isdir(EXPPATH):
+        if os.path.exists(EXPPATH + "/runs-00001-00100/00001/run.log"):
                 #exp.add_fetcher(EXPPATH, parsers=[PARSER])
                 exp.add_fetcher(EXPPATH)
 

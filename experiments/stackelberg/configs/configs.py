@@ -119,12 +119,12 @@ config_list["symbolic_leader_lmcut_ubpruning"] = [
 
 
 config_list["symbolic_leader_cb"] = [Config('ss-sbd-cbfflb-1s', 'ss-sbd-cbfflb-1s',
-                                            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)".format(cb_engine)], REVISION_FF, SERVERS),
+                                            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION_FF, SERVERS),
 
                                      Config('ss-sbd-ubreuse-cbfflb-1s', 'ss-sbd-ubreuse-cbfflb-1s',
-                                            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)".format(cb_engine)], REVISION_FF, SERVERS),
+                                            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION_FF, SERVERS),
                                      
-                                     
+                           ]          
 
 
 
