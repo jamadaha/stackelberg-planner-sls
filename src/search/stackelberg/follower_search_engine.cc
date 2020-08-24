@@ -196,6 +196,7 @@ namespace stackelberg {
 
         assert(is_optimal_solver);
         if (!search_engine_up) {
+            exit_with(EXIT_INPUT_ERROR);
             return FollowerSolution();
         }
 
@@ -372,7 +373,7 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
 static stackelberg::FollowerSearchEngine *_parse_explicit(OptionParser &parser) {
     stackelberg::FollowerSearchEngine::add_options_to_parser(parser);
     parser.add_option<SearchEngine *> ("search_engine", "engine", "");
-    parser.add_option<SearchEngine *> ("search_engine_up", "engine", "");
+    parser.add_option<SearchEngine *> ("search_engine_up", "engine", "", OptionFlags(false));
     parser.add_option<bool> ("is_optimal_solver", "engine", "");
     parser.add_option<bool> ("debug", "show output of follower search ", "false");
 

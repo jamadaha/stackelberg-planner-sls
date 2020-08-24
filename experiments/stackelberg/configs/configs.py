@@ -91,7 +91,7 @@ config_list["symbolic_leader_lmcut"] = [
 
 config_list["symbolic_leader_lmcut_ubpruning"] = [
     Config('ss-up-lmcut', 'ss-up-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=false, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION_UPEXPLICIT, SERVERS),
-    Config('ss-up-lmcut-ubreuse', 'ss-up-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=true, time_limit_seconds_minimum_task=300), upper_bound_pruning=false)"], REVISION_UPEXPLICIT, SERVERS),
+    Config('ss-up-lmcut-ubreuse', 'ss-up-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=true, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION_UPEXPLICIT, SERVERS),
 ]
 
 

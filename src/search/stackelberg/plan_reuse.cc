@@ -50,7 +50,6 @@ namespace stackelberg {
             v = std::max(v, l->compute_heuristic(state));
         }
 
-
         return v;
     }
         
@@ -74,6 +73,7 @@ namespace stackelberg {
 
 
     void PlanReuse::load_closed_list (const vector<int> & leader_state, std::shared_ptr<ClosedList> closed) {
+        assert(closed);
         closed_list_lower.push_back(make_pair(leader_state, closed));
     }
 

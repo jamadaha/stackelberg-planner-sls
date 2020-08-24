@@ -163,13 +163,14 @@ SearchStatus EagerSearch::step() {
         search_progress.inc_generated();
         bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
 
-        int h_opposite = opposite_frontier->compute_heuristic(succ_state);
+        if (opposite_frontier) {
+            int h_opposite = opposite_frontier->compute_heuristic(succ_state);
         
-        if (h_opposite == std::numeric_limits<int>::max() ||
-            (node.get_real_g() + op->get_cost() + h_opposite) >= bound) {
-             continue;
-         }
-
+            if (h_opposite == std::numeric_limits<int>::max() ||
+                (node.get_real_g() + op->get_cost() + h_opposite) >= bound) {
+                continue;
+            }
+        }
         SearchNode succ_node = search_space.get_node(succ_state, new_budget);
 
         // Previously encountered dead end. Don't re-evaluate.
