@@ -19,6 +19,8 @@ class SymSearch;
 class ClosedList : public OppositeFrontier, PlanReconstruction { 
 private:
     SymStateSpaceManager *mgr;  //Symbolic manager to perform bdd operations
+    SymVariables * symVars;  //Symbolic manager to perform bdd operations
+
 
     std::map<int, BDD> closed;   // Mapping from cost to set of states
 

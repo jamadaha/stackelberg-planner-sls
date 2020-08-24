@@ -22,10 +22,10 @@ using namespace std;
 
 namespace symbolic {
 
-    ClosedList::ClosedList() : mgr(nullptr) {
+    ClosedList::ClosedList() : mgr(nullptr), symVars(nullptr) {
     }
 
-    ClosedList::ClosedList(const ClosedList & other, const BDD & subset) : mgr(other.mgr) {
+    ClosedList::ClosedList(const ClosedList & other, const BDD & subset) : mgr(other.mgr), symVars(other.symVars) {
         for (const auto & entry  : other.closed){
             int hval = entry.first;
             BDD result = entry.second*subset;
@@ -74,6 +74,7 @@ namespace symbolic {
 
     void ClosedList::init(SymStateSpaceManager *manager) {
 	mgr = manager;
+        symVars = mgr->getVars();
 	set<int>().swap(h_values);
 	// map<int, BDD>().swap(closedUpTo);
 	map <int, vector<BDD>>().swap(zeroCostClosed);
@@ -86,6 +87,7 @@ namespace symbolic {
 
     void ClosedList::init(SymStateSpaceManager *manager, const ClosedList &other) {
 	mgr = manager;
+        symVars = mgr->getVars();
 	set<int>().swap(h_values);
 	// map<int, BDD>().swap(closedUpTo);
 	map <int, vector<BDD>>().swap(zeroCostClosed);
@@ -488,12 +490,12 @@ namespace symbolic {
 	double averageHeuristic = 0;
 	double heuristicSize = 0; 
 	for (const auto & item : closed) {
-	    double currentSize = mgr->getVars()->numStates(item.second);
+	    double currentSize = symVars->numStates(item.second);
 	    DEBUG_MSG(cout << item.first << " " << currentSize << endl;);
 	    averageHeuristic += currentSize * item.first;
 	    heuristicSize += currentSize;
 	}
-	double notClosedSize = mgr->getVars()->numStates(notClosed());
+	double notClosedSize = symVars->numStates(notClosed());
 	heuristicSize += notClosedSize;
 	int maxH = (closed.empty() ? 0 : closed.rbegin()->first);
     
@@ -511,13 +513,12 @@ namespace symbolic {
     	} 
     }
     SymVariables *ClosedList::getVars() const {
-        return mgr->getVars();
+        return symVars;
     }
 
 
     int ClosedList::compute_heuristic(const GlobalState & state) const {
-        int * inputs = mgr->getBinaryDescription(state);
-
+        int * inputs = symVars->getBinaryDescriptionInt(state);        
         auto evalNode = closedTotal.Eval(inputs);
         if (evalNode.IsZero()) {
             return hNotClosed;
@@ -533,8 +534,6 @@ namespace symbolic {
 
         cerr << "Error: Cut with closedTotal but not found on closed" << endl;
         exit_with(EXIT_CRITICAL_ERROR);
-                
-
     }
 
     const std::map<int, std::vector<symbolic::TransitionRelation>> & ClosedList::get_transition_relation() const {

@@ -46,12 +46,10 @@ namespace stackelberg {
 
     int OppositeFrontierExplicit::compute_heuristic(const GlobalState & state) const {
         int v = 0;
-        cout << "Compute lower bound: ";
         for (const auto & l : closed_list_lower) {
-            cout << l.get() << " " ; 
             v = std::max(v, l->compute_heuristic(state));
         }
-        cout << v << endl;
+
 
         return v;
     }

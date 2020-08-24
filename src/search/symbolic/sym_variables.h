@@ -212,19 +212,20 @@ public:
         int pos = 0;
         //  cout << "State " << endl;
         for (int v : var_order) {
-            //cout << v << "=" << state[v] << " " << g_variable_domain[v] << " assignments and  " << binary_len[v] << " variables   " ;
-            //preconditionBDDs[v] [state[v]].PrintMinterm();
+      	//       std::cout << v << "=" << state[v] << " " << g_variable_domain[v] << " assignments  " << g_fact_names[v][state[v]] ;
+            
+            // preconditionBDDs[v] [state[v]].PrintMinterm();
 
             for (size_t j = 0; j < bdd_index_pre[v].size(); j++) {
                 binStateInt[pos++] = ((state[v] >> j) % 2);
                 binStateInt[pos++] = 0; //Skip interleaving variable
             }
         }
-        /* cout << "Binary description: ";
+        /*std::cout << " Binary description: ";
            for(int i = 0; i < pos; i++){
-           cout << binStateInt[i];
+               std::cout << binStateInt[i];
            }
-           cout << endl;*/
+           std::cout << std::endl;*/
 
         return &(binStateInt[0]);
     }
