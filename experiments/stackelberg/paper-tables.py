@@ -44,10 +44,13 @@ def rename_algorithm_and_domain(run):
     if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
         return False
 
+    if "aaai18-pipesworld-notankage" in dom:
+        return False
+    
     if "ss-lmcut-pdbs" in algo:
         return False
-    if "aaai18" in dom:
-        return False
+    # if "aaai18" in dom:
+    #     return False
     
     for rev in REVISIONS:
         algo = algo.replace('{}'.format(rev), '')
