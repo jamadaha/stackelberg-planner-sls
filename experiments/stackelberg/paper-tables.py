@@ -34,7 +34,8 @@ REVISIONS = [
     'aaai18ipc',
     'aaai21ipc',
     'fixed',
-    '3cd44a8df4b9332f3658295ccd85430f71ed410e'
+    '3cd44a8df4b9332f3658295ccd85430f71ed410e',
+    'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa'
 ]
 
 def rename_algorithm_and_domain(run):

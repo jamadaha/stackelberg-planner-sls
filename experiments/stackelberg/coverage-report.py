@@ -3,6 +3,7 @@
 import json
 import  sys
 from collections import defaultdict
+import statistics 
 
 if len(sys.argv) < 2:
     print ("Usage: ./coverage-report.py <properties_file>")
@@ -43,10 +44,11 @@ def highlight (coverage, highlighting, algo, dom):
     else:
         return str(coverage[(algo, dom)])
 
+pareto_front_len = defaultdict()
 highlighting = defaultdict(int)
 
 domains_per_category = defaultdict(set)
-algorithm_list = ['baseline-lmcut', 'ss-lmcut', 'ss-lmcut-ubreuse', 'baseline-sbd', 'ss-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up', 'ss-sbd-up-ubreuse-tlim', 'ss-sbd-ubreuse-cbff-1s']
+algorithm_list = ['baseline-lmcut', 'ss-lmcut', 'ss-lmcut-ubreuse', 'ss-lmcut-up-ubreuse-tlim', 'ss-lmcut-up-ubreuse-cbff-1s', 'baseline-sbd', 'ss-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-tlim', 'ss-sbd-ubreuse-cbff-1s']
 
 all_algorithms = set()
 coverage = defaultdict(int)
@@ -79,6 +81,14 @@ with open(sys.argv[1]) as json_file:
         num_instances[(config, domain)] += 1
         num_instances[(config, f"total-{category}")] += 1
 
+        if not (category, domain) in pareto_front_len:
+            pareto_front_len[(category, domain)] = defaultdict(float)
+        if "pareto_frontier" in data and "baseline" not in config:
+            pareto_front_len[(category, domain)] [data["domain"] + data["problem"]] = float(len(data["pareto_frontier"]))
+            
+        if "pareto_frontier_size" in data and "baseline" not in config:
+            pareto_front_len[(category, domain)] [data["domain"] + data["problem"]] = float(data["pareto_frontier_size"])
+
         category_highlight = "lmcut" if "lmcut" in config else "sbd"
         highlighting[(category_highlight, domain)] = max(highlighting[(category_highlight, domain)], coverage[(config, domain)])
         highlighting[(category_highlight, f"total-{category}")] = max(highlighting[(category_highlight, f"total-{category}")], coverage[(config, f"total-{category}")])
@@ -89,14 +99,24 @@ for (alg, dom) in num_instances:
     num_instances_domain[dom]   = num_instances[(alg, dom)]
 
 
+for category in ["aaai18", "aaai21", "aaai21-soft"]:
+    for dom in domains_per_category[category]:
+        values = pareto_front_len[(category, dom)].values()
 
+        if values: 
+            pareto_front_len[(category, dom, "max")] = str(int(max(values)))
+            pareto_front_len[(category, dom, "avg")] = "{:.2f}".format(statistics.mean(values))
+        else:
+            print (f"No values for {category} {dom}")
 
-    
+    pareto_front_len[(category, f"total-{category}" , "max")] = ""
+    pareto_front_len[(category, f"total-{category}" , "avg")] = ""
+
 print ("% {} \\\\".format( " & ".join(["domain"] + algorithm_list)))
 for category in ["aaai18", "aaai21", "aaai21-soft"]:
     for dom in sorted(domains_per_category[category]) + [f"total-{category}"]:
-        print (" & ".join([pretty_print_domain(dom), f"({num_instances_domain[dom]})"] + [highlight(coverage, highlighting, alg, dom) for alg in algorithm_list]) + "\\\\")
+        print (" & ".join([pretty_print_domain(dom), f"({num_instances_domain[dom]})", pareto_front_len[(category, dom, "avg")], pareto_front_len[(category, dom, "max")]  ] + [highlight(coverage, highlighting, alg, dom) for alg in algorithm_list]) + "\\\\")
     print ("\\midrule")
              
 
-# print (all_algorithms)
+#print (all_algorithms)

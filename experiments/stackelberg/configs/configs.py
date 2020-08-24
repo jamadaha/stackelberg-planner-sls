@@ -67,7 +67,7 @@ class Config:
 config_list = defaultdict(list)
 config_list["symbolic_leader"] = [
     Config('ss-sbd', 'ss-sbd', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
-    Config('ss-sbd-up', 'ss-sbd-up', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=true, time_limit_seconds_minimum_task=300)"], REVISION, SERVERS), 
+    Config('ss-sbd-up', 'ss-sbd-up', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION, SERVERS), 
     Config('ss-sbd-ubreuse', 'ss-sbd-ubreuse', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS), 
     Config('ss-sbd-up-ubreuse', 'ss-sbd-up-ubreuse-tlim', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true, force_bw_search_minimum_task_seconds=30, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION, SERVERS),
 ]
@@ -83,6 +83,9 @@ config_list["symbolic_leader_lmcut"] = [
     Config('ss-lmcut', 'ss-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
 #    Config('ss-lmcut-pdbs', 'ss-lmcut-pdbs', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION, SERVERS),
     Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
+
+    Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
+
 #    Config('ss-lmcut-pdbs-ubreuse', 'ss-lmcut-pdbs-ubresuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(max([deadpdbs(max_time=120),lmcut])), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION, SERVERS),
     ]
 
