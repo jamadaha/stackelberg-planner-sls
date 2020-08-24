@@ -16,7 +16,7 @@ from downward.reports.absolute import AbsoluteReport
 
 
 NAME = "all"
-
+#NAME= "symbolic_leader_cb"
 sys.path.append('configs')
 import configs
 
@@ -50,6 +50,9 @@ for config in configs.get_configs(NAME):
         if os.path.exists(EXPPATH + "/runs-00001-00100/00001/run.log"):
                 #exp.add_fetcher(EXPPATH, parsers=[PARSER])
                 exp.add_fetcher(EXPPATH)
+        else:
+                print (EXPPATH + "/runs-00001-00100/00001/run.log does not exist") 
+                
 
 # Make a report containing absolute numbers (this is the most common report).
 report = os.path.join(exp.eval_dir, 'report.html')
