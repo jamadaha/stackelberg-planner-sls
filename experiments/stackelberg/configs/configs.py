@@ -13,7 +13,7 @@ REVISION_REGRESS = "3cd44a8df4b9332f3658295ccd85430f71ed410e"
 
 
 REVISION_UPEXPLICIT = "3474c839afb237f2de212d730dc7ec82167355fe"
-REVISION_FF = "a80b8f3f6c86603dc09e1a416f247cecba73dfa5"
+REVISION_FF = "8a694664203d33b388ba4967c633142782067688"
 
 SERVERS = "new_servers" 
 
@@ -128,6 +128,10 @@ config_list["ff_configs"] += [# Config('ss-sbd-cbfflb-1s', 'ss-sbd-cbfflb-1s',
 
     Config('ss-sbd-up-ubreuse-cbfflb-1s', 'ss-sbd-up-ubreuse-cbfflb-1s',
            ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true, force_bw_search_minimum_task_seconds=30, force_bw_search_first_task_seconds=30, time_limit_seconds_minimum_task=300, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=true)"], REVISION_FF, SERVERS),
+
+    Config('ss-lmcut-up-ubreuse-cbfflb-1s', 'ss-lmcut-up-ubreuse-cbfflb-1s',
+           ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=true, time_limit_seconds_minimum_task=300), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=true)"], REVISION_FF, SERVERS),
+    
                                      
                            ]          
 
