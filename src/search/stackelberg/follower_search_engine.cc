@@ -69,6 +69,7 @@ namespace stackelberg {
         UniformCostSearch * bw_search_ptr = nullptr;
         if (bidir) {
             auto bw_search = make_unique <UniformCostSearch> (controller.get(), searchParams);
+            bw_search->dont_prune_states_from_opposite_frontier();
             bw_search_ptr = bw_search.get();
 
             if (plan_reuse && plan_reuse_upper_bound) {
@@ -136,7 +137,6 @@ namespace stackelberg {
             bw_search->init(mgr, false, fw_search->getClosedShared());
 
             if (force_bw_search_minimum_task_seconds) {
-
                 while(!bw_search->finished() && chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - t1).count() <
                       force_bw_search_minimum_task_seconds) {
                     bw_search->step();

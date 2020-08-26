@@ -26,7 +26,7 @@ namespace symbolic {
 	UnidirectionalSearch(eng, params), 
 	parent(nullptr), closed(make_shared<ClosedList>()),  
 	estimationCost(params), estimationZero(params),
-	lastStepCost(true) {}
+	lastStepCost(true), prune_states_from_opposite_frontier(true) {}
 
     bool UniformCostSearch::init(std::shared_ptr<SymStateSpaceManager>  manager, 
 				 bool forward, 
@@ -84,7 +84,9 @@ namespace symbolic {
 		// Solution found :)
 		engine->new_solution(sol);
 	    }
-	    bucketBDD *= perfectHeuristic->notClosed();   //Prune everything closed in opposite direction
+            if (prune_states_from_opposite_frontier) { 
+                bucketBDD *= perfectHeuristic->notClosed();   //Prune everything closed in opposite direction
+            }
 	}
     }
 
@@ -93,9 +95,14 @@ namespace symbolic {
 	    DEBUG_MSG(cout << "POP: bucketReady: " << frontier.bucketReady() << endl;);
 
 	    if(open_list.empty()){
-		closed->setHNotClosed(numeric_limits<int>::max());
-		closed->setFNotClosed(numeric_limits<int>::max());
-		if(isOriginal()) engine->setLowerBound(getF());
+                // Actually, it is not true that we have discovered that non-closed nodes
+                // are dead-ends because we may have been using the opposite frontier.
+
+                if (prune_states_from_opposite_frontier) {
+                    closed->setHNotClosed(numeric_limits<int>::max());
+                    closed->setFNotClosed(numeric_limits<int>::max());
+                }
+                if(isOriginal()) engine->setLowerBound(getF());
 
                 // cout << "Search finished" << endl;
 

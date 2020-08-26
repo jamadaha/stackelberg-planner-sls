@@ -53,6 +53,7 @@ namespace symbolic {
 
 	SymExpStatistics stats;
 
+        bool prune_states_from_opposite_frontier; 
 	virtual bool initialization() const {
 	    return frontier.g()==0 && lastStepCost;
 	}
@@ -84,6 +85,9 @@ namespace symbolic {
 	UniformCostSearch& operator=(UniformCostSearch &&) = default;
 	virtual ~UniformCostSearch() = default;
 
+        void dont_prune_states_from_opposite_frontier() {
+            prune_states_from_opposite_frontier = false;
+        }
 
 	virtual bool finished() const override {
 	    assert(!open_list.empty() || !frontier.empty() || 
