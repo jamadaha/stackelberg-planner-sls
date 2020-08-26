@@ -50,6 +50,7 @@ namespace stackelberg {
 
     FollowerSolution SymbolicFollowerSearchEngine::solve (const std::vector<int> & leader_state,
                                                           PlanReuse * plan_reuse, int /*bound*/ ) {
+        auto t1 = chrono::high_resolution_clock::now();
 
         auto controller = make_unique<SymController> (vars, mgrParams, searchParams);
 
@@ -80,6 +81,17 @@ namespace stackelberg {
             }
             bw_search->init(mgr, false, fw_search->getClosedShared());
                         bw_search_closed = bw_search->getClosedShared();
+
+           if (force_bw_search_first_task_seconds) {
+               while(!bw_search->finished() && chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - t1).count() <
+                     force_bw_search_first_task_seconds) {
+                   bw_search->step();
+               }
+               force_bw_search_first_task_seconds = 0;
+           }
+
+           
+
             bd_search = make_unique<BidirectionalSearch> (controller.get(), searchParams,
                                                           move(fw_search), move(bw_search));
             search = bd_search.get();
@@ -329,6 +341,7 @@ namespace stackelberg {
         mgrParams(opts), searchParams(opts), bidir(opts.get<bool>("bidir")),
         plan_reuse_minimal_task_upper_bound(opts.get<bool>("plan_reuse_minimal_task_upper_bound")),
         force_bw_search_minimum_task_seconds (opts.get<int>("force_bw_search_minimum_task_seconds")),
+        force_bw_search_first_task_seconds (opts.get<int>("force_bw_search_first_task_seconds")),
         store_lower_bound(opts.get<bool>("store_lower_bound")) {
     }
 
@@ -352,6 +365,10 @@ static stackelberg::FollowerSearchEngine *_parse_symbolic(OptionParser &parser) 
 
     parser.add_option<int> ("force_bw_search_minimum_task_seconds",
                              "Perform backward search on the minimum task for at least that many seconds", "0");    
+
+    
+    parser.add_option<int> ("force_bw_search_first_task_seconds",
+                            "Perform backward search on the first task for at least that many seconds", "0");    
 
     
     parser.add_option<bool> ("store_lower_bound", "Pass lower bound to the plan reuse", "false");
