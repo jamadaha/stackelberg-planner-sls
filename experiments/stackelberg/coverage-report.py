@@ -20,7 +20,7 @@ def pretty_print_domain(dom):
     dom = dom.replace("strips", "")
     dom = dom.replace("opt11", "")
     dom = dom.replace("opt14", "")    
-    dom = dom.replace("total", "\\midrule $\\sum$")
+    dom = dom.replace("total", "$\\sum$")
     dom = dom.replace("notankage", "")    
 
     dom = "-".join([x for x in dom.split("-") if x])
@@ -48,7 +48,7 @@ pareto_front_len = defaultdict()
 highlighting = defaultdict(int)
 
 domains_per_category = defaultdict(set)
-algorithm_list = ['baseline-lmcut', 'ss-lmcut', 'ss-lmcut-ubreuse', 'ss-lmcut-up-ubreuse-tlim', 'ss-lmcut-up-ubreuse-cbff-1s', 'baseline-sbd', 'ss-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-tlim', 'ss-sbd-ubreuse-cbff-1s']
+algorithm_list = ['baseline-lmcut', 'ss-lmcut', 'ss-lmcut-ubreuse', 'ss-up-lmcut-ubreuse', 'ss-lmcut-up-ubreuse-cbff-1s', 'baseline-sbd', 'ss-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-tlim', 'ss-sbd-ubreuse-cbff-1s']
 
 all_algorithms = set()
 coverage = defaultdict(int)
@@ -93,10 +93,10 @@ with open(sys.argv[1]) as json_file:
         highlighting[(category_highlight, domain)] = max(highlighting[(category_highlight, domain)], coverage[(config, domain)])
         highlighting[(category_highlight, f"total-{category}")] = max(highlighting[(category_highlight, f"total-{category}")], coverage[(config, f"total-{category}")])
 
-num_instances_domain = {}
+num_instances_domain = defaultdict(int)
 for (alg, dom) in num_instances:
     assert not dom in num_instances_domain or num_instances_domain[dom] == num_instances[(alg, dom)], f"Error {alg} has {num_instances[(alg, dom)]} instances in {dom} instead of {num_instances_domain[dom]}"  
-    num_instances_domain[dom]   = num_instances[(alg, dom)]
+    num_instances_domain[dom]   = max(num_instances_domain[dom], num_instances[(alg, dom)])
 
 
 for category in ["aaai18", "aaai21", "aaai21-soft"]:
@@ -114,9 +114,17 @@ for category in ["aaai18", "aaai21", "aaai21-soft"]:
 
 print ("% {} \\\\".format( " & ".join(["domain"] + algorithm_list)))
 for category in ["aaai18", "aaai21", "aaai21-soft"]:
+    if category == "aaai18":
+        print ("\\multirow{7}{*}{\\benchmarkprev}")
+    elif category == "aaai21":
+        print ("\\multirow{7}{*}{\\benchmarknew}")
+    else:
+        print ("\\multirow{7}{*}{\\benchmarksoft}")
+        
     for dom in sorted(domains_per_category[category]) + [f"total-{category}"]:
-        print (" & ".join([pretty_print_domain(dom), f"({num_instances_domain[dom]})", pareto_front_len[(category, dom, "avg")], pareto_front_len[(category, dom, "max")]  ] + [highlight(coverage, highlighting, alg, dom) for alg in algorithm_list]) + "\\\\")
+        print (" & ".join(["" if "total-" not in dom else "\\midrule", pretty_print_domain(dom), f"({num_instances_domain[dom]})", pareto_front_len[(category, dom, "avg")], pareto_front_len[(category, dom, "max")]  ] + [highlight(coverage, highlighting, alg, dom) for alg in algorithm_list]) + "\\\\")
+        
     print ("\\midrule")
              
 
-#print (all_algorithms)
+
