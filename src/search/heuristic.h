@@ -49,7 +49,7 @@ public:
     Heuristic(const Options &options);
     virtual ~Heuristic();
 
-    void evaluate(const GlobalState &state, int budget = UNLTD_BUDGET);
+    void evaluate(const GlobalState &state, int budget = UNLTD_BUDGET, int lower_bound = 0);
     bool is_dead_end() const;
     int get_heuristic();
     // changed to virtual, so HeuristicProxy can delegate this:

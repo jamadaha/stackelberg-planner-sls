@@ -163,8 +163,9 @@ SearchStatus EagerSearch::step() {
         search_progress.inc_generated();
         bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
 
+        int h_opposite = 0;
         if (opposite_frontier) {
-            int h_opposite = opposite_frontier->compute_heuristic(succ_state);
+            h_opposite = opposite_frontier->compute_heuristic(succ_state);
         
             if (h_opposite == std::numeric_limits<int>::max() ||
                 (node.get_real_g() + op->get_cost() + h_opposite) >= bound) {
@@ -204,7 +205,7 @@ SearchStatus EagerSearch::step() {
             // Evaluate and create a new node.
             bool above_bound = false;
             for (size_t j = 0; j < heuristics.size(); ++j) {
-                heuristics[j]->evaluate(succ_state, new_budget);
+                heuristics[j]->evaluate(succ_state, new_budget, h_opposite);
                 if (use_heuristics_for_bound_pruning && node.get_real_g() + op->get_cost() + heuristics[j]->get_value() >= bound) {
                     above_bound = true;
                     break;
