@@ -9,7 +9,7 @@ namespace stackelberg {
 
     DominanceStackelbergVariable::
     DominanceStackelbergVariable(int variable,
-                                 const std::set<int> & values_in_precondition) {
+                                 const std::set<int> & values_in_precondition) : var(variable) {
         rel.resize(g_variable_domain[variable]);
         for (int val = 0; val < g_variable_domain[variable]; ++val) {
             rel[val].resize(g_variable_domain[variable], true);
@@ -51,4 +51,17 @@ namespace stackelberg {
         }
         return true;
     }
+
+                    
+    bool DominanceStackelbergVariable::dominates(const std::vector<int> & t, const std::vector<int> & s) const{
+        assert (var >= 0);
+        assert ((size_t)var < t.size());
+        assert (s.size() == t.size());
+        assert (t[var] >= 0);
+        assert (s[var] >= 0);
+        assert ((size_t)(t[var]) < rel.size());
+        assert ((size_t)(s[var]) < rel[t[var]].size());
+        return rel[t[var]][s[var]];
+    }
+
 }

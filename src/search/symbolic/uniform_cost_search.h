@@ -90,8 +90,11 @@ namespace symbolic {
         }
 
 	virtual bool finished() const override {
-	    assert(!open_list.empty() || !frontier.empty() || 
-		   closed->getHNotClosed() == std::numeric_limits<int>::max());
+            // Removing this assert because it is not necessarily true (e.g. if
+            // bidirectional search is used, states pruned by the other frontier are not
+            // closed so their h value is unknown)
+            
+	    // assert(!open_list.empty() || !frontier.empty() || closed->getHNotClosed() == std::numeric_limits<int>::max());
 	    return open_list.empty() && frontier.empty(); 
 	}
 

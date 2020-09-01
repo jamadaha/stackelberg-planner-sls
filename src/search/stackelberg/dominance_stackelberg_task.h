@@ -18,9 +18,7 @@ namespace stackelberg {
     public:
         DominanceStackelbergVariable(int var, const std::set<int> & values_in_precondition);
                 
-        bool dominates(const std::vector<int> & t, const std::vector<int> & s) const{
-            return rel[t[var]][s[var]];
-        }
+        bool dominates(const std::vector<int> & t, const std::vector<int> & s) const;
     };
 
     class DominanceStackelbergTask {
