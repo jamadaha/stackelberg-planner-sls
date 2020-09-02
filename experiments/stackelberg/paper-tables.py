@@ -36,7 +36,8 @@ REVISIONS = [
     'fixed',
     '3cd44a8df4b9332f3658295ccd85430f71ed410e',
     'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
-    '3474c839afb237f2de212d730dc7ec82167355fe'
+    '3474c839afb237f2de212d730dc7ec82167355fe',
+    'd65e9fcebce6a4365a0b51789702f57e2f80a50f'
 ]
 
 def rename_algorithm_and_domain(run):

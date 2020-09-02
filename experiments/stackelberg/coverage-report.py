@@ -48,7 +48,8 @@ pareto_front_len = defaultdict()
 highlighting = defaultdict(int)
 
 domains_per_category = defaultdict(set)
-algorithm_list = ['baseline-lmcut', 'ss-lmcut', 'ss-lmcut-ubreuse', 'ss-up-lmcut-ubreuse', 'ss-lmcut-up-ubreuse-cbff-1s', 'baseline-sbd', 'ss-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-tlim', 'ss-sbd-ubreuse-cbff-1s']
+algorithm_list = ['baseline-lmcut', 'ss-lmcut', 'ss-lmcut-ubreuse', 'ss-up-lmcut-ubreuse', 'ss-lmcut-up-ubreuse-cbfflb-1s', 'baseline-sbd', 'ss-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-tlim', 'ss-sbd-up-ubreuse-cbfflb-1s']
+
 
 all_algorithms = set()
 coverage = defaultdict(int)

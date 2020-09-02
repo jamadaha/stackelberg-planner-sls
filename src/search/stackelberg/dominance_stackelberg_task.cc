@@ -27,6 +27,7 @@ namespace stackelberg {
 
         map<int, set<int>> values_in_precondition; 
         for (int op_no : task.get_global_operator_id_follower_ops()) {
+            assert ((size_t)op_no < g_operators.size());
             const GlobalOperator & op = g_operators[op_no];
 
             for (const auto & prevail : op.get_preconditions()) { 

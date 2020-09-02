@@ -83,6 +83,8 @@ namespace stackelberg {
                         bw_search_closed = bw_search->getClosedShared();
 
            if (force_bw_search_first_task_seconds) {
+               bw_search->dont_stop_if_solved();
+               
                while(!bw_search->finished() && chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - t1).count() <
                      force_bw_search_first_task_seconds) {
                    bw_search->step();
@@ -149,6 +151,7 @@ namespace stackelberg {
             bw_search->init(mgr, false, fw_search->getClosedShared());
 
             if (force_bw_search_minimum_task_seconds) {
+                bw_search->dont_stop_if_solved();
                 while(!bw_search->finished() && chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - t1).count() <
                       force_bw_search_minimum_task_seconds) {
                     bw_search->step();
@@ -266,6 +269,10 @@ namespace stackelberg {
         auto * g_successor_generator_copy = g_successor_generator;
         auto original_g_initial_state_data = g_initial_state_data;
 
+        if(plan_reuse && plan_reuse_upper_bound) {
+            search_engine->set_opposite_frontier(plan_reuse->get_opposite_frontier_explicit(leader_state));
+        }
+
         //Overwritte global information
         g_operators.swap(follower_operators_with_all_preconds);
         g_successor_generator = successor_generator.get();
@@ -282,9 +289,6 @@ namespace stackelberg {
         }
         search_engine->set_bound(bound);
 
-        if(plan_reuse && plan_reuse_upper_bound) {
-            search_engine->set_opposite_frontier(plan_reuse->get_opposite_frontier_explicit(leader_state));
-        }
 
         
         search_engine->search();

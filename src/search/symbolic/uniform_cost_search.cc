@@ -26,7 +26,8 @@ namespace symbolic {
 	UnidirectionalSearch(eng, params), 
 	parent(nullptr), closed(make_shared<ClosedList>()),  
 	estimationCost(params), estimationZero(params),
-	lastStepCost(true), prune_states_from_opposite_frontier(true) {}
+	lastStepCost(true), prune_states_from_opposite_frontier(true),
+        stop_if_solved (true){}
 
     bool UniformCostSearch::init(std::shared_ptr<SymStateSpaceManager>  manager, 
 				 bool forward, 
@@ -98,7 +99,7 @@ namespace symbolic {
                 // Actually, it is not true that we have discovered that non-closed nodes
                 // are dead-ends because we may have been using the opposite frontier.
 
-                if (prune_states_from_opposite_frontier) {
+                if (!prune_states_from_opposite_frontier) {
                     closed->setHNotClosed(numeric_limits<int>::max());
                     closed->setFNotClosed(numeric_limits<int>::max());
                 }
@@ -195,14 +196,13 @@ namespace symbolic {
 	    return false;    
 	} 
 	DEBUG_MSG(cout << "... bucket prepared. " << endl;);
-	if(engine->solved()) {
+	if(stop_if_solved && engine->solved()) {
             return true; //Skip image if we are done
         }
 
 	int stepNodes = frontier.nodes();
 
 	ResultExpansion res_expansion = frontier.expand(maxTime, maxNodes, fw, engine->getUpperBound());
-
 	if(res_expansion.ok) {
 	    lastStepCost = false; //Must be set to false before calling checkCut
 	    //Process Simg, removing duplicates and computing h. Store in Sfilter and reopen.
@@ -403,5 +403,15 @@ namespace symbolic {
     BDD UniformCostSearch::get_seen_states(bool ) const {
         return closed->getClosed();
     }
+
+
+    bool UniformCostSearch::finished() const {
+            // Removing this assert because it is not necessarily true (e.g. if
+            // bidirectional search is used, states pruned by the other frontier are not
+            // closed so their h value is unknown)
+	    // assert(!open_list.empty() || !frontier.empty() || closed->getHNotClosed() == std::numeric_limits<int>::max());
+	    return (stop_if_solved && engine->solved()) || (open_list.empty() && frontier.empty()); 
+    }
+    
 
 }

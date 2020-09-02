@@ -53,7 +53,9 @@ namespace symbolic {
 
 	SymExpStatistics stats;
 
-        bool prune_states_from_opposite_frontier; 
+        bool prune_states_from_opposite_frontier;
+
+        bool stop_if_solved; 
 	virtual bool initialization() const {
 	    return frontier.g()==0 && lastStepCost;
 	}
@@ -89,14 +91,11 @@ namespace symbolic {
             prune_states_from_opposite_frontier = false;
         }
 
-	virtual bool finished() const override {
-            // Removing this assert because it is not necessarily true (e.g. if
-            // bidirectional search is used, states pruned by the other frontier are not
-            // closed so their h value is unknown)
-            
-	    // assert(!open_list.empty() || !frontier.empty() || closed->getHNotClosed() == std::numeric_limits<int>::max());
-	    return open_list.empty() && frontier.empty(); 
-	}
+        void dont_stop_if_solved() {
+            stop_if_solved = false;
+        }
+
+	virtual bool finished() const override ;
 
 	virtual bool stepImage(int maxTime, int maxNodes) override;
 
