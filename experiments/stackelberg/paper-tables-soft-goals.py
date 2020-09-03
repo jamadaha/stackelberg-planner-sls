@@ -33,7 +33,10 @@ REVISIONS = [
     'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
-    'fixed'
+    'fixed',
+    'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
+    '3474c839afb237f2de212d730dc7ec82167355fe',
+    'd65e9fcebce6a4365a0b51789702f57e2f80a50f'
 ]
 
 def rename_algorithm_and_domain(run):
@@ -59,6 +62,11 @@ def rename_algorithm_and_domain(run):
     for rev in REVISIONS:
         algo = algo.replace('{}'.format(rev), '')
 
+    algo_parts = [x for x in algo.split("-") if x]
+    algo = "-".join(algo_parts) 
+
+    if algo not in ['baseline-lmcut', 'ss-sbd-up-ubreuse-tlim', 'baseline-lmcut-soft', 'ss-sbd-up-ubreuse-tlim-soft', 'baseline-sbd', 'ss-up-lmcut-ubreuse', 'baseline-sbd-soft', 'ss-up-lmcut-ubreuse-soft']:
+        return False
 
     dom = dom.replace("-robustness", "")
     dom = dom.replace("-rs42", "")
@@ -78,10 +86,6 @@ def rename_algorithm_and_domain(run):
             
         run["problem"] += tcpart
         dom = parts[0] + dompart
-
-        
-    algo_parts = [x for x in algo.split("-") if x]
-    algo = "-".join(algo_parts) 
 
 
     run['category_domain'] = dom
@@ -239,5 +243,50 @@ for atr in ['total_time', 'pareto_frontier_size', 'total_follower_searches' ]:
                 outfile=os.path.join(exp.eval_dir, '{}-{}-vs-{}-by-{}'.format(atr, alg1, alg2, cat)),
             )
 
+
+
+
+
+
+paper_matplotlib_options = {
+            'font.family': 'serif',
+            'font.weight': 'normal',
+            # Used if more specific sizes not set.
+            'font.size': 20,
+            'axes.labelsize': 20,
+            'axes.titlesize': 30,
+            'legend.fontsize': 22,
+            'xtick.labelsize': 10,
+            'ytick.labelsize': 10,
+            'lines.markersize': 10,
+            'lines.markeredgewidth': 0.25,
+            'lines.linewidth': 1,
+            # Width and height in inches.
+            'figure.figsize': [8, 8],
+            'savefig.dpi': 100,
+}
+
+exp.add_report(
+    ScatterPlotReport(
+        filter_algorithm=["normal" , "soft"],
+        get_category=lambda run1, run2, cate=cat: run1["category_domain"],
+        attributes=["total_time"],
+        format='pdf',  matplotlib_options = paper_matplotlib_options,
+        xlabel = "New", ylabel = "Net",   title = "Total time"
+    ),
+    outfile=os.path.join(exp.eval_dir, "totaltime-normal-vs-soft-by-domain"),
+)
+
+
+exp.add_report(
+    ScatterPlotReport(
+        filter_algorithm=["normal" , "soft"],
+        get_category=lambda run1, run2, cate=cat: run1["category_algo"],
+        attributes=["total_time"],
+        format='pdf',  matplotlib_options = paper_matplotlib_options,
+        xlabel = "New", ylabel = "Net",   title = "Total time"
+    ),
+    outfile=os.path.join(exp.eval_dir, "totaltime-normal-vs-soft-by-algo"),
+)
 
 exp.run_steps()
