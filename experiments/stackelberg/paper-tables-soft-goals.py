@@ -34,9 +34,11 @@ REVISIONS = [
     'aaai18ipc',
     'aaai21ipc',
     'fixed',
+    '3cd44a8df4b9332f3658295ccd85430f71ed410e',
     'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
     '3474c839afb237f2de212d730dc7ec82167355fe',
-    'd65e9fcebce6a4365a0b51789702f57e2f80a50f'
+    'd65e9fcebce6a4365a0b51789702f57e2f80a50f',
+    '86230fad69bab56dfc283251e34308105989de0b'
 ]
 
 def rename_algorithm_and_domain(run):
@@ -65,7 +67,7 @@ def rename_algorithm_and_domain(run):
     algo_parts = [x for x in algo.split("-") if x]
     algo = "-".join(algo_parts) 
 
-    if algo not in ['baseline-lmcut', 'ss-sbd-up-ubreuse-tlim', 'baseline-lmcut-soft', 'ss-sbd-up-ubreuse-tlim-soft', 'baseline-sbd', 'ss-up-lmcut-ubreuse', 'baseline-sbd-soft', 'ss-up-lmcut-ubreuse-soft']:
+    if algo not in ['baseline-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s', 'baseline-sbd-soft', 'ss-sbd-ubreuse-soft', 'ss-sbd-up-ubreuse-cbfflb-1s-soft']:
         return False
 
     dom = dom.replace("-robustness", "")
@@ -88,8 +90,10 @@ def rename_algorithm_and_domain(run):
         dom = parts[0] + dompart
 
 
-    run['category_domain'] = dom
-    run['category_algo'] = algo.replace("-soft", "")
+    category_algo_names = {"baseline-sbd" : "IDS", "ss-sbd-ubreuse" : "SLS-ub", "ss-sbd-up-ubreuse-cbfflb-1s" : "SLS-ub-$\Pi^+$-FF", }
+
+    run['category_domain'] = dom.replace("aaai21-", "").capitalize()
+    run['category_algo'] = category_algo_names[algo.replace("-soft", "")]
 
     
     dom = dom + algo.replace("-soft", "")
@@ -248,33 +252,33 @@ for atr in ['total_time', 'pareto_frontier_size', 'total_follower_searches' ]:
 
 
 
-paper_matplotlib_options = {
-            'font.family': 'serif',
-            'font.weight': 'normal',
-            # Used if more specific sizes not set.
-            'font.size': 20,
-            'axes.labelsize': 20,
-            'axes.titlesize': 30,
-            'legend.fontsize': 22,
-            'xtick.labelsize': 10,
-            'ytick.labelsize': 10,
-            'lines.markersize': 10,
-            'lines.markeredgewidth': 0.25,
-            'lines.linewidth': 1,
-            # Width and height in inches.
-            'figure.figsize': [8, 8],
-            'savefig.dpi': 100,
-}
+# paper_matplotlib_options = {
+#             'font.family': 'serif',
+#             'font.weight': 'normal',
+#             # Used if more specific sizes not set.
+#             'font.size': 20,
+#             'axes.labelsize': 20,
+#             'axes.titlesize': 30,
+#             'legend.fontsize': 22,
+#             'xtick.labelsize': 10,
+#             'ytick.labelsize': 10,
+#             'lines.markersize': 10,
+#             'lines.markeredgewidth': 0.25,
+#             'lines.linewidth': 1,
+#             # Width and height in inches.
+#             'figure.figsize': [8, 8],
+#             'savefig.dpi': 100,
+# }
 
 exp.add_report(
     ScatterPlotReport(
         filter_algorithm=["normal" , "soft"],
         get_category=lambda run1, run2, cate=cat: run1["category_domain"],
         attributes=["total_time"],
-        format='pdf',  matplotlib_options = paper_matplotlib_options,
+        format='dat',  # matplotlib_options = paper_matplotlib_options,
         xlabel = "New", ylabel = "Net",   title = "Total time"
     ),
-    outfile=os.path.join(exp.eval_dir, "totaltime-normal-vs-soft-by-domain"),
+    outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-domain"),
 )
 
 
@@ -283,10 +287,10 @@ exp.add_report(
         filter_algorithm=["normal" , "soft"],
         get_category=lambda run1, run2, cate=cat: run1["category_algo"],
         attributes=["total_time"],
-        format='pdf',  matplotlib_options = paper_matplotlib_options,
+        format='dat', #  matplotlib_options = paper_matplotlib_options,
         xlabel = "New", ylabel = "Net",   title = "Total time"
     ),
-    outfile=os.path.join(exp.eval_dir, "totaltime-normal-vs-soft-by-algo"),
+    outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-algo"),
 )
 
 exp.run_steps()

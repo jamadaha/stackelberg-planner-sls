@@ -61,11 +61,13 @@ with open(sys.argv[1]) as json_file:
         if "coverage" not in data:
             continue
         all_algorithms.add(data["config"])
+        
         if data["config"] not in algorithm_list:
             continue
 
         domain, config = data["domain"], data["config"]
-        
+
+
         if "fuel" in domain:
             continue
         
@@ -96,7 +98,7 @@ with open(sys.argv[1]) as json_file:
 
 num_instances_domain = defaultdict(int)
 for (alg, dom) in num_instances:
-    assert not dom in num_instances_domain or num_instances_domain[dom] == num_instances[(alg, dom)], f"Error {alg} has {num_instances[(alg, dom)]} instances in {dom} instead of {num_instances_domain[dom]}"  
+    assert not dom in num_instances_domain or num_instances_domain[dom] == num_instances[(alg, dom)] or "total" in dom, f"Error {alg} has {num_instances[(alg, dom)]} instances in {dom} instead of {num_instances_domain[dom]}"  
     num_instances_domain[dom]   = max(num_instances_domain[dom], num_instances[(alg, dom)])
 
 
