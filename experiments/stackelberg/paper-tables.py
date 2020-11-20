@@ -33,7 +33,9 @@ REVISIONS = [
     'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
+    'aaai21pentesting',
     'aaai18pentesting',
+    'translatorlimit',
     'fixed',
     '3cd44a8df4b9332f3658295ccd85430f71ed410e',
     'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
@@ -52,7 +54,14 @@ def rename_algorithm_and_domain(run):
 
     if "aaai21-rovers-drivingfixed" in dom and "tcall" in run["problem"]:
         return False
+
+    if not any (run["problem"].endswith("tc{}".format(i)) for i in [2**j for j in range(1, 20)] + ["all"]):
+        return False
         
+
+    if "aaai18-pentesting" in dom and not "translatorlimit" in dom:
+        return False
+
 
     if "aaai18-pipesworld-notankage" in dom:
         return False
@@ -67,6 +76,7 @@ def rename_algorithm_and_domain(run):
 
     dom = dom.replace("-robustness", "")
     dom = dom.replace("-rs42", "")
+    dom = dom.replace("-translatorlimit", "")
 
     if "-tc" in dom:
         parts = dom.split("-tc")
@@ -157,7 +167,7 @@ exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_sol
 
 def get_pareto_category(run1, run2):
     if 'pareto_frontier_size'  not in run1 and 'pareto_frontier_size'  not in run2:
-        return 'unsolved'
+        return None
 
     p = run1['pareto_frontier_size'] if 'pareto_frontier_size'  in run1 else  run2['pareto_frontier_size']
 
@@ -202,11 +212,11 @@ def sc_rep(exp, alg1, alg2, cat, atr, form, out_dir = None):
 #             sc_rep(exp, alg1, alg2, cat, atr, 'png')
 
 
-sc_rep(exp, 'baseline-sbd', 'ss-sbd-ubreuse', 'pareto', 'total_time', 'tex', '/home/alvaro/projects/stackelberg/paper/plots')
-sc_rep(exp, 'baseline-lmcut', 'ss-lmcut-ubreuse', 'pareto', 'total_time', 'tex', '/home/alvaro/projects/stackelberg/paper/plots')
-sc_rep(exp, 'baseline-sbd', 'ss-sbd-ubreuse', 'pareto', 'optimal_solver_searches', 'tex', '/home/alvaro/projects/stackelberg/paper/plots')
-sc_rep(exp, 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s', 'pareto', 'optimal_solver_searches', 'tex', '/home/alvaro/projects/stackelberg/paper/plots')
-sc_rep(exp, 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s', 'pareto', 'total_time', 'tex', '/home/alvaro/projects/stackelberg/paper/plots')
+sc_rep(exp, 'baseline-sbd', 'ss-sbd-ubreuse', 'pareto', 'total_time', 'dat', '/home/alvaro/projects/stackelberg/paper/plots')
+sc_rep(exp, 'baseline-lmcut', 'ss-lmcut-ubreuse', 'pareto', 'total_time', 'dat', '/home/alvaro/projects/stackelberg/paper/plots')
+sc_rep(exp, 'baseline-sbd', 'ss-sbd-ubreuse', 'pareto', 'optimal_solver_searches', 'dat', '/home/alvaro/projects/stackelberg/paper/plots')
+sc_rep(exp, 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s', 'pareto', 'optimal_solver_searches', 'dat', '/home/alvaro/projects/stackelberg/paper/plots')
+sc_rep(exp, 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s', 'pareto', 'total_time', 'dat', '/home/alvaro/projects/stackelberg/paper/plots')
 
 # for atr in ['optimally_solved_subproblems', "search_time", 'total_time', 'total_follower_searches', 'follower_time']:
 #     for alg1, alg2 in [('ss-sbd','ss-sbd-ubreuse'), ('ss-lmcut','ss-lmcut-ubreuse')]: # ('ss-sbd','ss-sbd-up'), ('ss-sbd', 'ss-sbd-up-ubreuse-tlim')

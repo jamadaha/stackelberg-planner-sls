@@ -33,6 +33,9 @@ REVISIONS = [
     'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
+    'aaai21pentesting',
+    'aaai18pentesting',
+    'translatorlimit',
     'fixed',
     '3cd44a8df4b9332f3658295ccd85430f71ed410e',
     'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
@@ -67,9 +70,11 @@ def rename_algorithm_and_domain(run):
     algo_parts = [x for x in algo.split("-") if x]
     algo = "-".join(algo_parts) 
 
-    if algo not in ['baseline-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s', 'baseline-sbd-soft', 'ss-sbd-ubreuse-soft', 'ss-sbd-up-ubreuse-cbfflb-1s-soft']:
+    if algo.replace("-soft", "") not in ['baseline-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s']:
         return False
 
+    run['original_algo'] = algo.replace("-soft", "")
+    
     dom = dom.replace("-robustness", "")
     dom = dom.replace("-rs42", "")
     dom = dom.replace("fixed", "")
@@ -90,7 +95,7 @@ def rename_algorithm_and_domain(run):
         dom = parts[0] + dompart
 
 
-    category_algo_names = {"baseline-sbd" : "IDS", "ss-sbd-ubreuse" : "SLS-ub", "ss-sbd-up-ubreuse-cbfflb-1s" : "SLS-ub-$\Pi^+$-FF", }
+    category_algo_names = {"baseline-sbd" : "IDS", "ss-sbd-ubreuse" : "SLS-ub", "ss-sbd-up-ubreuse-cbfflb-1s" : "SLS-ub-$\Pi^+$-FF", 'baseline-lmcut' : "IDS-lm"}
 
     run['category_domain'] = dom.replace("aaai21-", "").capitalize()
     run['category_algo'] = category_algo_names[algo.replace("-soft", "")]
@@ -115,6 +120,9 @@ def rename_algorithm_and_domain(run):
     if "coverage" not in run:
         print ("Warning: Run without coverage is excluded: {} {} {}".format(algo, dom, run["problem"]))
         return False
+    print ("{} {} {}".format(algo, dom, run["problem"]))
+    
+    
     return run
 
 
@@ -270,27 +278,75 @@ for atr in ['total_time', 'pareto_frontier_size', 'total_follower_searches' ]:
 #             'savefig.dpi': 100,
 # }
 
+filter_f  = {
+    'baseline-sbd' : ( lambda run : run["original_algo"] == 'baseline-sbd' ),
+    # 'baseline-lmcut' : ( lambda run : run["original_algo"] == 'baseline-lmcut' ),
+    'ss-sbd-ubreuse' : ( lambda run : run["original_algo"] == 'ss-sbd-ubreuse' ),
+    'ss-sbd-up-ubreuse-cbfflb-1s' :  ( lambda run : run["original_algo"] == 'ss-sbd-ubreuse-cbfflb-1s' ),
+}
+
+for original_algo in filter_f:
+    exp.add_report(
+        ScatterPlotReport(
+            filter_algorithm=["normal" , "soft"],filter = filter_f [original_algo],
+            get_category=lambda run1, run2, cate=cat: run1["category_domain"],
+            attributes=["total_time"],
+            format='dat',  # matplotlib_options = paper_matplotlib_options,
+            xlabel = "New", ylabel = "Net",   title = "Total time"
+        ),
+        outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-{}-normal-vs-soft-by-domain".format(original_algo))
+    )
+
 exp.add_report(
     ScatterPlotReport(
-        filter_algorithm=["normal" , "soft"],
-        get_category=lambda run1, run2, cate=cat: run1["category_domain"],
-        attributes=["total_time"],
-        format='dat',  # matplotlib_options = paper_matplotlib_options,
-        xlabel = "New", ylabel = "Net",   title = "Total time"
-    ),
-    outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-domain"),
-)
-
-
-exp.add_report(
-    ScatterPlotReport(
-        filter_algorithm=["normal" , "soft"],
+        filter_algorithm=["normal" , "soft"], 
         get_category=lambda run1, run2, cate=cat: run1["category_algo"],
         attributes=["total_time"],
         format='dat', #  matplotlib_options = paper_matplotlib_options,
         xlabel = "New", ylabel = "Net",   title = "Total time"
     ),
     outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-algo"),
+)
+
+exp.add_report(
+    ScatterPlotReport(
+        filter_algorithm=["normal" , "soft"], 
+        get_category=lambda run1, run2, cate=cat: run1["category_domain"], filter=filter_f["ss-sbd-ubreuse"],
+        attributes=["optimal_solver_searches"],
+        format='dat', #  matplotlib_options = paper_matplotlib_options,
+        xlabel = "New", ylabel = "Net",   title = "Follower searches"
+    ),
+    outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "optimal_solver_searches-ss-sbd-ubreuse-normal-vs-soft-by-domain"),
+)
+
+
+def number_of_goals(run, run2):
+    if "translator_goal_facts" not in run  and "translator_goal_facts" not in run2:
+        return None
+    if "translator_goal_facts" in run  and "translator_goal_facts" in run2:
+        assert run["translator_goal_facts"] == run2["translator_goal_facts"]
+
+    numruns = run["translator_goal_facts"]  if "translator_goal_facts" in run else run2["translator_goal_facts"]
+
+    if numruns >= 10:
+        return "10+"
+
+    if numruns >= 5:
+        return "5-9"
+    if numruns >= 2:
+        return "2-5"
+    return None
+    
+
+exp.add_report(
+    ScatterPlotReport(
+        filter_algorithm=["normal" , "soft"], 
+        get_category=number_of_goals,
+        attributes=["total_time"],
+        format='png', #  matplotlib_options = paper_matplotlib_options,
+        xlabel = "New", ylabel = "Net",   title = "Total time"
+    ),
+    outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-number-of-goals"),
 )
 
 exp.run_steps()
