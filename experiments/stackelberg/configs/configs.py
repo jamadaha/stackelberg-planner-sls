@@ -5,15 +5,14 @@ from collections import defaultdict
 
 
 PREPROCESS_REVISION_DEFAULT = "92845ada3fd61a733f99702ffcfff2b3b99260f0"
-
 PREPROCESS_REVISION_SOFT = "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc"
 
 REVISION = "d059552e393f05e01d52bb8bd880873acf4dce78"
 REVISION_REGRESS = "3cd44a8df4b9332f3658295ccd85430f71ed410e"
-
-
 REVISION_UPEXPLICIT = "3474c839afb237f2de212d730dc7ec82167355fe"
 REVISION_FF = "86230fad69bab56dfc283251e34308105989de0b"
+
+REVISION_AAAI21 = "6ddcfa302f6fe5ef50ed63528e1ac9fbd302e66d"
 
 SERVERS = "new_servers" 
 
@@ -129,6 +128,26 @@ config_list["ff_configs"] += [# Config('ss-sbd-cbfflb-1s', 'ss-sbd-cbfflb-1s',
            ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=true, time_limit_seconds_minimum_task=300), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=true)"], REVISION_FF, SERVERS),
         
 ]          
+
+
+
+
+
+config_list["aaai21"] = [
+    Config('baseline-sbd', 'baseline-sbd', ["--search", "stackelberg(search_engine=sbd())"], REVISION_AAAI21, SERVERS),
+    Config('ss-sbd', 'ss-sbd', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION_AAAI21, SERVERS),
+    Config('ss-sbd-ubreuse', 'ss-sbd-ubreuse', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=false, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION_AAAI21, SERVERS), 
+    Config('ss-sbd-up-ubreuse', 'ss-sbd-up-ubreuse-tlim', ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true, force_bw_search_minimum_task_seconds=30, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION_AAAI21, SERVERS),
+    Config('ss-sbd-up-ubreuse-cbfflb-1s', 'ss-sbd-up-ubreuse-cbfflb-1s',
+           ["--search", "sym_stackelberg(optimal_engine=symbolic(plan_reuse_minimal_task_upper_bound=true, plan_reuse_upper_bound=true, force_bw_search_minimum_task_seconds=30, force_bw_search_first_task_seconds=30, time_limit_seconds_minimum_task=300, store_lower_bound=true), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=true)"], REVISION_AAAI21, SERVERS),
+    Config('baseline-lmcut', 'baseline-lmcut', ["--heuristic", "h2=lmcut", "--search", "stackelberg(search_engine=astar(h2), follower_heuristic=h2)"], REVISION_AAAI21, SERVERS),
+    Config('ss-lmcut', 'ss-lmcut', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=false), upper_bound_pruning=false)"], REVISION_AAAI21, SERVERS),
+    Config('ss-lmcut-ubreuse', 'ss-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), is_optimal_solver=true, plan_reuse_upper_bound=true), upper_bound_pruning=false)"], REVISION_AAAI21, SERVERS),
+    Config('ss-up-lmcut-ubreuse', 'ss-up-lmcut-ubreuse', ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=true, time_limit_seconds_minimum_task=300), upper_bound_pruning=true)"], REVISION_AAAI21, SERVERS),
+    Config('ss-lmcut-up-ubreuse-cbfflb-1s', 'ss-lmcut-up-ubreuse-cbfflb-1s',
+           ["--search", "sym_stackelberg(optimal_engine=explicit(search_engine=astar(lmcut()), search_engine_up=astar(lmcut()),is_optimal_solver=true, plan_reuse_upper_bound=true, time_limit_seconds_minimum_task=300), cost_bounded_engine=explicit(search_engine=eager_greedy(ff(), max_time=1, use_heuristics_for_bound_pruning=false), is_optimal_solver=false, plan_reuse_upper_bound=true), upper_bound_pruning=true)"], REVISION_AAAI21, SERVERS),    
+]
+
 
 
 
