@@ -544,7 +544,7 @@ SearchStatus StackelbergSearch::step() {
     auto t1 = chrono::high_resolution_clock::now();
 
     while (true) {
-        cout << "(Re)starting search with fix action budget: " << curr_leader_actions_budget << endl;
+        cout << "(Re)starting search with fix action budget: " << curr_leader_actions_budget << ", follower subproblems: " << num_follower_searches << ", total time: " << g_timer << endl;
 
         vector<const GlobalOperator *> op_sequnce;
         vector<int> parent_follower_plan;
