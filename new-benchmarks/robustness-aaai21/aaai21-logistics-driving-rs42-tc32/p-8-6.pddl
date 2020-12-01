@@ -8,6 +8,7 @@
           t0 t1 t2 
           l00 l01 l02 l03 l04 l05 l06 l07 l10 l11 l12 l13 l14 l15 l16 l17 l20 l21 l22 l23 l24 l25 l26 l27 
           p0 p1 p2 p3 p4 p5 
+          tf
 )
 (:init
 (allowed_to_remove l00 l01)
@@ -116,6 +117,8 @@
     (at p4 l12)
     (at p5 l13)
     (at a0 l10)
+    (fix_truck tf)
+    (at tf l00)
 )
 (:goal
     (and

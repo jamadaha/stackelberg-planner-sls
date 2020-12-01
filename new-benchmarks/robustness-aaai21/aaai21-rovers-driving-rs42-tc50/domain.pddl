@@ -129,8 +129,8 @@
 
 
 (:action fix_navigate
-:parameters (?x - fix_rover ?r - rover ?y - waypoint ?z - waypoint) 
-:precondition (and (can_traverse ?r ?y ?z) (at_fix_rover ?x ?y) 
+:parameters (?x - fix_rover ?y - waypoint ?z - waypoint) 
+:precondition (and (at_fix_rover ?x ?y) 
                 (visible ?y ?z)
                 (not (removed-connection ?y ?z))
       )
@@ -139,8 +139,8 @@
 )
 
 (:action fix_remove_connection_1
-:parameters (?x - fix_rover ?r - rover  ?y - waypoint ?z - waypoint) 
-:precondition (and (can_traverse ?r ?y ?z) (at_fix_rover ?x ?y) 
+:parameters (?x - fix_rover ?y - waypoint ?z - waypoint) 
+:precondition (and (at_fix_rover ?x ?y) 
                 (visible ?y ?z)
                 (allowed_to_remove ?y ?z)
                 (not (removed-connection ?y ?z))
@@ -153,8 +153,8 @@
 )
 
 (:action fix_remove_connection_2
-:parameters (?x - fix_rover ?r - rover  ?y - waypoint ?z - waypoint) 
-:precondition (and (can_traverse ?r ?y ?z) (at_fix_rover ?x ?z) 
+:parameters (?x - fix_rover ?y - waypoint ?z - waypoint) 
+:precondition (and (at_fix_rover ?x ?z) 
                 (visible ?y ?z)
                 (allowed_to_remove ?y ?z)
                 (not (removed-connection ?y ?z))

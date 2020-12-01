@@ -28,11 +28,9 @@ SUITE_AAAI21 = [dom for dom in SUITE_AAAI21_COMPLETE if dom.endswith('all') or i
 SUITE_AAAI18 = [dom for dom in SUITE_AAAI18_COMPLETE if dom.endswith('all') or int(dom.split('tc')[-1])% 2 == 0]
 
 SUITES = {"aaai18ipc" : [dom for dom in SUITE_AAAI18 if "pentesting" not in dom],
-          "aaai21ipc" : [dom for dom in SUITE_AAAI21 if "pentesting" not in dom  and "rovers-driving" not in dom and "logistics-driving" not in dom ],
+          "aaai21ipc" : [dom for dom in SUITE_AAAI21 if "pentesting" not in dom],
           "aaai18pentesting" : [dom for dom in SUITE_AAAI18 if "pentesting" in dom],
-          "aaai18pentesting-translatorlimit" : [dom.replace("pentesting", "pentesting-translatorlimit") for dom in SUITE_AAAI18 if "pentesting" in dom],
           "aaai21pentesting" : [dom for dom in SUITE_AAAI21 if "pentesting" in dom],
-          "aaai21ipcfixed" : [dom.replace("driving", "drivingfixed")  for dom in SUITE_AAAI21 if "rovers-driving" in dom or "logistics-driving" in dom ]
 }
 
 
