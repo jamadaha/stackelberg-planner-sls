@@ -646,7 +646,7 @@ def parse_args():
         help="output relaxed task (no delete effects)")
 
     argparser.add_argument("--soft",dest="soft",
-                           type=int, default=10000,
+                           type=int, default=0,
                            help="soft goal compilation where each goal can be obtained via a high cost")
 
     return argparser.parse_args()
@@ -672,7 +672,7 @@ def main():
     sas_task = pddl_to_sas(task)
     if args.soft:
         sas_task.add_soft_goals(args.soft)
-        
+
     dump_statistics(sas_task)
 
     with timers.timing("Writing output"):

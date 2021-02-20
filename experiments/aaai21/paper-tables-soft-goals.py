@@ -22,59 +22,65 @@ from common_setup import IssueExperiment
 
 exp = FastDownwardExperiment()
 
+
 REVISIONS = [
-    '1b546175d83d134245d3c4099014e776dd9fccb8',
-    '6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc',
-    '92845ada3fd61a733f99702ffcfff2b3b99260f0',
-    '8afa96ef3ce86a6b39ea031ac396f7b732dc43a5',
-    'f503350c800543392b4054ca91b074252776dd34',
-    '0ab0299b306776810922f24fe1c65df7bf82d3f8',
-    'adeb756f50388450a3c15e295d7d45abd98812fe',
-    'd059552e393f05e01d52bb8bd880873acf4dce78',
+    '5fe20a1630fdb0c1f3567ae1796882001b65ca3d',
+    "6ddcfa302f6fe5ef50ed63528e1ac9fbd302e66d",
+    "0dbb1c6f0695b02dccbb32aaf63f98dd49a3c244",
+    "92845ada3fd61a733f99702ffcfff2b3b99260f0",
+    "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc",
+    # '1b546175d83d134245d3c4099014e776dd9fccb8',
+    # '6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc',
+    # '92845ada3fd61a733f99702ffcfff2b3b99260f0',
+    # '8afa96ef3ce86a6b39ea031ac396f7b732dc43a5',
+    # 'f503350c800543392b4054ca91b074252776dd34',
+    # '0ab0299b306776810922f24fe1c65df7bf82d3f8',
+    # 'adeb756f50388450a3c15e295d7d45abd98812fe',
+    # 'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
     'aaai21pentesting',
     'aaai18pentesting',
-    'translatorlimit',
-    'fixed',
-    '3cd44a8df4b9332f3658295ccd85430f71ed410e',
-    'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
-    '3474c839afb237f2de212d730dc7ec82167355fe',
-    'd65e9fcebce6a4365a0b51789702f57e2f80a50f',
-    '86230fad69bab56dfc283251e34308105989de0b'
+    # 'translatorlimit',
+    # 'fixed',
+    # '3cd44a8df4b9332f3658295ccd85430f71ed410e',
+    # 'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
+    # '3474c839afb237f2de212d730dc7ec82167355fe',
+    # 'd65e9fcebce6a4365a0b51789702f57e2f80a50f',
+    # '86230fad69bab56dfc283251e34308105989de0b'
 ]
 
 def rename_algorithm_and_domain(run):
     algo = run['config']
 
     dom = run['domain']
-    if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
-        return False
+    # if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
+    #     return False
 
-    if "rovers" in dom  and ("tcall" in dom or "tcall" in algo or "tcall" in run["problem"]) :
-        return False
+    # if "rovers" in dom  and ("tcall" in dom or "tcall" in algo or "tcall" in run["problem"]) :
+    #     return False
 
-    if "tpp" in dom  and "tc32" in run["problem"]:
-        return False
+    # if "tpp" in dom  and "tc32" in run["problem"]:
+    #     return False
 
-    
-    if "ss-lmcut-pdbs" in algo:
-        return False
-    
+
+    # if "ss-lmcut-pdbs" in algo:
+    #     return False
+
     if "aaai18" in dom:
         return False
-    
+
     for rev in REVISIONS:
         algo = algo.replace('{}'.format(rev), '')
 
     algo_parts = [x for x in algo.split("-") if x]
-    algo = "-".join(algo_parts) 
+    algo = "-".join(algo_parts)
 
     if algo.replace("-soft", "") not in ['baseline-sbd', 'ss-sbd-ubreuse', 'ss-sbd-up-ubreuse-cbfflb-1s']:
         return False
 
     run['original_algo'] = algo.replace("-soft", "")
-    
+
     dom = dom.replace("-robustness", "")
     dom = dom.replace("-rs42", "")
     dom = dom.replace("fixed", "")
@@ -82,7 +88,7 @@ def rename_algorithm_and_domain(run):
     if "-tc" in dom:
         parts = dom.split("-tc")
 
-        
+
         if "-" in parts[1]:
             tcpart = "-tc" + parts[1].split("-")[0]
             dompart = parts[1].split("-")[1]
@@ -90,7 +96,7 @@ def rename_algorithm_and_domain(run):
             tcpart = "-tc" + parts[1].split("-")[0]
             dompart = ""
 
-            
+
         run["problem"] += tcpart
         dom = parts[0] + dompart
 
@@ -100,7 +106,7 @@ def rename_algorithm_and_domain(run):
     run['category_domain'] = dom.replace("aaai21-", "").capitalize()
     run['category_algo'] = category_algo_names[algo.replace("-soft", "")]
 
-    
+
     dom = dom + algo.replace("-soft", "")
 
     if "-soft" in algo:
@@ -110,9 +116,10 @@ def rename_algorithm_and_domain(run):
 
 
     if "-driving" in dom:
-        algo += "-driving"
+        run['problem'] += "-driving"
         dom = dom.replace("-driving", "")
-    
+        run['category_domain'] = run['category_domain'].replace("-driving", "")
+
     run['algorithm'] = algo
     run['config'] = algo
     run['domain'] = dom
@@ -121,8 +128,8 @@ def rename_algorithm_and_domain(run):
         print ("Warning: Run without coverage is excluded: {} {} {}".format(algo, dom, run["problem"]))
         return False
     print ("{} {} {}".format(algo, dom, run["problem"]))
-    
-    
+
+
     return run
 
 
@@ -131,7 +138,7 @@ def rename_algorithm_and_domain(run):
 def add_histogram(run):
     for a in [3, 5, 10, 20, 50, 100]:
         run['histogram_follower_searches_{}'.format(a)] = 1 if 'total_follower_searches' in run and run['total_follower_searches'] >= a else 0
-    
+
     return run
 
 def correct_statistics(run):
@@ -234,26 +241,26 @@ exp.add_report(AbsoluteReport(attributes= ['memory', 'total_time', 'coverage', '
 #         )
 
 
-for atr in ['total_time', 'pareto_frontier_size', 'total_follower_searches' ]:
-    for alg1, alg2 in [('normal', 'soft'), ('normal', 'normal-driving'), ('normal', 'soft-driving'), ('soft', 'soft-driving') ]:
+# for atr in ['total_time', 'pareto_frontier_size', 'total_follower_searches' ]:
+#     for alg1, alg2 in [('normal', 'soft'), ('normal', 'normal-driving'), ('normal', 'soft-driving'), ('soft', 'soft-driving') ]:
 
-        for cat in ['category_domain', 'category_algo']:
-            outf = os.path.join(exp.eval_dir,  '{}-{}-vs-{}-by-{}'.format(atr, alg1, alg2, cat))
-            if os.path.exists(outf + ".png"):
-                continue
+#         for cat in ['category_domain', 'category_algo']:
+#             outf = os.path.join(exp.eval_dir,  '{}-{}-vs-{}-by-{}'.format(atr, alg1, alg2, cat))
+#             if os.path.exists(outf + ".png"):
+#                 continue
 
-            exp.add_report(
-                ScatterPlotReport(
-                    filter_algorithm=[
-                        alg1
-                        , alg2
-                    ],
-                    get_category=lambda run1, run2, cate=cat: run1[cate],
-                    attributes=[atr],
-                    format='png',
-                ),
-                outfile=os.path.join(exp.eval_dir, '{}-{}-vs-{}-by-{}'.format(atr, alg1, alg2, cat)),
-            )
+#             exp.add_report(
+#                 ScatterPlotReport(
+#                     filter_algorithm=[
+#                         alg1
+#                         , alg2
+#                     ],
+#                     get_category=lambda run1, run2, cate=cat: run1[cate],
+#                     attributes=[atr],
+#                     format='png',
+#                 ),
+#                 outfile=os.path.join(exp.eval_dir, '{}-{}-vs-{}-by-{}'.format(atr, alg1, alg2, cat)),
+#             )
 
 
 
@@ -282,14 +289,14 @@ filter_f  = {
     'baseline-sbd' : ( lambda run : run["original_algo"] == 'baseline-sbd' ),
     # 'baseline-lmcut' : ( lambda run : run["original_algo"] == 'baseline-lmcut' ),
     'ss-sbd-ubreuse' : ( lambda run : run["original_algo"] == 'ss-sbd-ubreuse' ),
-    'ss-sbd-up-ubreuse-cbfflb-1s' :  ( lambda run : run["original_algo"] == 'ss-sbd-ubreuse-cbfflb-1s' ),
+#    'ss-sbd-up-ubreuse-cbfflb-1s' :  ( lambda run : run["original_algo"] == 'ss-sbd-ubreuse-cbfflb-1s' ),
 }
 
 for original_algo in filter_f:
     exp.add_report(
         ScatterPlotReport(
             filter_algorithm=["normal" , "soft"],filter = filter_f [original_algo],
-            get_category=lambda run1, run2, cate=cat: run1["category_domain"],
+            get_category=lambda run1, run2 : run1["category_domain"],
             attributes=["total_time"],
             format='dat',  # matplotlib_options = paper_matplotlib_options,
             xlabel = "New", ylabel = "Net",   title = "Total time"
@@ -299,8 +306,8 @@ for original_algo in filter_f:
 
 exp.add_report(
     ScatterPlotReport(
-        filter_algorithm=["normal" , "soft"], 
-        get_category=lambda run1, run2, cate=cat: run1["category_algo"],
+        filter_algorithm=["normal" , "soft"],
+        get_category=lambda run1, run2: run1["category_algo"],
         attributes=["total_time"],
         format='dat', #  matplotlib_options = paper_matplotlib_options,
         xlabel = "New", ylabel = "Net",   title = "Total time"
@@ -310,8 +317,8 @@ exp.add_report(
 
 exp.add_report(
     ScatterPlotReport(
-        filter_algorithm=["normal" , "soft"], 
-        get_category=lambda run1, run2, cate=cat: run1["category_domain"], filter=filter_f["ss-sbd-ubreuse"],
+        filter_algorithm=["normal" , "soft"],
+        get_category=lambda run1, run2 : run1["category_domain"], filter=filter_f["ss-sbd-ubreuse"],
         attributes=["optimal_solver_searches"],
         format='dat', #  matplotlib_options = paper_matplotlib_options,
         xlabel = "New", ylabel = "Net",   title = "Follower searches"
@@ -320,33 +327,33 @@ exp.add_report(
 )
 
 
-def number_of_goals(run, run2):
-    if "translator_goal_facts" not in run  and "translator_goal_facts" not in run2:
-        return None
-    if "translator_goal_facts" in run  and "translator_goal_facts" in run2:
-        assert run["translator_goal_facts"] == run2["translator_goal_facts"]
+# def number_of_goals(run, run2):
+#     if "translator_goal_facts" not in run  and "translator_goal_facts" not in run2:
+#         return None
+#     if "translator_goal_facts" in run  and "translator_goal_facts" in run2:
+#         assert run["translator_goal_facts"] == run2["translator_goal_facts"]
 
-    numruns = run["translator_goal_facts"]  if "translator_goal_facts" in run else run2["translator_goal_facts"]
+#     numruns = run["translator_goal_facts"]  if "translator_goal_facts" in run else run2["translator_goal_facts"]
 
-    if numruns >= 10:
-        return "10+"
+#     if numruns >= 10:
+#         return "10+"
 
-    if numruns >= 5:
-        return "5-9"
-    if numruns >= 2:
-        return "2-5"
-    return None
-    
+#     if numruns >= 5:
+#         return "5-9"
+#     if numruns >= 2:
+#         return "2-5"
+#     return None
 
-exp.add_report(
-    ScatterPlotReport(
-        filter_algorithm=["normal" , "soft"], 
-        get_category=number_of_goals,
-        attributes=["total_time"],
-        format='png', #  matplotlib_options = paper_matplotlib_options,
-        xlabel = "New", ylabel = "Net",   title = "Total time"
-    ),
-    outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-number-of-goals"),
-)
+
+# exp.add_report(
+#     ScatterPlotReport(
+#         filter_algorithm=["normal" , "soft"],
+#         get_category=number_of_goals,
+#         attributes=["total_time"],
+#         format='png', #  matplotlib_options = paper_matplotlib_options,
+#         xlabel = "New", ylabel = "Net",   title = "Total time"
+#     ),
+#     outfile=os.path.join("/home/alvaro/projects/stackelberg/paper/plots", "totaltime-normal-vs-soft-by-number-of-goals"),
+# )
 
 exp.run_steps()

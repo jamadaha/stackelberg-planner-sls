@@ -23,25 +23,30 @@ from common_setup import IssueExperiment
 exp = FastDownwardExperiment()
 
 REVISIONS = [
-    '1b546175d83d134245d3c4099014e776dd9fccb8',
-    '6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc',
-    '92845ada3fd61a733f99702ffcfff2b3b99260f0',
-    '8afa96ef3ce86a6b39ea031ac396f7b732dc43a5',
-    'f503350c800543392b4054ca91b074252776dd34',
-    '0ab0299b306776810922f24fe1c65df7bf82d3f8',
-    'adeb756f50388450a3c15e295d7d45abd98812fe',
-    'd059552e393f05e01d52bb8bd880873acf4dce78',
+    '5fe20a1630fdb0c1f3567ae1796882001b65ca3d',
+    "6ddcfa302f6fe5ef50ed63528e1ac9fbd302e66d",
+    "0dbb1c6f0695b02dccbb32aaf63f98dd49a3c244",
+    "92845ada3fd61a733f99702ffcfff2b3b99260f0",
+    "6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc",
+    # '1b546175d83d134245d3c4099014e776dd9fccb8',
+    # '6f1b5abf91f0b5a9f7dace3fea8ffbedcff3c7dc',
+    # '92845ada3fd61a733f99702ffcfff2b3b99260f0',
+    # '8afa96ef3ce86a6b39ea031ac396f7b732dc43a5',
+    # 'f503350c800543392b4054ca91b074252776dd34',
+    # '0ab0299b306776810922f24fe1c65df7bf82d3f8',
+    # 'adeb756f50388450a3c15e295d7d45abd98812fe',
+    # 'd059552e393f05e01d52bb8bd880873acf4dce78',
     'aaai18ipc',
     'aaai21ipc',
     'aaai21pentesting',
     'aaai18pentesting',
-    'translatorlimit',
-    'fixed',
-    '3cd44a8df4b9332f3658295ccd85430f71ed410e',
-    'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
-    '3474c839afb237f2de212d730dc7ec82167355fe',
-    'd65e9fcebce6a4365a0b51789702f57e2f80a50f',
-    '86230fad69bab56dfc283251e34308105989de0b'
+    # 'translatorlimit',
+    # 'fixed',
+    # '3cd44a8df4b9332f3658295ccd85430f71ed410e',
+    # 'e9a4dbefd3848636f38b5a38c2a6a56173a73bfa',
+    # '3474c839afb237f2de212d730dc7ec82167355fe',
+    # 'd65e9fcebce6a4365a0b51789702f57e2f80a50f',
+    # '86230fad69bab56dfc283251e34308105989de0b'
 ]
 
 def rename_algorithm_and_domain(run):
@@ -49,28 +54,32 @@ def rename_algorithm_and_domain(run):
 
     dom = run['domain']
 
-    if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
-        return False
+    # if dom in ["aaai21-rovers-driving", "aaai21-logistics-driving"]:
+    #     print (f"Skipping {dom}")
+    #     return False
 
     if "aaai21-rovers-drivingfixed" in dom and "tcall" in run["problem"]:
+        print (f"Skipping {dom}")
         return False
 
     if not any (run["problem"].endswith("tc{}".format(i)) for i in [2**j for j in range(1, 20)] + ["all"]):
+        print (f"Skipping {dom}")
         return False
-        
 
-    if "aaai18-pentesting" in dom and not "translatorlimit" in dom:
-        return False
+
+    # if "aaai18-pentesting" in dom and not "translatorlimit" in dom:
+    #     print (f"Skipping {dom}")
+    #     return False
 
 
     if "aaai18-pipesworld-notankage" in dom:
         return False
-    
+
     if "ss-lmcut-pdbs" in algo:
         return False
     # if "aaai18" in dom:
     #     return False
-    
+
     for rev in REVISIONS:
         algo = algo.replace('{}'.format(rev), '')
 
@@ -81,7 +90,7 @@ def rename_algorithm_and_domain(run):
     if "-tc" in dom:
         parts = dom.split("-tc")
 
-        
+
         if "-" in parts[1]:
             tcpart = "-tc" + parts[1].split("-")[0]
             dompart = parts[1].split("-")[1]
@@ -89,7 +98,7 @@ def rename_algorithm_and_domain(run):
             tcpart = "-tc" + parts[1].split("-")[0]
             dompart = ""
 
-            
+
         run["problem"] += tcpart
         dom = parts[0] + dompart
 
@@ -99,8 +108,8 @@ def rename_algorithm_and_domain(run):
         dom = dom + "-soft"
 
     algo_parts = [x for x in algo.split("-") if x]
-    algo = "-".join(algo_parts) 
-    
+    algo = "-".join(algo_parts)
+
     run['algorithm'] = algo
     run['config'] = algo
     run['domain'] = dom
@@ -116,7 +125,7 @@ def rename_algorithm_and_domain(run):
 def add_histogram(run):
     for a in [3, 5, 10, 20, 50, 100]:
         run['histogram_follower_searches_{}'.format(a)] = 1 if 'total_follower_searches' in run and run['total_follower_searches'] >= a else 0
-    
+
     return run
 
 def correct_statistics(run):
@@ -157,12 +166,7 @@ exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_sol
 # exp.add_report(AbsoluteReport(attributes=['total_time', 'coverage', 'optimal_solver_searches', 'follower_time'], filter_algorithm=["original-lmcut-pdbs","baseline-lmcut", "ss-lmcut", "ss-sbd-lmcut", 'ss-lmcut-ubreuse', "baseline-sbd", "ss-sbd", "ss-sbd-ubreuse", "ss-sbd-ubreuse-cbff-1s", 'ss-sbd-up-ubreuse-tlim']), outfile='report-lmcut-sbd.html')
 
 
-
 # exp.add_report(AbsoluteReport(attributes=['search_time', 'memory', 'total_time', 'error', 'coverage', 'pareto_frontier_size', 'follower_time', 'optimally_solved_subproblems', 'total_follower_searches', 'optimal_solver_searches']))
-
-### Latex reports
-
-## expansion plots for bisim
 
 
 def get_pareto_category(run1, run2):
@@ -182,13 +186,14 @@ category_functions = {'domain' : lambda run1, run2: run1['domain'],
 
 
 def sc_rep(exp, alg1, alg2, cat, atr, form, out_dir = None):
-    
+
     if not out_dir:
         out_dir = exp.eval_dir
-        
+
     outf = os.path.join(out_dir, '{}-{}-vs-{}-by-{}'.format(atr, alg1, alg2, cat))
-        
+
     if os.path.exists(outf + "." + form):
+        print (outf + "." + form + " already exists")
         return
 
     exp.add_report(
