@@ -31,7 +31,7 @@ namespace stackelberg {
 
     class SymbolicStackelberg : public SearchEngine {
     protected:
-        std::unique_ptr<StackelbergTask> task;        
+        std::unique_ptr<StackelbergTask> task;
         std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
 
         std::unique_ptr<FollowerSearchEngine> optimal_engine;
@@ -46,12 +46,14 @@ namespace stackelberg {
         symbolic::SymParamsSearch searchParams; //Parameters to search the original state space
 
         const bool upper_bound_pruning;
-        
+
 	ParetoFrontier pareto_frontier;
 
         StackelbergStatistics statistics;
 
-    protected:    
+        const int min_relevant_follower_cost;
+
+    protected:
         virtual void initialize() override;
         virtual SearchStatus step() override;
     public:
@@ -61,4 +63,4 @@ namespace stackelberg {
 
 
 }
-#endif 
+#endif
