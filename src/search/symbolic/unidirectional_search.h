@@ -14,7 +14,8 @@
 namespace symbolic {
     class SymSolution;
     class UnidirectionalSearch;
-    class SymController; 
+    class SymController;
+
     class SymExpStatistics {
     public:
 	double image_time, image_time_failed;
@@ -42,14 +43,14 @@ namespace symbolic {
 
 
     class OppositeFrontier {
-    public: 
+    public:
 	virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const = 0;
-        
+
 	virtual BDD notClosed () const = 0;
 
 	//Returns true only if all not closed states are guaranteed to be dead ends
 	virtual bool exhausted () const = 0;
-	
+
 	virtual int getHNotClosed() const = 0;
     };
 
@@ -78,10 +79,10 @@ namespace symbolic {
 
     public:
         std::shared_ptr<OppositeFrontier> f1, f2;
-    OppositeFrontierComposite(std::shared_ptr<OppositeFrontier> f1_,
-                              std::shared_ptr<OppositeFrontier> f2_) : f1(f1_), f2(f2_) {
+        OppositeFrontierComposite(std::shared_ptr<OppositeFrontier> f1_,
+                                  std::shared_ptr<OppositeFrontier> f2_) : f1(f1_), f2(f2_) {
         }
-    virtual ~OppositeFrontierComposite() = default;
+        virtual ~OppositeFrontierComposite() = default;
 
         virtual SymSolution checkCut(const PlanReconstruction * search, const BDD &states, int g, bool fw) const override;
 
@@ -93,7 +94,7 @@ namespace symbolic {
 	virtual bool exhausted () const override {
             return f1->exhausted();
         }
-	
+
 	virtual int getHNotClosed() const override {
             return f1->getHNotClosed();
         }
@@ -126,9 +127,12 @@ namespace symbolic {
 
         virtual const std::map<int, std::vector<symbolic::TransitionRelation>> & get_transition_relation() const  override;
 
-        
+
 
 	virtual int getG() const = 0;
+
+        virtual void closeMinOpenAndCheckCut() {
+        }
 
     };
 }

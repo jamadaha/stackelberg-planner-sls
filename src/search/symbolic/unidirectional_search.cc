@@ -6,8 +6,8 @@ using namespace std;
 
 namespace symbolic {
 
-    OppositeFrontierFixed::OppositeFrontierFixed(BDD bdd, 
-						 const SymStateSpaceManager & mgr) : goal (bdd), 
+    OppositeFrontierFixed::OppositeFrontierFixed(BDD bdd,
+						 const SymStateSpaceManager & mgr) : goal (bdd),
 										     hNotGoal(mgr.getAbsoluteMinTransitionCost()) {
     }
 
@@ -36,7 +36,7 @@ namespace symbolic {
         }
     }
 
-    UnidirectionalSearch::UnidirectionalSearch(SymController * eng, const SymParamsSearch &params) : 
+    UnidirectionalSearch::UnidirectionalSearch(SymController * eng, const SymParamsSearch &params) :
 	SymSearch(eng, params), fw(true) {}
 
 
@@ -50,7 +50,7 @@ namespace symbolic {
         return mgr->getVars();
     }
 
-    
+
     const std::map<int, std::vector<symbolic::TransitionRelation>> & UnidirectionalSearch::get_transition_relation() const {
         return mgr->getTransitions();
     }

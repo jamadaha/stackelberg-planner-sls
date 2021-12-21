@@ -2,7 +2,7 @@
 
 #include "../utils/debug_macros.h"
 #include <algorithm>    // std::reverse
-#include <memory>    
+#include <memory>
 
 #include "../global_operator.h"
 
@@ -22,8 +22,8 @@ namespace symbolic {
 	assert(fw->getStateSpace() == bw->getStateSpace());
 	mgr = fw->getStateSpaceShared();
     }
-    
-   
+
+
 
     UnidirectionalSearch *BidirectionalSearch::selectBestDirection() const {
 
@@ -59,6 +59,11 @@ namespace symbolic {
 	if(isOriginal()) {
 	    engine->setLowerBound(getF());
 	}
+
+        if (engine->solved()){
+            fw->closeMinOpenAndCheckCut();
+            bw->closeMinOpenAndCheckCut();
+        }
 
 	return res;
     }

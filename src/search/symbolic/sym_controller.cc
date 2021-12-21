@@ -22,7 +22,7 @@ namespace symbolic {
                                                                                               print_bound(false) {}
 
     SymController::SymController(const Options &opts)
-        : vars(make_shared<SymVariables>(opts)), 
+        : vars(make_shared<SymVariables>(opts)),
           mgrParams(opts), searchParams(opts), lower_bound(0), upper_bound(std::numeric_limits<int>::max()), print_bound(true){
         mgrParams.print_options();
         searchParams.print_options();
@@ -49,8 +49,8 @@ namespace symbolic {
 	SymParamsMgr::add_options_to_parser(parser);
 	SymParamsSearch::add_options_to_parser(parser, maxStepTime, maxStepNodes);
     }
-    void SymController::new_solution(const SymSolution & sol) { 
-	if(!solution.solved() || 
+    void SymController::new_solution(const SymSolution & sol) {
+	if(!solution.solved() ||
 	   sol.getCost() < solution.getCost()){
 	    solution = sol;
 
@@ -60,7 +60,7 @@ namespace symbolic {
             }
 
 	}
-    }   
+    }
 
     void SymController::setLowerBound(int lower) {
 	//Never set a lower bound greater than the current upper bound
@@ -77,6 +77,6 @@ namespace symbolic {
             }
 
 	}
-	
+
     }
 }

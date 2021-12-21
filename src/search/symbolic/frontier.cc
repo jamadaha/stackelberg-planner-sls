@@ -1,4 +1,4 @@
-#include "frontier.h" 
+#include "frontier.h"
 
 #include "sym_state_space_manager.h"
 
@@ -18,6 +18,7 @@ namespace symbolic {
 	g_value = 0;
     }
 
+
     void Frontier::set(int g, Bucket & bdd) {
 	assert(empty());
 	g_value = g;
@@ -25,7 +26,7 @@ namespace symbolic {
     }
 
     bool Frontier::nextStepZero() const {
-	return !Szero.empty() || (S.empty() && mgr->hasTransitions0()); 
+	return !Szero.empty() || (S.empty() && mgr->hasTransitions0());
     }
 
     Result Frontier::prepare(int maxTime, int maxNodes, bool fw, bool initialization) {
@@ -37,7 +38,7 @@ namespace symbolic {
 	    //p.max_pop_nodes); it has been merged in pop
 	    int numFiltered = mgr->filterMutexBucket(Sfilter, fw, initialization, maxTime, maxNodes);
 	    if(numFiltered > 0){
-		Smerge.insert(std::end(Smerge), std::begin(Sfilter), std::begin(Sfilter) + numFiltered); 
+		Smerge.insert(std::end(Smerge), std::begin(Sfilter), std::begin(Sfilter) + numFiltered);
 	    }
 	    if(numFiltered == (int)(Sfilter.size())){
 		Bucket().swap(Sfilter);
@@ -46,8 +47,8 @@ namespace symbolic {
 		return Result(TruncatedReason::FILTER_MUTEX, filterTime());
 	    }
 	}
-  
-	if(!Smerge.empty()){  
+
+	if(!Smerge.empty()){
 	    if(Smerge.size() > 1){
 		int remainingTime = maxTime - 1000*filterTime();
 		if(remainingTime < 0 || !mgr->mergeBucket(Smerge, remainingTime, maxNodes)){
@@ -64,13 +65,13 @@ namespace symbolic {
 	    if(mgr->hasTransitions0()){
 		S.insert(std::end(S), std::begin(Smerge), std::end(Smerge));
 		assert(Szero.empty());
-		Szero.swap(Smerge); 
+		Szero.swap(Smerge);
 	    }else{
-		S.swap(Smerge);      
+		S.swap(Smerge);
 	    }
 	}
 
-	//If there are zero cost operators, merge S 
+	//If there are zero cost operators, merge S
 	if(mgr->hasTransitions0() && Szero.empty()){
 	    if(S.size() > 1){
 		int remainingTime = maxTime - 1000*filterTime();
@@ -83,14 +84,14 @@ namespace symbolic {
 	DEBUG_MSG(cout << " BUCKET PREPARED: " << S.size() << " " << nodeCount(S) << endl;);
 	return Result(filterTime());
     }
- 
+
 
     bool Frontier::bucketReady() const {
 	return !(Szero.empty() && S.empty() && Sfilter.empty() && Smerge.empty());
     }
 
      bool Frontier::expansionReady() const {
-	return Sfilter.empty() && Smerge.empty() && 
+	return Sfilter.empty() && Smerge.empty() &&
 	    !(Szero.empty() && S.empty());
     }
 
@@ -131,7 +132,7 @@ namespace symbolic {
     ResultExpansion Frontier::expand_zero(int maxTime, int maxNodes, bool fw){
 	DEBUG_MSG(cout<<"expand_zero"<< endl;);
 	//Image with respect to 0-cost actions
-	assert(expansionReady() && nodeCount(Szero) <= maxNodes);  
+	assert(expansionReady() && nodeCount(Szero) <= maxNodes);
         utils::Timer image_time;
 
 	int nodesStep = nodeCount(Szero);
@@ -140,13 +141,13 @@ namespace symbolic {
 	//Compute image, storing the result on Simg
 	try{
 	    int numImagesComputed = 0;
-	    for(size_t i = 0; i < Szero.size(); i++){	
+	    for(size_t i = 0; i < Szero.size(); i++){
 		Simg.push_back(map<int, Bucket>());
 		mgr->zero_image(fw, Szero[i], Simg[i][0], maxNodes);
 		DEBUG_MSG(for(auto bdd : Simg[i][0]){ cout << "RESULT OF ZERO_IMG: "; bdd.print(0, 1);});
 		++ numImagesComputed;
 	    }
-	    mgr->unsetTimeLimit();    
+	    mgr->unsetTimeLimit();
 	}catch(BDDError e){
 	    mgr->unsetTimeLimit();
 	    return ResultExpansion(true, TruncatedReason::IMAGE_ZERO, image_time());
@@ -180,7 +181,7 @@ namespace symbolic {
 	}catch(BDDError e){
 	    //Update estimation
 	    mgr->unsetTimeLimit();
-	     
+
 	    return ResultExpansion(false, TruncatedReason::IMAGE_COST, image_time());
 	}
 
@@ -188,7 +189,7 @@ namespace symbolic {
 
 
 	DEBUG_MSG(cout << "  >> cost step" << (fw ? " fw " : " bw ") << ": " << nodesStep << " nodes " << statesStep << " states " << " done in " << image_time << " total time: " << g_timer << endl;);
-	return ResultExpansion(false, Simg, image_time()); 
+	return ResultExpansion(false, Simg, image_time());
     }
 
 
@@ -198,5 +199,12 @@ namespace symbolic {
 	if(!frontier.Szero.empty()) os <<"Sz: " << nodeCount(frontier.Szero) << " ";
 	if(!frontier.S.empty()) os << "S: " << nodeCount(frontier.S) << " ";
 	return os;
+    }
+
+    void Frontier::make_empty() {
+        Bucket().swap(S);
+        Bucket().swap(Sfilter);
+        Bucket().swap(Smerge);
+        Bucket().swap(Szero);
     }
 }

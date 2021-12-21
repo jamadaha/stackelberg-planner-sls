@@ -16,7 +16,7 @@ public:
 
     BidirectionalSearch(SymController * eng,
 			const SymParamsSearch &params, std::unique_ptr<UnidirectionalSearch> fw,
-			std::unique_ptr<UnidirectionalSearch> bw); 
+			std::unique_ptr<UnidirectionalSearch> bw);
 
     virtual ~BidirectionalSearch() = default;
 
@@ -39,11 +39,11 @@ public:
     virtual long nextStepTime() const override {
 	return std::min<int>(fw->nextStepTime(), bw->nextStepTime());
     }
-    
+
     virtual long nextStepNodes() const override {
 	return std::min<int>(fw->nextStepNodes(), bw->nextStepNodes());
     }
-    
+
     virtual long nextStepNodesResult() const override {
 	return std::min<int>(fw->nextStepNodesResult(), bw->nextStepNodesResult());
     }

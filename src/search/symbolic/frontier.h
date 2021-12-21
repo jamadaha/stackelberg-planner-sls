@@ -12,30 +12,30 @@ namespace symbolic {
 
     class Result {
     public:
-	bool ok; 
-	TruncatedReason truncated_reason; 
+	bool ok;
+	TruncatedReason truncated_reason;
 	double time_spent;
-	
+
 	Result (double t) : ok (true), time_spent(t) {}
-	Result (TruncatedReason reason, double t) :  
-	ok(false), truncated_reason(reason), time_spent(t){}	
+	Result (TruncatedReason reason, double t) :
+	ok(false), truncated_reason(reason), time_spent(t){}
     };
 
     class ResultExpansion : public Result {
     public:
 	bool step_zero;
 	std::vector<std::map<int, Bucket>> buckets;
-	ResultExpansion (bool step_zero_, std::vector<std::map<int, Bucket>> & buckets_, double t) : 
+	ResultExpansion (bool step_zero_, std::vector<std::map<int, Bucket>> & buckets_, double t) :
 	Result(t), step_zero(step_zero_){
 	    buckets.swap(buckets_);
 	}
 
-	ResultExpansion(bool step_zero_, TruncatedReason reason, double t) :  
+	ResultExpansion(bool step_zero_, TruncatedReason reason, double t) :
 	Result(reason, t), step_zero(step_zero_)  {
 	}
 
-    }; 
-    
+    };
+
     class Frontier { // Current states extracted from the open list
 	SymStateSpaceManager * mgr;
 
@@ -54,11 +54,11 @@ namespace symbolic {
 	ResultExpansion expand_cost(int maxTime, int maxNodes, bool fw, int cost_bound);
     public:
 	Frontier();
-	
-	void init (SymStateSpaceManager * mgr, const BDD & bdd); 
+
+	void init (SymStateSpaceManager * mgr, const BDD & bdd);
 	void set(int g, Bucket & open);
 
-	Result prepare(int maxTime, int maxNodes, bool fw, bool initialization); 
+	Result prepare(int maxTime, int maxNodes, bool fw, bool initialization);
 
 	bool empty() const;
 	bool bucketReady() const;
@@ -73,8 +73,10 @@ namespace symbolic {
 	    return g_value;
 	}
 
+        void make_empty();
+
 	Bucket & prepared_bucket() {
-	    assert(Sfilter.empty()); 
+	    assert(Sfilter.empty());
 	    assert(Smerge.empty());
 	    //assert(Szero.empty() || S.empty());
 	    //assert(!Szero.empty() || !S.empty());
@@ -93,8 +95,8 @@ namespace symbolic {
 	    for (BDD & b : Sfilter) {
 		b *= !bdd;
 	    }
-	}	    
-	
+	}
+
 
 
 
@@ -112,6 +114,6 @@ namespace symbolic {
 
     friend std::ostream & operator<<(std::ostream &os, const Frontier & frontier);
     };
-    
+
 }
 #endif
