@@ -94,10 +94,9 @@ namespace stackelberg {
                && F < maxF) {
             BDD leader_states = closed_list.at(L);
             BDD follower_initial_states =
-                stackelberg_mgr->get_follower_initial_state_projection(leader_states);
+                stackelberg_mgr->get_follower_initial_state_projection(leader_states)*stackelberg_mgr->get_static_follower_initial_state ();
 
             double num_follower_initial_states = vars->numStates(follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars());
-
 
             follower_initial_states =
                 plan_reuse->find_plan_follower_initial_states(follower_initial_states);
@@ -132,7 +131,7 @@ namespace stackelberg {
                 }
 
 
-                if (solution.has_plan()) {
+                if (solution.has_plan() || solution.solution_cost () == 0) {
 
                     const auto plan = solution.get_plan();
 #ifndef NDEBUG
@@ -204,7 +203,7 @@ namespace stackelberg {
         }
 
         statistics.stackelberg_search_finished();
-        BDD followerStates = stackelberg_mgr->get_follower_initial_state_projection(leader_search->getClosedTotal());
+        BDD followerStates = stackelberg_mgr->get_follower_initial_state_projection(leader_search->getClosedTotal())*stackelberg_mgr->get_static_follower_initial_state ();
         cout << "Total number of leader states: " << vars->numStates(leader_search->getClosedTotal()) << endl;
         cout << "Total number of follower subproblems: " << vars->numStates(followerStates, stackelberg_mgr->get_num_follower_bdd_vars()) << endl;
 

@@ -21,7 +21,7 @@ namespace stackelberg {
     void SymbolicStackelbergManager::add_options_to_parser(OptionParser &parser) {
 	SymVariables::add_options_to_parser(parser);
 	SymParamsMgr::add_options_to_parser(parser);
-        
+
         parser.add_option<bool> ("stackelberg_variable_order",
                                  "Ensure that variables are ordered according to the stackelberg task", "true");
     }
@@ -40,16 +40,16 @@ namespace stackelberg {
 
             for(size_t var = 0; var < g_variable_domain.size(); ++var) {
                 int partition = 1;
-                
+
                 if (task->is_leader_only_var(var)){
                     partition = 0;
                 } else if (task->is_follower_only_var(var)) {
                     partition = 2;
                 }
-                    
+
                 var_order_partitions[partition].push_back(var);
             }
-            
+
             auto var_order = InfluenceGraph::compute_gamer_ordering_local(var_order_partitions);
 
             vars->init(var_order);
@@ -74,14 +74,14 @@ namespace stackelberg {
         pattern_vars_static_follower.resize(g_variable_domain.size());
         for(size_t var = 0; var < g_variable_domain.size(); ++ var) {
             pattern_vars_static_follower[var] = task->is_follower_static_var(var);
-        }       
+        }
 
         cubeFollowerSubproblems = vars->getCubePre(task->get_leader_only_vars()) *
             vars->getCubePre(task->get_follower_only_vars());
 
         mutex_bdds = make_shared<MutexBDDs> (vars.get(), g_mutex_groups, mgr_params, pattern_vars_follower_search);
 
-        
+
         transitions_by_id.resize(g_operators.size());
         follower_transitions_by_id.resize(g_operators.size());
 
@@ -94,7 +94,7 @@ namespace stackelberg {
                     leader_precondition.push_back(make_pair(prevail.var, prevail.val));
                 }
             }
-                                                       
+
             int cost = cost_type->get_adjusted_cost(&op);
 
             transitions_by_id[op.get_op_id()] = make_unique<TransitionRelation>(vars.get(), &op, cost);
@@ -122,13 +122,13 @@ namespace stackelberg {
 
 
     }
-    
+
     std::shared_ptr<StackelbergSS>
     SymbolicStackelbergManager::get_follower_manager(const std::vector<int> & leader_state) {
 
         //Variables that the follower can modify given the leader state
-        // std::vector<bool> follower_vars (g_variable_domain.size(), true); 
-      
+        // std::vector<bool> follower_vars (g_variable_domain.size(), true);
+
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
         std::map<int, std::vector <symbolic::TransitionRelation>> transitions;
 
@@ -146,7 +146,7 @@ namespace stackelberg {
             if (failed) {
                 continue;
             }
-            
+
             for (const auto & tr_by_cost : entry.second) {
                 int cost = tr_by_cost.first;
 
@@ -161,17 +161,17 @@ namespace stackelberg {
 
         for (const auto & goal : g_goal) {
             if (!pattern_vars_follower_search[goal.first] && leader_state[goal.first] != goal.second) {
-                // Task is unsolvable. 
+                // Task is unsolvable.
                 return make_shared<StackelbergSS>(vars.get(), mgr_params, vars->zeroBDD(), vars->zeroBDD(),
                                                   indTRs, transitions, *mutex_bdds, pattern_vars_follower_search);
             }
         }
 
         BDD initialState = vars->getPartialStateBDD(leader_state, pattern_vars_follower_search);
-        BDD goal = vars->getPartialStateBDD(g_goal);       
+        BDD goal = vars->getPartialStateBDD(g_goal);
 
         assert(initialState == static_follower_initial_state*initialState);
-        
+
         for (auto & trs : transitions) {
             merge(vars.get(), trs.second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
         }
@@ -180,11 +180,11 @@ namespace stackelberg {
                                           *mutex_bdds, pattern_vars_follower_search);
     }
 
-    
+
     // Obtains the follower manager where all actions that have been disabled
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_follower_manager_minimal() {
 
-              
+
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
         std::map<int, std::vector <symbolic::TransitionRelation>> transitions;
 
@@ -195,7 +195,7 @@ namespace stackelberg {
             if (!entry.first.empty()) {
                 continue;
             }
-            
+
             for (const auto & tr_by_cost : entry.second) {
                 int cost = tr_by_cost.first;
 
@@ -210,15 +210,15 @@ namespace stackelberg {
 
         for (const auto & goal : g_goal) {
             if (!pattern_vars_follower_search[goal.first] && g_initial_state_data[goal.first] != goal.second) {
-                // Task is unsolvable. 
+                // Task is unsolvable.
                 return make_shared<StackelbergSS>(vars.get(), mgr_params, vars->zeroBDD(), vars->zeroBDD(),
                                                   indTRs, transitions, *mutex_bdds, pattern_vars_follower_search);
             }
         }
 
         BDD initialState = vars->getPartialStateBDD(g_initial_state_data, pattern_vars_follower_search);
-        BDD goal = vars->getPartialStateBDD(g_goal);       
-        
+        BDD goal = vars->getPartialStateBDD(g_goal);
+
         for (auto & trs : transitions) {
             merge(vars.get(), trs.second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
         }
@@ -231,20 +231,20 @@ namespace stackelberg {
         return leader_search_states.AndAbstract(vars->oneBDD(), cubeFollowerSubproblems);
     }
 
-    
+
     std::vector<int>
     SymbolicStackelbergManager::sample_follower_initial_state(BDD follower_initial_states) const {
         auto sampled_state =  vars->sample_state(follower_initial_states, pattern_vars_follower_subproblems);
-        
+
 #ifndef NDEBUG
         cout << "Sampled state" << endl;
-        for (size_t v = 0; v < g_variable_domain.size(); ++v) {           
+        for (size_t v = 0; v < g_variable_domain.size(); ++v) {
             if(!task->is_leader_only_var(v))  {
                 cout << g_fact_names[v][sampled_state[v]]  << endl;
             }
         }
 
-         for (size_t v = 0; v < g_variable_domain.size(); ++v) {           
+         for (size_t v = 0; v < g_variable_domain.size(); ++v) {
              assert(pattern_vars_follower_subproblems[v] || sampled_state[v] == g_initial_state_data[v]);
          }
 #endif
@@ -253,14 +253,14 @@ namespace stackelberg {
     }
 
 
-    
+
     const std::map<int, vector<TransitionRelation>> &  SymbolicStackelbergManager::get_transition_relation() const {
         if (!transition_relation) {
             transition_relation = make_unique<map<int, vector<TransitionRelation> > > ();
 
             for (int op_no : task->get_global_operator_id_follower_ops()) {
                 const GlobalOperator & op = g_operators[op_no];
-            
+
                 assert (transitions_by_id[op.get_op_id()]);
                 int cost = cost_type->get_adjusted_cost(&op);
                 (*transition_relation)[cost].push_back(*(transitions_by_id[op.get_op_id()]));
@@ -268,12 +268,12 @@ namespace stackelberg {
             }
             for (auto it = transition_relation->begin(); it != transition_relation->end(); ++it) {
                 merge(vars.get(), it->second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
-            }            
+            }
         }
 
         return *transition_relation;
-            
-        
+
+
     }
 
     const TransitionRelation &  SymbolicStackelbergManager::get_transition_relation(const GlobalOperator * op) const {
@@ -285,10 +285,10 @@ namespace stackelberg {
     }
 
     std::shared_ptr<StackelbergSS> SymbolicStackelbergManager::get_leader_manager() {
-        
+
         BDD initialState = vars->getStateBDD(g_initial_state());
         BDD goal = vars->zeroBDD();
-        
+
         std::map<int, std::vector <symbolic::TransitionRelation>> indTRs;
 
 
@@ -300,7 +300,7 @@ namespace stackelberg {
 
         std::map<int, std::vector <symbolic::TransitionRelation>> transitions = indTRs;
 
-        
+
         for (map<int, vector<TransitionRelation>>::iterator it = transitions.begin();
              it != transitions.end(); ++it) {
             merge(vars.get(), it->second, mergeTR, mgr_params.max_tr_time, mgr_params.max_tr_size);
@@ -308,7 +308,7 @@ namespace stackelberg {
 
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal, indTRs, transitions,
                                           *mutex_bdds, vector<bool>());
-    
+
     }
 
 
@@ -330,7 +330,7 @@ namespace stackelberg {
         //         }
         //     }
         // }
-        
+
 
         for (int op_no : task->get_global_operator_id_follower_ops()) {
             const GlobalOperator * op = &(g_operators[op_no]);
@@ -340,12 +340,12 @@ namespace stackelberg {
 
         BDD initialState = vars->getStateBDD(g_initial_state());
         BDD goal = vars->zeroBDD();
-        
+
         return make_shared<StackelbergSS>(vars.get(), mgr_params, initialState, goal,
                                           indTRs,
                                           indTRs,
                                           *mutex_bdds, vector<bool>());
-    
+
     }
 
     int SymbolicStackelbergManager::get_cost (const GlobalOperator *op) const{
@@ -377,11 +377,11 @@ namespace stackelberg {
     BDD StackelbergSS::shrinkExists(const BDD &bdd, int ) const {
         return bdd;
     }
-    
+
     BDD StackelbergSS::shrinkForall(const BDD &bdd, int ) const {
         return bdd;
     }
-    
+
     BDD StackelbergSS::shrinkTBDD(const BDD &bdd, int ) const {
         return bdd;
     }
@@ -393,7 +393,7 @@ namespace stackelberg {
         if (!dominance) {
             dominance = make_unique<DominanceStackelbergTask> (*task);
         }
-        return dominance->dominates(t, s); 
+        return dominance->dominates(t, s);
     }
 
     MutexBDDs::MutexBDDs (SymVariables * vars,
@@ -409,10 +409,10 @@ namespace stackelberg {
         bool genMutexBDDByFluent = (p.mutex_type == MutexType::MUTEX_EDELETION);
 
         if(genMutexBDDByFluent){
-            //Initialize structure for exactlyOneBDDsByFluent (common to both init_mutex calls) 
+            //Initialize structure for exactlyOneBDDsByFluent (common to both init_mutex calls)
             exactlyOneBDDsByFluent.resize(g_variable_domain.size());
             for (size_t i = 0; i < g_variable_domain.size(); ++i){
-                exactlyOneBDDsByFluent[i].resize(g_variable_domain[i]); 
+                exactlyOneBDDsByFluent[i].resize(g_variable_domain[i]);
                 for(int j = 0; j < g_variable_domain[i]; ++j){
                     exactlyOneBDDsByFluent[i][j] = vars->oneBDD();
                 }
@@ -425,7 +425,7 @@ namespace stackelberg {
 
     void MutexBDDs::init_mutex(SymVariables * vars,
                                const std::vector<MutexGroup> &mutex_groups,
-                               const symbolic::SymParamsMgr &p, 
+                               const symbolic::SymParamsMgr &p,
                                bool genMutexBDD, bool genMutexBDDByFluent, bool fw,
                                const::vector<bool> & relevant_vars) {
         DEBUG_MSG(cout << "Init mutex BDDs " << (fw ? "fw" : "bw") << ": "
@@ -557,7 +557,7 @@ namespace stackelberg {
     BDD SymbolicStackelbergManager::get_follower_initial_state (const std::vector<int> & leader_state) const {
         return vars->getPartialStateBDD(leader_state, pattern_vars_follower_search);
     }
-    
+
 
 }
 

@@ -19,7 +19,7 @@ namespace stackelberg {
         if (follower_cost >= follower_cost_upper_bound) {
             leader_action_costs_for_follower_upper_bound = leader_cost;
         }
-       
+
         if (frontier.empty()) {
             frontier.push_back(ParetoFrontierNode(leader_cost,  follower_cost, leader_plan, follower_plan));
             //cout << "New node in the pareto frontier: (" << leader_cost << "," << follower_cost << ")" << endl;
@@ -50,8 +50,8 @@ namespace stackelberg {
         //         fix_action_costs_for_attacker_upper_bound = leader_cost;
         //     }
         // }
-    
-    
+
+
         if (it != frontier.begin() && (it - 1)->follower_cost >= follower_cost) {
             // The new node is dominated by existing node with fewer fix action costs
             return;
@@ -103,12 +103,17 @@ namespace stackelberg {
 
 
 
-    void dump_follower_op_sequence(const vector<int> &op_sequence, const StackelbergTask & task, std::ostringstream &json)
+    void dump_follower_op_sequence(const vector<int> &op_sequence, int cost, const StackelbergTask & task, std::ostringstream &json)
     {
 	json << " [";
         if (op_sequence.size() < 1) {
-            cout << "\t\t <unsolvable>" << endl;
+            if (cost == 0 ){
+                cout << "\t\t <empty sequence>" << endl;
+            } else {
+                cout << "\t\t <unsolvable>" << endl;
+            }
             json << "]";
+
             return;
         }
 
@@ -142,11 +147,11 @@ namespace stackelberg {
                                   const std::vector<const GlobalOperator *> & leader_plan,
                                   const std::vector<const GlobalOperator *> & follower_plan) {
         vector<int> follower_plan_int;
-            
+
         for (const  GlobalOperator * op : follower_plan){
             follower_plan_int.push_back(op->get_op_id());
         }
-                
+
         add_node(leader_cost, follower_cost, leader_plan, follower_plan_int);
     }
 
@@ -178,7 +183,7 @@ namespace stackelberg {
         json << "]";
         cout << "\t attacker plan: " << endl;
         json << ", \"attacker plan\": ";
-        dump_follower_op_sequence(follower_plan, task, json);
+        dump_follower_op_sequence(follower_plan, follower_cost, task, json);
         json << "}";
     }
 
@@ -190,10 +195,10 @@ namespace stackelberg {
         cout << "Pareto-frontier: ";
         for (const auto  &  node : frontier) {
             cout << "(" << node.leader_cost << "," << node.follower_cost << ") ";
-        }                
-        
+        }
+
         cout << endl;
-        
+
         for (size_t i = 0; i < frontier.size(); ++i) {
             if(i > 0) {
     		json << ",\n";
@@ -210,4 +215,3 @@ namespace stackelberg {
     }
 
 }
-

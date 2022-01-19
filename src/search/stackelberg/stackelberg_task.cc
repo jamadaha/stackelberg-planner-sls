@@ -10,13 +10,13 @@ using namespace std;
 namespace stackelberg {
 
 
-    
+
     StackelbergTask::StackelbergTask() {
 
         sort_operators();
 
         divide_variables();
-        
+
         if (leader_operators.size() == 0) {
             // If there are no fix actions, exit with an error
             cerr << "Warning: running stackelberg search on a task without fix actions" << endl;
@@ -82,7 +82,7 @@ namespace stackelberg {
 
                 follower_operators.push_back(g_operators[op_no]);
                 global_operator_id_follower_ops.push_back(op_no);
-                
+
                 follower_operators.back().set_op_id(follower_action_op_id);
                 follower_action_op_id++;
 
@@ -105,7 +105,7 @@ namespace stackelberg {
                 leader_operators.push_back(g_operators[op_no]);
 
                 global_operator_id_leader_ops.push_back(op_no);
-                
+
                 leader_operators.back().set_cost2(0);
                 leader_operators.back().set_conds_variable_name(leader_variable_name);
                 leader_operators.back().set_effs_variable_name(leader_variable_name);
@@ -120,7 +120,7 @@ namespace stackelberg {
             }
 	}
     }
-    
+
     double StackelbergTask::prob_cost_to_prob(int prob_cost)
     {
         if (prob_cost == FOLLOWER_TASK_UNSOLVABLE) {
@@ -137,7 +137,7 @@ namespace stackelberg {
 
 
         follower_precondition_vars.resize(num_vars, false);
-        
+
         num_follower_vars = 0;
         follower_vars.assign(g_variable_domain.size(), false);
 
@@ -372,14 +372,31 @@ namespace stackelberg {
         }
     }
 
-    
+
 
     void StackelbergTask::dump_statistics() const {
         cout << "leader_variable_domain.size() = " << leader_variable_domain.size() << endl;
         cout << "leader_vars_follower_preconditioned.size() = " << leader_vars_follower_preconditioned.size() << endl;
-        
+
         cout << "follower_operators.size() = " << follower_operators.size() << endl;
         cout << "leader_operators.size() = " << leader_operators.size() << endl;
+
+
+      /*cout << "Leader only vars: " << endl;
+        for (int v : get_leader_only_vars()) {
+            for (int val = 0; val < g_variable_domain[v]; ++val) {
+                cout <<  "   " << g_fact_names[v][val] << endl;
+            }
+        }
+
+        cout << "Follower only vars: " << endl;
+        for (int v : get_follower_only_vars()) {
+            for (int val = 0; val < g_variable_domain[v]; ++val) {
+                cout <<  "   " << g_fact_names[v][val] << endl;
+            }
+            cout << endl;
+        }*/
+
     }
 
 
@@ -393,7 +410,7 @@ namespace stackelberg {
 	return max_leader_action_cost;
     }
 
-    
+
     string StackelbergTask::leader_state_to_string(const GlobalState &state) {
 	string res = "";
 	for (size_t i = 0; i < leader_variable_domain.size(); i++) {
@@ -455,7 +472,7 @@ namespace stackelberg {
         }
     }
 
-    
+
     std::unique_ptr<StateRegistry> StackelbergTask::get_leader_state_registry() const{
 	IntPacker *leader_vars_state_packer = new IntPacker(leader_variable_domain);
         return std::make_unique <StateRegistry> (leader_vars_state_packer, leader_initial_state_data);
@@ -492,7 +509,7 @@ namespace stackelberg {
             }
         }*/
 
-        
+
         return result;
     }
 
@@ -519,21 +536,21 @@ namespace stackelberg {
     }
 
 
-    bool StackelbergTask::is_follower_only_var (int v) const {    
+    bool StackelbergTask::is_follower_only_var (int v) const {
         return !leader_vars[v];
     }
 
 
-    bool StackelbergTask::is_leader_only_var (int v) const {    
+    bool StackelbergTask::is_leader_only_var (int v) const {
         return !follower_vars[v] && !follower_precondition_vars[v];
     }
 
 
-    bool StackelbergTask::is_follower_effect_var (int v) const {    
+    bool StackelbergTask::is_follower_effect_var (int v) const {
         return follower_vars[v];
     }
 
-    bool StackelbergTask::is_follower_static_var (int v) const {    
+    bool StackelbergTask::is_follower_static_var (int v) const {
         return !follower_vars[v] && follower_precondition_vars[v];
     }
 

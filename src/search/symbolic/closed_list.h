@@ -16,7 +16,7 @@ class SymSolution;
 class UnidirectionalSearch;
 class SymSearch;
 
-class ClosedList : public OppositeFrontier, PlanReconstruction { 
+class ClosedList : public OppositeFrontier, public PlanReconstruction {
 private:
     SymStateSpaceManager *mgr;  //Symbolic manager to perform bdd operations
     SymVariables * symVars;  //Symbolic manager to perform bdd operations
@@ -35,7 +35,7 @@ private:
     //std::map<int, BDD> closedUpTo;  // Disjunction of BDDs in closed  (auxiliar useful to take the maximum between several BDDs)
     std::set<int> h_values; //Set of h_values of the heuristic
 
-    void newHValue(int h_value); 
+    void newHValue(int h_value);
 
 public:
     ClosedList();
@@ -44,7 +44,7 @@ public:
 
     virtual ~ClosedList() = default;
 
-    
+
     void init(SymStateSpaceManager *manager);
     void init(SymStateSpaceManager *manager, const ClosedList &other);
 
@@ -54,7 +54,7 @@ public:
     void insertWithZeroCostSteps(int h, int zero_cost_steps, const BDD &S);
     void setHNotClosed(int h);
     void setFNotClosed(int f);
-    
+
     const std::set<int> &getHValues();
 
     //Check if any of the states is closed.
@@ -98,11 +98,11 @@ public:
 	return fNotClosed == std::numeric_limits<int>::max();
     }
 
-    // From plan reconstruction: 
+    // From plan reconstruction:
     virtual void getPlan(const BDD &cut, int g, bool fw, std::vector <const GlobalOperator *> &path) const override;
     virtual SymVariables *getVars() const override;
     virtual const std::map<int, std::vector<symbolic::TransitionRelation>> & get_transition_relation() const override;
-    
+
 
 
     int compute_heuristic(const GlobalState & state) const;

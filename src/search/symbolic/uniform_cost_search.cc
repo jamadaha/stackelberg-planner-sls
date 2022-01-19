@@ -37,6 +37,7 @@ namespace symbolic {
 	lastStepCost = true;
 	assert(mgr);
 
+
 	DEBUG_MSG(cout << "Init exploration: " << dirname(forward) << *this/* << " with mgr: " << manager */<< endl;);
 
 	BDD init_bdd = fw ? mgr->getInitialState() : mgr->getGoal();
@@ -63,7 +64,12 @@ namespace symbolic {
 
 	prepareBucket();
 
-	if(isOriginal()) engine->setLowerBound(getF());
+	if(isOriginal()){ engine->setLowerBound(getF());
+
+            if(!(mgr->getInitialState()*mgr->getGoal()).IsZero()) {
+                engine->new_solution(SymSolution(closed.get(), nullptr, 0, 0, mgr->getInitialState()*mgr->getGoal()));
+            }
+        }
 
 	return true;
     }
