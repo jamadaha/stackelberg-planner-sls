@@ -1,3 +1,5 @@
+NOTE: This is a fork of https://gitlab.com/atorralba_planners/stackelberg-planner-sls
+
 # Stackelberg Framework and Symbolic Leader Search
 
 This repository is an extension of FastDownward (see http://www.fast-downward.org/) that
