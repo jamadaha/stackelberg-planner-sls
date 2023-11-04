@@ -69,11 +69,10 @@ void SymbolicStackelberg::initialize() {
   leader_search->init(mgr, true);
 
   replacement_out = replacement_dir;
-  std::filesystem::create_directory(replacement_out);
   if (replacement_title != ".") {
     replacement_out /= replacement_title;
-    std::filesystem::create_directory(replacement_out);
   }
+  std::filesystem::create_directories(replacement_out);
 
   statistics.stackelberg_search_initialized(t1);
 }
@@ -117,7 +116,6 @@ SearchStatus SymbolicStackelberg::step() {
     int newF = F;
     vector<int> current_best;
     FollowerSolution current_best_solution;
-    size_t plan_count = 0;
     while (!follower_initial_states.IsZero() && newF < maxF) {
       auto state = stackelberg_mgr->sample_follower_initial_state(
           follower_initial_states);
@@ -150,8 +148,7 @@ SearchStatus SymbolicStackelberg::step() {
       if (solution.has_plan() || solution.solution_cost() == 0) {
         auto plan = solution.get_plan();
         if (!plan.empty()) {
-          std::ofstream plan_file(replacement_out /
-                                  (std::to_string(plan_count++) + ".pddl"));
+          std::ofstream plan_file(replacement_out / (get_uuid() + ".plan"));
           if (plan_file.is_open()) {
             vector<const GlobalOperator *> leader_ops_sequence;
             leader_search->getClosed()->extract_path(
