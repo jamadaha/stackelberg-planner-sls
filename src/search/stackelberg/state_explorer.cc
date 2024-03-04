@@ -106,43 +106,41 @@ namespace stackelberg {
 
     SearchStatus StateExplorer::step() {
         cout << "Leader search...";
-        while (!leader_search->finished() && leader_search->getG() < 5)
+        while (!leader_search->finished())
             leader_search->step();
         cout << "Done" << endl;
-        BDD leader_states = leader_search->getClosedTotal();
-
-        BDD follower_initial_states =
-                stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
-                stackelberg_mgr->get_static_follower_initial_state();
-
-        follower_initial_states =
-                plan_reuse->find_plan_follower_initial_states(follower_initial_states);
-
 
         BDD bdd_valid = vars->zeroBDD();
         BDD bdd_invalid = vars->zeroBDD();
-        size_t state_index = 0;
-        while (!follower_initial_states.IsZero() && state_index < 10000) {
-            auto state = stackelberg_mgr->sample_follower_initial_state(
-                    follower_initial_states);
-            auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                             std::numeric_limits<int>::max());
-            if (solution.has_plan() || solution.solution_cost() == 0) {
-                bdd_valid += vars->getStateBDD(state);
-            } else {
-                bdd_invalid += vars->getStateBDD(state);
-            }
+        auto closed_list = leader_search->getClosed()->getClosedList();
+        cout << "Closed list length: " << closed_list.size() << endl;
+        for (auto &itr : closed_list) {
+            BDD leader_states = itr.second;
+            BDD follower_initial_states =
+                    stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
+                    stackelberg_mgr->get_static_follower_initial_state();
+
             follower_initial_states =
-                    plan_reuse->regress_plan_to_follower_initial_states(
-                            solution, follower_initial_states);
-            if (state_index++ % 10 == 0) {
-                double num_follower_initial_states = vars->numStates(
-                        follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars());
-                cout << "Follower states: " << num_follower_initial_states << endl;
+                    plan_reuse->find_plan_follower_initial_states(follower_initial_states);
+            size_t state_count = 0;
+            // TODO: What is a good method of limiting state search
+            while (!follower_initial_states.IsZero() && state_count++ < 10000) {
+                auto state = stackelberg_mgr->sample_follower_initial_state(
+                        follower_initial_states);
+                auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                      std::numeric_limits<int>::max());
+                if (solution.has_plan() || solution.solution_cost() == 0) {
+                    bdd_valid += vars->getStateBDD(state);
+                } else {
+                    bdd_invalid += vars->getStateBDD(state);
+                }
+                follower_initial_states =
+                        plan_reuse->regress_plan_to_follower_initial_states(
+                                solution, follower_initial_states);
             }
+            cout << "Valid: " << vars->numStates(bdd_valid) << endl;
+            cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
         }
-        cout << "Valid: " << vars->numStates(bdd_valid) << endl;
-        cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
 
         if (vars->numStates(bdd_invalid) == 0)
             exit(0);
@@ -153,6 +151,8 @@ namespace stackelberg {
                     continue;
                 if (g_fact_names[i][t].find("leader-state") != std::string::npos)
                     continue;
+                if (g_fact_names[i][t].find("leader-turn") != std::string::npos)
+                    continue;
                 cout << "Variable " << g_variable_name[i] << " value " << g_fact_names[i][t] << endl;
                 BDD bdd = bdd_invalid;
                 cout << "Before: " << vars->numStates(bdd) << endl;
@@ -161,8 +161,6 @@ namespace stackelberg {
                 cout << endl;
             }
         }
-
-        cout << vars << endl;
 
         exit(0);
     }
