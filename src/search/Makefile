@@ -227,6 +227,7 @@ HEADERS +=  stackelberg/stackelberg_search.h \
 	    stackelberg/util.h \
 	    stackelberg/symbolic_stackelberg_manager.h  \
 	    stackelberg/stackelberg_statistics.h \
+	    stackelberg/state_explorer.h \
 	    stackelberg/symbolic_leader_search.h \
 	    stackelberg/plan_reuse.h	\
 	 stackelberg/dominance_stackelberg_task.h
