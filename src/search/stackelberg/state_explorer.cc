@@ -105,8 +105,10 @@ namespace stackelberg {
     }
 
     SearchStatus StateExplorer::step() {
+        cout << "Leader search...";
         while (!leader_search->finished() && leader_search->getG() < 5)
             leader_search->step();
+        cout << "Done" << endl;
         BDD leader_states = leader_search->getClosedTotal();
 
         BDD follower_initial_states =
@@ -117,41 +119,51 @@ namespace stackelberg {
                 plan_reuse->find_plan_follower_initial_states(follower_initial_states);
 
 
-        BDD bdd_valid;
-        BDD bdd_invalid;
-        size_t i = 0;
-        size_t valid = 0;;
-        size_t invalid = 0;
-        while (!follower_initial_states.IsZero() && i < 1000) {
+        BDD bdd_valid = vars->zeroBDD();
+        BDD bdd_invalid = vars->zeroBDD();
+        size_t state_index = 0;
+        while (!follower_initial_states.IsZero() && state_index < 10000) {
             auto state = stackelberg_mgr->sample_follower_initial_state(
                     follower_initial_states);
             auto solution = optimal_engine->solve(state, plan_reuse.get(),
                                              std::numeric_limits<int>::max());
             if (solution.has_plan() || solution.solution_cost() == 0) {
-                valid++;
-                if (i == 0)
-                    bdd_valid = vars->getStateBDD(state);
-                else
-                    bdd_valid *= vars->getStateBDD(state);
-
+                bdd_valid += vars->getStateBDD(state);
             } else {
-                invalid++;
-                if (i == 0)
-                    bdd_invalid = vars->getStateBDD(state);
-                else
-                    bdd_invalid *= vars->getStateBDD(state);
+                bdd_invalid += vars->getStateBDD(state);
             }
             follower_initial_states =
                     plan_reuse->regress_plan_to_follower_initial_states(
                             solution, follower_initial_states);
-            if (i++ % 10 == 0) {
+            if (state_index++ % 10 == 0) {
                 double num_follower_initial_states = vars->numStates(
                         follower_initial_states, stackelberg_mgr->get_num_follower_bdd_vars());
                 cout << "Follower states: " << num_follower_initial_states << endl;
             }
         }
-        cout << "Valid: " << valid << endl;
-        cout << "Invalid: " << invalid << endl;
+        cout << "Valid: " << vars->numStates(bdd_valid) << endl;
+        cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
+
+        if (vars->numStates(bdd_invalid) == 0)
+            exit(0);
+
+        for (size_t i = 0; i < g_variable_name.size(); i++) {
+            for (size_t t = 0; t < g_fact_names[i].size(); t++) {
+                if (g_fact_names[i][t].find("is-goal") != std::string::npos)
+                    continue;
+                if (g_fact_names[i][t].find("leader-state") != std::string::npos)
+                    continue;
+                cout << "Variable " << g_variable_name[i] << " value " << g_fact_names[i][t] << endl;
+                BDD bdd = bdd_invalid;
+                cout << "Before: " << vars->numStates(bdd) << endl;
+                bdd &= ~vars->preBDD(i, t);
+                cout << "After: " << vars->numStates(bdd) << endl;
+                cout << endl;
+            }
+        }
+
+        cout << vars << endl;
+
         exit(0);
     }
 

@@ -1,0 +1,207 @@
+vars: 
+Atom power_avail(sat1)
+NegatedAtom power_avail(sat1)
+vars: 
+Atom leader-state-power_avail(sat1)
+NegatedAtom leader-state-power_avail(sat1)
+vars: 
+Atom power_avail(sat2)
+NegatedAtom power_avail(sat2)
+vars: 
+Atom leader-state-power_avail(sat2)
+NegatedAtom leader-state-power_avail(sat2)
+vars: 
+Atom pointing(sat1, dir1)
+NegatedAtom pointing(sat1, dir1)
+vars: 
+Atom pointing(sat1, dir3)
+NegatedAtom pointing(sat1, dir3)
+vars: 
+Atom pointing(sat1, dir4)
+NegatedAtom pointing(sat1, dir4)
+vars: 
+Atom pointing(sat1, dir2)
+NegatedAtom pointing(sat1, dir2)
+vars: 
+Atom leader-state-pointing(sat1, dir1)
+Atom leader-state-pointing(sat1, dir2)
+Atom leader-state-pointing(sat1, dir3)
+Atom leader-state-pointing(sat1, dir4)
+vars: 
+Atom leader-state-calibrated(ins2)
+NegatedAtom leader-state-calibrated(ins2)
+vars: 
+Atom leader-state-power_on(ins2)
+NegatedAtom leader-state-power_on(ins2)
+vars: 
+Atom leader-state-power_on(ins1)
+NegatedAtom leader-state-power_on(ins1)
+vars: 
+Atom calibrated(ins2)
+NegatedAtom calibrated(ins2)
+vars: 
+Atom leader-state-calibrated(ins1)
+NegatedAtom leader-state-calibrated(ins1)
+vars: 
+Atom power_on(ins2)
+NegatedAtom power_on(ins2)
+vars: 
+Atom power_on(ins1)
+NegatedAtom power_on(ins1)
+vars: 
+Atom leader-state-have_image(dir1, mod1)
+NegatedAtom leader-state-have_image(dir1, mod1)
+vars: 
+Atom leader-state-have_image(dir3, mod1)
+NegatedAtom leader-state-have_image(dir3, mod1)
+vars: 
+Atom leader-state-have_image(dir2, mod1)
+NegatedAtom leader-state-have_image(dir2, mod1)
+vars: 
+Atom leader-state-have_image(dir4, mod1)
+NegatedAtom leader-state-have_image(dir4, mod1)
+vars: 
+Atom calibrated(ins1)
+NegatedAtom calibrated(ins1)
+vars: 
+Atom have_image(dir1, mod1)
+NegatedAtom have_image(dir1, mod1)
+vars: 
+Atom have_image(dir3, mod1)
+NegatedAtom have_image(dir3, mod1)
+vars: 
+Atom leader-turn()
+NegatedAtom leader-turn()
+vars: 
+Atom have_image(dir2, mod1)
+NegatedAtom have_image(dir2, mod1)
+vars: 
+Atom have_image(dir4, mod1)
+NegatedAtom have_image(dir4, mod1)
+vars: 
+Atom is-goal-have_image(dir1, mod1)
+NegatedAtom is-goal-have_image(dir1, mod1)
+vars: 
+Atom is-goal-have_image(dir3, mod1)
+NegatedAtom is-goal-have_image(dir3, mod1)
+vars: 
+Atom is-goal-have_image(dir2, mod1)
+NegatedAtom is-goal-have_image(dir2, mod1)
+vars: 
+Atom leader-state-pointing(sat2, dir1)
+Atom leader-state-pointing(sat2, dir2)
+Atom leader-state-pointing(sat2, dir3)
+Atom leader-state-pointing(sat2, dir4)
+vars: 
+Atom is-goal-have_image(dir4, mod1)
+NegatedAtom is-goal-have_image(dir4, mod1)
+vars: 
+Atom leader-state-power_on(ins3)
+NegatedAtom leader-state-power_on(ins3)
+vars: 
+Atom leader-state-calibrated(ins3)
+NegatedAtom leader-state-calibrated(ins3)
+vars: 
+Atom leader-state-pointing(sat3, dir1)
+Atom leader-state-pointing(sat3, dir2)
+Atom leader-state-pointing(sat3, dir3)
+Atom leader-state-pointing(sat3, dir4)
+vars: 
+Atom power_on(ins3)
+NegatedAtom power_on(ins3)
+vars: 
+Atom calibrated(ins3)
+NegatedAtom calibrated(ins3)
+vars: 
+Atom pointing(sat2, dir2)
+NegatedAtom pointing(sat2, dir2)
+vars: 
+Atom pointing(sat2, dir1)
+NegatedAtom pointing(sat2, dir1)
+vars: 
+Atom pointing(sat2, dir3)
+NegatedAtom pointing(sat2, dir3)
+vars: 
+Atom pointing(sat2, dir4)
+NegatedAtom pointing(sat2, dir4)
+vars: 
+Atom pointing(sat3, dir1)
+NegatedAtom pointing(sat3, dir1)
+vars: 
+Atom pointing(sat3, dir3)
+NegatedAtom pointing(sat3, dir3)
+vars: 
+Atom pointing(sat3, dir2)
+NegatedAtom pointing(sat3, dir2)
+vars: 
+Atom pointing(sat3, dir4)
+NegatedAtom pointing(sat3, dir4)
+vars: 
+Atom power_avail(sat3)
+NegatedAtom power_avail(sat3)
+vars: 
+Atom leader-state-power_avail(sat3)
+NegatedAtom leader-state-power_avail(sat3)
+vars: 
+Atom is-goal-power_avail(sat2)
+NegatedAtom is-goal-power_avail(sat2)
+vars: 
+Atom is-goal-calibrated(ins1)
+NegatedAtom is-goal-calibrated(ins1)
+vars: 
+Atom is-goal-power_on(ins1)
+NegatedAtom is-goal-power_on(ins1)
+vars: 
+Atom is-goal-power_avail(sat3)
+NegatedAtom is-goal-power_avail(sat3)
+vars: 
+Atom is-goal-calibrated(ins3)
+NegatedAtom is-goal-calibrated(ins3)
+vars: 
+Atom is-goal-power_on(ins3)
+NegatedAtom is-goal-power_on(ins3)
+vars: 
+Atom is-goal-pointing(sat3, dir4)
+NegatedAtom is-goal-pointing(sat3, dir4)
+vars: 
+Atom is-goal-pointing(sat3, dir3)
+NegatedAtom is-goal-pointing(sat3, dir3)
+vars: 
+Atom is-goal-pointing(sat3, dir1)
+NegatedAtom is-goal-pointing(sat3, dir1)
+vars: 
+Atom is-goal-pointing(sat3, dir2)
+NegatedAtom is-goal-pointing(sat3, dir2)
+vars: 
+Atom is-goal-pointing(sat2, dir4)
+NegatedAtom is-goal-pointing(sat2, dir4)
+vars: 
+Atom is-goal-pointing(sat2, dir2)
+NegatedAtom is-goal-pointing(sat2, dir2)
+vars: 
+Atom is-goal-pointing(sat2, dir3)
+NegatedAtom is-goal-pointing(sat2, dir3)
+vars: 
+Atom is-goal-pointing(sat2, dir1)
+NegatedAtom is-goal-pointing(sat2, dir1)
+vars: 
+Atom is-goal-power_avail(sat1)
+NegatedAtom is-goal-power_avail(sat1)
+vars: 
+Atom is-goal-power_on(ins2)
+NegatedAtom is-goal-power_on(ins2)
+vars: 
+Atom is-goal-calibrated(ins2)
+NegatedAtom is-goal-calibrated(ins2)
+vars: 
+Atom is-goal-pointing(sat1, dir1)
+NegatedAtom is-goal-pointing(sat1, dir1)
+vars: 
+Atom is-goal-pointing(sat1, dir4)
+NegatedAtom is-goal-pointing(sat1, dir4)
+vars: 
+Atom is-goal-pointing(sat1, dir2)
+NegatedAtom is-goal-pointing(sat1, dir2)
+vars: 
+Atom is-goal-pointing(sat1, dir3)
+NegatedAtom is-goal-pointing(sat1, dir3)
