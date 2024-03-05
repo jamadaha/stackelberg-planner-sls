@@ -136,7 +136,7 @@ namespace stackelberg {
         if (vars->numStates(bdd_invalid) == 0)
             exit(0);
 
-        BDDTree<std::pair<size_t, size_t>> tree;
+        BDDTree<std::pair<size_t, size_t>> tree = BDDTree<std::pair<size_t, size_t>>(vars);
         for (size_t i = 0; i < g_variable_name.size(); i++) {
             for (size_t t = 0; t < g_fact_names[i].size(); t++) {
                 if (g_fact_names[i][t].find("is-goal") != std::string::npos)
@@ -151,8 +151,21 @@ namespace stackelberg {
                 tree.AddRoot({i, t}, bdd);
             }
         }
+        cout << "Root size: " << tree.RootSize() << endl;
         auto result = tree.Generate();
+        cout << "Result size: " << result.size() << endl;
 
+        std::ofstream plan_file("out");
+        plan_file << "Valid: " << vars->numStates(bdd_valid) << endl;
+        for (const auto &r : result) {
+            plan_file << "Facts:";
+            for (const auto &fact : r.first) {
+              plan_file << " " << g_fact_names[fact.first][fact.second];
+            }
+            plan_file << endl;
+            plan_file << "Invalid: " << r.second << endl;
+        }
+        plan_file.close();
 
         exit(0);
     }
