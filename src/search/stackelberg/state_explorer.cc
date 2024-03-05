@@ -19,6 +19,7 @@
 #include "follower_task.h"
 #include "plan_reuse.h"
 #include "../symbolic/sym_variables.h"
+#include "bdd_tree.h"
 
 using namespace std;
 using namespace symbolic;
@@ -44,17 +45,6 @@ namespace {
         parser.add_option<stackelberg::FollowerSearchEngine *>("cost_bounded_engine", "", "",
                                                   OptionFlags(false));
 
-        // Used for replacement plans
-        parser.add_option<std::string>(
-                "replacement_dir",
-                "Path to a directory in which follower plans are exported",
-                "replacements", OptionFlags(false));
-
-        parser.add_option<std::string>(
-                "replacement_title",
-                "What the directory replacements are added to should be called "
-                "as a sub-directory of \"replacement_dir\"",
-                ".", OptionFlags(false));
         Options opts = parser.parse();
         if (!parser.dry_run()) {
             return new stackelberg::StateExplorer(opts);
@@ -112,39 +102,41 @@ namespace stackelberg {
 
         BDD bdd_valid = vars->zeroBDD();
         BDD bdd_invalid = vars->zeroBDD();
-        auto closed_list = leader_search->getClosed()->getClosedList();
-        cout << "Closed list length: " << closed_list.size() << endl;
-        for (auto &itr : closed_list) {
-            BDD leader_states = itr.second;
-            BDD follower_initial_states =
-                    stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
-                    stackelberg_mgr->get_static_follower_initial_state();
+        auto closed_list_priced = leader_search->getClosed()->getClosedList();
+        auto leader_states = vars->zeroBDD();
+        for (auto &itr : closed_list_priced)
+          leader_states += itr.second;
+        BDD follower_initial_states =
+                stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
+                 stackelberg_mgr->get_static_follower_initial_state();
 
-            follower_initial_states =
-                    plan_reuse->find_plan_follower_initial_states(follower_initial_states);
-            size_t state_count = 0;
-            // TODO: What is a good method of limiting state search
-            while (!follower_initial_states.IsZero() && state_count++ < 10000) {
-                auto state = stackelberg_mgr->sample_follower_initial_state(
-                        follower_initial_states);
-                auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                                      std::numeric_limits<int>::max());
-                if (solution.has_plan() || solution.solution_cost() == 0) {
-                    bdd_valid += vars->getStateBDD(state);
-                } else {
-                    bdd_invalid += vars->getStateBDD(state);
-                }
-                follower_initial_states =
-                        plan_reuse->regress_plan_to_follower_initial_states(
-                                solution, follower_initial_states);
+        follower_initial_states =
+                plan_reuse->find_plan_follower_initial_states(follower_initial_states);
+        size_t state_count = 0;
+        // TODO: What is a good method of limiting state search
+        while (!follower_initial_states.IsZero() && state_count++ < 10000) {
+            auto state = stackelberg_mgr->sample_follower_initial_state(
+                    follower_initial_states);
+            auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                  std::numeric_limits<int>::max());
+            if (solution.has_plan() || solution.solution_cost() == 0) {
+                bdd_valid += vars->getStateBDD(state);
+            } else {
+                bdd_invalid += vars->getStateBDD(state);
             }
-            cout << "Valid: " << vars->numStates(bdd_valid) << endl;
-            cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
+            follower_initial_states =
+                    plan_reuse->regress_plan_to_follower_initial_states(
+                            solution, follower_initial_states);
         }
+
+
+        cout << "Valid: " << vars->numStates(bdd_valid) << endl;
+        cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
 
         if (vars->numStates(bdd_invalid) == 0)
             exit(0);
 
+        BDDTree<std::pair<size_t, size_t>> tree;
         for (size_t i = 0; i < g_variable_name.size(); i++) {
             for (size_t t = 0; t < g_fact_names[i].size(); t++) {
                 if (g_fact_names[i][t].find("is-goal") != std::string::npos)
@@ -153,14 +145,14 @@ namespace stackelberg {
                     continue;
                 if (g_fact_names[i][t].find("leader-turn") != std::string::npos)
                     continue;
-                cout << "Variable " << g_variable_name[i] << " value " << g_fact_names[i][t] << endl;
-                BDD bdd = bdd_invalid;
-                cout << "Before: " << vars->numStates(bdd) << endl;
-                bdd &= ~vars->preBDD(i, t);
-                cout << "After: " << vars->numStates(bdd) << endl;
-                cout << endl;
+                if (g_fact_names[i][t].find("none of those") != std::string::npos)
+                    continue;
+                const BDD bdd = bdd_invalid & (~vars->preBDD(i, t));
+                tree.AddRoot({i, t}, bdd);
             }
         }
+        auto result = tree.Generate();
+
 
         exit(0);
     }
