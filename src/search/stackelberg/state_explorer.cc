@@ -95,79 +95,43 @@ namespace stackelberg {
     }
 
     SearchStatus StateExplorer::step() {
-        cout << "Leader search...";
-        while (!leader_search->finished())
-            leader_search->step();
-        cout << "Done" << endl;
+        BDD valid = vars->zeroBDD();
+        BDD invalid = vars->zeroBDD();
+        const auto &closed_list = leader_search->getClosed()->getClosedList();
+        for (int L = 0; L < std::numeric_limits<int>::max();) {
+            if (closed_list.find(L) == closed_list.end())
+                break;
+            auto leader_states = closed_list.at(L);
+            BDD follower_initial_states =
+                    stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
+                    stackelberg_mgr->get_static_follower_initial_state();
 
-        BDD bdd_valid = vars->zeroBDD();
-        BDD bdd_invalid = vars->zeroBDD();
-        auto closed_list_priced = leader_search->getClosed()->getClosedList();
-        auto leader_states = vars->zeroBDD();
-        for (auto &itr : closed_list_priced)
-          leader_states += itr.second;
-        BDD follower_initial_states =
-                stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
-                 stackelberg_mgr->get_static_follower_initial_state();
-
-        follower_initial_states =
-                plan_reuse->find_plan_follower_initial_states(follower_initial_states);
-        size_t state_count = 0;
-        // TODO: What is a good method of limiting state search
-        while (!follower_initial_states.IsZero() && state_count++ < 10000) {
-            auto state = stackelberg_mgr->sample_follower_initial_state(
-                    follower_initial_states);
-            auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                                  std::numeric_limits<int>::max());
-            if (solution.has_plan() || solution.solution_cost() == 0) {
-                bdd_valid += vars->getStateBDD(state);
-            } else {
-                bdd_invalid += vars->getStateBDD(state);
+            while (!follower_initial_states.IsZero()) {
+                auto state = stackelberg_mgr->sample_follower_initial_state(follower_initial_states);
+                auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                      std::numeric_limits<int>::max());
+                if (solution.has_plan() || solution.solution_cost() == 0) {
+                    follower_initial_states =
+                            plan_reuse->regress_plan_to_follower_initial_states(
+                                    solution, follower_initial_states);
+                    valid += vars->getStateBDD(state);
+                } else {
+                    BDD aux =
+                            vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
+                    assert(follower_initial_states - aux != follower_initial_states);
+                    follower_initial_states -= aux;
+                    invalid += vars->getStateBDD(state);
+                }
             }
-            follower_initial_states =
-                    plan_reuse->regress_plan_to_follower_initial_states(
-                            solution, follower_initial_states);
+
+            while (!leader_search->finished() && leader_search->getG() == L)
+                leader_search->step();
+
+            assert(leader_search->getG() > L);
+            L = leader_search->getG();
+            cout << "Valid: " << vars->numStates(valid) << endl;
+            cout << "Invalid: " << vars->numStates(invalid) << endl;
         }
-
-
-        cout << "Valid: " << vars->numStates(bdd_valid) << endl;
-        cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
-
-        if (vars->numStates(bdd_invalid) == 0)
-            exit(0);
-
-        BDDTree<std::pair<size_t, size_t>> tree = BDDTree<std::pair<size_t, size_t>>(vars);
-        for (size_t i = 0; i < g_variable_name.size(); i++) {
-            for (size_t t = 0; t < g_fact_names[i].size(); t++) {
-                if (g_fact_names[i][t].find("is-goal") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("leader-state") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("leader-turn") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("none of those") != std::string::npos)
-                    continue;
-                const BDD bdd = bdd_invalid & (~vars->preBDD(i, t));
-                tree.AddRoot({i, t}, bdd);
-            }
-        }
-        cout << "Root size: " << tree.RootSize() << endl;
-        auto result = tree.Generate();
-        cout << "Result size: " << result.size() << endl;
-
-        std::ofstream plan_file("out");
-        plan_file << "Valid: " << vars->numStates(bdd_valid) << endl;
-        for (const auto &r : result) {
-            plan_file << "Facts:";
-            for (const auto &fact : r.first) {
-              plan_file << " " << g_fact_names[fact.first][fact.second];
-            }
-            plan_file << endl;
-            plan_file << "Invalid: " << r.second << endl;
-        }
-        plan_file.close();
-
         exit(0);
     }
-
 }
