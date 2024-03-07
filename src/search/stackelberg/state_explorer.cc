@@ -111,24 +111,23 @@ namespace stackelberg {
                   plan_reuse->find_plan_follower_initial_states(follower_initial_states);
             // TODO: What is a good way of limiting this loop?
             while (!follower_initial_states.IsZero()  ) {
-            // TODO: Is sample random?
-            auto state = stackelberg_mgr->sample_follower_initial_state(
-                    follower_initial_states);
-            auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                                  std::numeric_limits<int>::max());
-            if (solution.has_plan() || solution.solution_cost() == 0) {
-                bdd_valid += vars->getStateBDD(state);
-                follower_initial_states =
-                plan_reuse->regress_plan_to_follower_initial_states(
-                solution, follower_initial_states);
-            } else {
-                bdd_invalid += vars->getStateBDD(state);
-                BDD aux =
-                vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
-                assert(follower_initial_states - aux != follower_initial_states);
-                follower_initial_states -= aux;
-            }
-
+                // TODO: Is sample random?
+                auto state = stackelberg_mgr->sample_follower_initial_state(
+                        follower_initial_states);
+                auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                      std::numeric_limits<int>::max());
+                if (solution.has_plan() || solution.solution_cost() == 0) {
+                    bdd_valid += vars->getStateBDD(state);
+                    follower_initial_states =
+                    plan_reuse->regress_plan_to_follower_initial_states(
+                    solution, follower_initial_states);
+                } else {
+                    bdd_invalid += vars->getStateBDD(state);
+                    BDD aux =
+                    vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
+                    assert(follower_initial_states - aux != follower_initial_states);
+                    follower_initial_states -= aux;
+                }
             }
 
             cout << "Valid: " << vars->numStates(bdd_valid) << endl;
@@ -146,36 +145,8 @@ namespace stackelberg {
         if (vars->numStates(bdd_invalid) == 0)
             exit(0);
 
-        BDDTree<std::pair<size_t, size_t>> tree = BDDTree<std::pair<size_t, size_t>>(vars);
-        for (size_t i = 0; i < g_variable_name.size(); i++) {
-            for (size_t t = 0; t < g_fact_names[i].size(); t++) {
-                if (g_fact_names[i][t].find("is-goal") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("leader-state") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("leader-turn") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("none of those") != std::string::npos)
-                    continue;
-                const BDD bdd = bdd_invalid & (~vars->preBDD(i, t));
-                tree.AddRoot({i, t}, bdd);
-            }
-        }
-        cout << "Root size: " << tree.RootSize() << endl;
-        auto result = tree.Generate();
-        cout << "Result size: " << result.size() << endl;
 
-        std::ofstream plan_file("out");
-        plan_file << vars->numStates(bdd_valid) << endl;
-        plan_file << vars->numStates(bdd_invalid) << endl;
-        for (const auto &r : result) {
-            for (const auto &fact : r.first) {
-              plan_file  << g_fact_names[fact.first][fact.second] << '|';
-            }
-            plan_file << endl;
-            plan_file <<  r.second << endl;
-        }
-        plan_file.close();
+
 
         exit(0);
     }
