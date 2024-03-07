@@ -19,7 +19,6 @@
 #include "follower_task.h"
 #include "plan_reuse.h"
 #include "../symbolic/sym_variables.h"
-#include "bdd_tree.h"
 
 using namespace std;
 using namespace symbolic;
@@ -111,11 +110,11 @@ namespace stackelberg {
                   plan_reuse->find_plan_follower_initial_states(follower_initial_states);
             // TODO: What is a good way of limiting this loop?
             while (!follower_initial_states.IsZero()  ) {
-            // TODO: Is sample random?
-            auto state = stackelberg_mgr->sample_follower_initial_state(
-                    follower_initial_states);
-            auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                                  std::numeric_limits<int>::max());
+                // TODO: Is sample random?
+                auto state = stackelberg_mgr->sample_follower_initial_state(
+                        follower_initial_states);
+                auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                      std::numeric_limits<int>::max());
                 if (solution.has_plan() || solution.solution_cost() == 0) {
                     bdd_valid += vars->getStateBDD(state);
                     follower_initial_states =
@@ -142,38 +141,21 @@ namespace stackelberg {
             assert(leader_search->getG() > L);
             L = leader_search->getG();
         }
-        if (vars->numStates(bdd_invalid) == 0)
-            exit(0);
-
-        BDDTree<std::pair<size_t, size_t>> tree = BDDTree<std::pair<size_t, size_t>>(vars);
-        for (size_t i = 0; i < g_variable_name.size(); i++) {
-            for (size_t t = 0; t < g_fact_names[i].size(); t++) {
-                if (g_fact_names[i][t].find("is-goal") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("leader-state") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("leader-turn") != std::string::npos)
-                    continue;
-                if (g_fact_names[i][t].find("none of those") != std::string::npos)
-                    continue;
-                const BDD bdd = bdd_invalid & (~vars->preBDD(i, t));
-                tree.AddRoot({i, t}, bdd);
-            }
+        cout << "Finished state exploration" << endl;
+        if (bdd_invalid.IsZero()) {
+          cout << "Meta action is valid" << endl;
+          exit(0);
         }
-        cout << "Root size: " << tree.RootSize() << endl;
-        auto result = tree.Generate();
-        cout << "Result size: " << result.size() << endl;
+        cout << "Beginning precondition tree production" << endl;
 
-        std::ofstream plan_file("out");
-        plan_file << vars->numStates(bdd_valid) << endl;
-        plan_file << vars->numStates(bdd_invalid) << endl;
-        for (const auto &r : result) {
-            for (const auto &fact : r.first)
-              plan_file  << g_fact_names[fact.first][fact.second] << '|';
-            plan_file << endl;
-            plan_file <<  r.second << endl;
-        }
-        plan_file.close();
+        const size_t variable_count = g_variable_name.size();
+        cout << "Variables: " << variable_count << endl;
+        const size_t fact_count = g_num_facts;
+        const double avg_facts = (double) fact_count / (double) variable_count;
+        cout << "Avg facts: " << avg_facts << endl;
+        const size_t v_com_count = variable_count * variable_count - variable_count - 1;
+        cout << "Worst case variable combination count: " << v_com_count << endl;
+        cout << "Worst case fact combination count: " << avg_facts << "^" << variable_count << endl;
 
         exit(0);
     }
