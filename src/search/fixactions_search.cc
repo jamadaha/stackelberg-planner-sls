@@ -474,7 +474,7 @@ void FixActionsSearch::create_new_variable_indices()
         if (!attack_vars[var]) {
             cout << "There should be no goal defined for a non-attack var! Error in PDDL!"
                  << endl;
-            //exit(EXIT_INPUT_ERROR);
+            exit(EXIT_INPUT_ERROR);
         }
         /* FIXME REMOVED DIVIDING VARIABLES
         g_goal[i].first = map_var_id_to_new_var_id[g_goal[i].first];

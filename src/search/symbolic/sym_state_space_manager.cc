@@ -300,6 +300,7 @@ SymParamsMgr::SymParamsMgr(const Options &opts) :
     if (mutex_type == MutexType::MUTEX_EDELETION && has_conditional_effects()) {
         cout << "Mutex type changed to mutex_and because the domain has conditional effects" << endl;
         mutex_type = MutexType::MUTEX_AND;
+        exit(EXIT_INPUT_ERROR);
     }
 }
 
@@ -313,7 +314,7 @@ SymParamsMgr::SymParamsMgr() :
     //Don't use edeletion with conditional effects
     if (mutex_type == MutexType::MUTEX_EDELETION && has_conditional_effects()) {
         cout << "Mutex type changed to mutex_and because the domain has conditional effects" << endl;
-        mutex_type = MutexType::MUTEX_AND;
+        mutex_type = MutexType::MUTEX_AND;exit(EXIT_INPUT_ERROR);
     }
 }
 
