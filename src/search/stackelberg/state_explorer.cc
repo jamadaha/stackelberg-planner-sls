@@ -172,14 +172,14 @@ namespace stackelberg {
         cout << "Result size: " << result.size() << endl;
 
         std::ofstream plan_file("out");
-        plan_file << "Valid: " << vars->numStates(bdd_valid) << endl;
+        plan_file << vars->numStates(bdd_valid) << endl;
+        plan_file << vars->numStates(bdd_invalid) << endl;
         for (const auto &r : result) {
-            plan_file << "Facts:";
             for (const auto &fact : r.first) {
-              plan_file << " " << g_fact_names[fact.first][fact.second];
+              plan_file  << g_fact_names[fact.first][fact.second] << '|';
             }
             plan_file << endl;
-            plan_file << "Invalid: " << r.second << endl;
+            plan_file <<  r.second << endl;
         }
         plan_file.close();
 
