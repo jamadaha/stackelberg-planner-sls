@@ -95,60 +95,54 @@ namespace stackelberg {
     }
 
     SearchStatus StateExplorer::step() {
-      BDD bdd_valid = vars->zeroBDD();
-      BDD bdd_invalid = vars->zeroBDD();
-      const auto &closed_list = leader_search->getClosed()->getClosedList();
-      for (int L = 0; L < std::numeric_limits<int>::max();) {
-        if (closed_list.find(L) == closed_list.end())
-          break;
-        cout << "L: " << L << endl;
-      auto leader_states = closed_list.at(L);
-      BDD follower_initial_states =
-              stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
-              stackelberg_mgr->get_static_follower_initial_state();
+        BDD bdd_valid = vars->zeroBDD();
+        BDD bdd_invalid = vars->zeroBDD();
+        const auto &closed_list = leader_search->getClosed()->getClosedList();
+        for (int L = 0; L < std::numeric_limits<int>::max();) {
+            if (closed_list.find(L) == closed_list.end())
+                break;
+            cout << "L: " << L << endl;
+            auto leader_states = closed_list.at(L);
+            BDD follower_initial_states =
+                  stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
+                  stackelberg_mgr->get_static_follower_initial_state();
 
-      follower_initial_states =
-              plan_reuse->find_plan_follower_initial_states(follower_initial_states);
-      size_t state_count = 0;
-      // TODO: What is a good way of limiting this loop?
-      while (!follower_initial_states.IsZero()  ) {
-        // TODO: Is sample random?
-        auto state = stackelberg_mgr->sample_follower_initial_state(
-                follower_initial_states);
-        auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                              std::numeric_limits<int>::max());
-        if (solution.has_plan() || solution.solution_cost() == 0) {
-          bdd_valid += vars->getStateBDD(state);
-          follower_initial_states =
-                  plan_reuse->regress_plan_to_follower_initial_states(
-                          solution, follower_initial_states);
-        } else {
-          bdd_invalid += vars->getStateBDD(state);
-          BDD aux =
-                  vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
-          assert(follower_initial_states - aux != follower_initial_states);
-          follower_initial_states -= aux;
+            follower_initial_states =
+                  plan_reuse->find_plan_follower_initial_states(follower_initial_states);
+            // TODO: What is a good way of limiting this loop?
+            while (!follower_initial_states.IsZero()  ) {
+            // TODO: Is sample random?
+            auto state = stackelberg_mgr->sample_follower_initial_state(
+                    follower_initial_states);
+            auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                  std::numeric_limits<int>::max());
+            if (solution.has_plan() || solution.solution_cost() == 0) {
+                bdd_valid += vars->getStateBDD(state);
+                follower_initial_states =
+                plan_reuse->regress_plan_to_follower_initial_states(
+                solution, follower_initial_states);
+            } else {
+                bdd_invalid += vars->getStateBDD(state);
+                BDD aux =
+                vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
+                assert(follower_initial_states - aux != follower_initial_states);
+                follower_initial_states -= aux;
+            }
+
+            }
+
+            cout << "Valid: " << vars->numStates(bdd_valid) << endl;
+            cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
+
+            cout << "Generating next layer...";
+            while (!leader_search->finished() && leader_search->getG() == L) {
+                leader_search->step();
+            }
+            cout << "Done" << endl;
+
+            assert(leader_search->getG() > L);
+            L = leader_search->getG();
         }
-
-      }
-
-        cout << "Valid: " << vars->numStates(bdd_valid) << endl;
-        cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
-
-      cout << "Generating next layer...";
-      while (!leader_search->finished() && leader_search->getG() == L) {
-        leader_search->step();
-      }
-      cout << "Done" << endl;
-
-      assert(leader_search->getG() > L);
-      L = leader_search->getG();
-
-    }
-
-
-
-
         if (vars->numStates(bdd_invalid) == 0)
             exit(0);
 
@@ -185,5 +179,4 @@ namespace stackelberg {
 
         exit(0);
     }
-
 }
