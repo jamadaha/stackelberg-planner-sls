@@ -214,7 +214,7 @@ namespace stackelberg {
         }
 
         vector<vector<int>> variable_combinations;
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= 3; i++) {
             auto combinations = comb(variable_facts.size(), i);
             for (const auto &c : combinations) {
                 vector<int> combination;
@@ -237,7 +237,7 @@ namespace stackelberg {
                 BDD invalid = bdd_invalid;
                 for (int i = 0; i < v_com.size(); i++) {
                     applicable &= vars->preBDD(v_com[i], p[i]);
-                    invalid &= ~vars->preBDD(v_com[i], p[i]);
+                    invalid &= vars->preBDD(v_com[i], p[i]);
                     v_facts.emplace_back(v_com[i], p[i]);
                 }
                 int applicable_count = vars->numStates(applicable);
