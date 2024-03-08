@@ -235,16 +235,26 @@ namespace stackelberg {
                 vector<pair<int, int>> v_facts;
                 BDD applicable = bdd_valid | bdd_invalid;
                 BDD invalid = bdd_invalid;
+                bool to_prune = false;
                 for (int i = 0; i < v_com.size(); i++) {
-                    applicable &= vars->preBDD(v_com[i], p[i]);
-                    invalid &= vars->preBDD(v_com[i], p[i]);
+                    BDD n_applicable = applicable & vars->preBDD(v_com[i], p[i]);
+                    BDD n_invalid = invalid & vars->preBDD(v_com[i], p[i]);
+                    if (n_applicable == applicable && n_invalid == invalid) {
+                        to_prune = true;
+                        break;
+                    }
+                    applicable = n_applicable;
+                    invalid = n_invalid;
                     v_facts.emplace_back(v_com[i], p[i]);
                 }
+                if (to_prune)
+                    continue;
                 int applicable_count = vars->numStates(applicable);
                 int invalid_count = vars->numStates(invalid);
                 result.emplace_back(v_facts, std::make_pair(applicable_count, invalid_count));
             }
         }
+        cout << "Result count: " << result.size() << endl;
         cout << "Writing to file...";
         std::ofstream plan_file("out");
         plan_file << vars->numStates(bdd_valid) << endl;
