@@ -214,7 +214,7 @@ namespace stackelberg {
         }
 
         vector<vector<int>> variable_combinations;
-        for (int i = 1; i <= 3; i++) {
+        for (int i = 1; i <= 5; i++) {
             auto combinations = comb(variable_facts.size(), i);
             for (const auto &c : combinations) {
                 vector<int> combination;
