@@ -315,3 +315,4 @@ src/translate/constraints.pyc
 src/translate/build_model.pyc
 src/translate/axiom_rules.pyc
 src/search/.idea/workspace.xml
+src/out

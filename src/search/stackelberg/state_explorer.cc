@@ -19,11 +19,44 @@
 #include "follower_task.h"
 #include "plan_reuse.h"
 #include "../symbolic/sym_variables.h"
-#include "bdd_tree.h"
 
 using namespace std;
 using namespace symbolic;
 
+std::vector<std::vector<size_t>> comb(size_t N, size_t K)
+{
+    std::string bitmask(K, 1); // K leading 1's
+    bitmask.resize(N, 0); // N-K trailing 0's
+
+    std::vector<std::vector<size_t>> combinations;
+    // print integers and permute bitmask
+    do {
+        std::vector<size_t> combination;
+        for (size_t i = 0; i < N; ++i) // [0..N-1] integers
+            if (bitmask[i])
+                combination.push_back(i);
+        combinations.push_back(std::move(combination));
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+
+    return combinations;
+}
+
+vector<vector<int>> cartesian( vector<vector<int> >& v ) {
+    auto product = []( long long a, vector<int>& b ) { return a*b.size(); };
+    const long long N = accumulate( v.begin(), v.end(), 1LL, product );
+    vector<vector<int>> combinations;
+    vector<int> u(v.size());
+    for( long long n=0 ; n<N ; ++n ) {
+        lldiv_t q { n, 0 };
+        for( long long i=v.size()-1 ; 0<=i ; --i ) {
+            q = div( q.quot, v[i].size() );
+            u[i] = v[i][q.rem];
+        }
+
+        combinations.push_back(u);
+    }
+    return combinations;
+}
 namespace {
     SearchEngine *parse_ss(OptionParser &parser) {
         SearchEngine::add_options_to_parser(parser);
@@ -95,6 +128,7 @@ namespace stackelberg {
     }
 
     SearchStatus StateExplorer::step() {
+        cout << "Beginning state exploration" << endl;
         BDD bdd_valid = vars->zeroBDD();
         BDD bdd_invalid = vars->zeroBDD();
         const auto &closed_list = leader_search->getClosed()->getClosedList();
@@ -111,11 +145,11 @@ namespace stackelberg {
                   plan_reuse->find_plan_follower_initial_states(follower_initial_states);
             // TODO: What is a good way of limiting this loop?
             while (!follower_initial_states.IsZero()  ) {
-            // TODO: Is sample random?
-            auto state = stackelberg_mgr->sample_follower_initial_state(
-                    follower_initial_states);
-            auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                                  std::numeric_limits<int>::max());
+                // TODO: Is sample random?
+                auto state = stackelberg_mgr->sample_follower_initial_state(
+                        follower_initial_states);
+                auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                      std::numeric_limits<int>::max());
                 if (solution.has_plan() || solution.solution_cost() == 0) {
                     bdd_valid += vars->getStateBDD(state);
                     follower_initial_states =
@@ -123,10 +157,8 @@ namespace stackelberg {
                     solution, follower_initial_states);
                 } else {
                     bdd_invalid += vars->getStateBDD(state);
-                    BDD aux =
-                    vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
-                    assert(follower_initial_states - aux != follower_initial_states);
-                    follower_initial_states -= aux;
+                    BDD bdd_state = vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
+                    follower_initial_states -= bdd_state;
                 }
             }
 
@@ -142,12 +174,19 @@ namespace stackelberg {
             assert(leader_search->getG() > L);
             L = leader_search->getG();
         }
-        if (vars->numStates(bdd_invalid) == 0)
+        cout << "Finished state exploration" << endl;
+        if (vars->numStates(bdd_invalid) == 0) {
+            cout << "Meta action is valid" << endl;
             exit(0);
+        }
 
-        BDDTree<std::pair<size_t, size_t>> tree = BDDTree<std::pair<size_t, size_t>>(vars);
-        for (size_t i = 0; i < g_variable_name.size(); i++) {
-            for (size_t t = 0; t < g_fact_names[i].size(); t++) {
+        cout << "Finding relevant facts...";
+        int fact_count = 0;
+        std::unordered_map<int, std::vector<int>> variable_facts;
+        std::vector<int> variables;
+        for (int i = 0; i < g_variable_name.size(); i++) {
+            std::vector<int> facts;
+            for (int t = 0; t < g_fact_names[i].size(); t++) {
                 if (g_fact_names[i][t].find("is-goal") != std::string::npos)
                     continue;
                 if (g_fact_names[i][t].find("leader-state") != std::string::npos)
@@ -156,14 +195,53 @@ namespace stackelberg {
                     continue;
                 if (g_fact_names[i][t].find("none of those") != std::string::npos)
                     continue;
-                const BDD bdd = bdd_invalid & (~vars->preBDD(i, t));
-                tree.AddRoot({i, t}, bdd);
+                fact_count++;
+                facts.push_back(t);
+            }
+            if (!facts.empty()) {
+                variable_facts[i] = facts;
+                variables.push_back(i);
             }
         }
-        cout << "Root size: " << tree.RootSize() << endl;
-        auto result = tree.Generate();
-        cout << "Result size: " << result.size() << endl;
+        cout << "Done" << endl;
+        cout << "Task variables: " << variable_facts.size() << endl;
+        cout << "Relevant variables: " << variable_facts.size() << endl;
+        cout << "Task variable_facts: " << g_num_facts << endl;
+        cout << "Relevant variable_facts: " << fact_count << endl;
+        if (fact_count == 0) {
+            cout << "No relevant facts" << endl;
+            exit(0);
+        }
 
+        vector<vector<int>> variable_combinations;
+        for (int i = 1; i < 4; i++) {
+            auto combinations = comb(variable_facts.size(), i);
+            for (const auto &c : combinations) {
+                vector<int> combination;
+                for (const auto c_i : c)
+                    combination.push_back(variables[c_i]);
+                variable_combinations.push_back(combination);
+            }
+        }
+
+        vector<pair<vector<pair<int, int>>, int>> result;
+        for (const auto &v_com : variable_combinations) {
+            vector<vector<int>> facts;
+            for (const auto &i : v_com)
+                facts.push_back(variable_facts.at(i));
+
+            const auto product = cartesian(facts);
+            for (const auto &p : product) {
+                vector<pair<int, int>> v_facts;
+                BDD bdd = bdd_invalid;
+                for (int i = 0; i < v_com.size(); i++) {
+                    bdd &= ~vars->preBDD(v_com[i], p[i]);
+                    v_facts.emplace_back(v_com[i], p[i]);
+                }
+                result.emplace_back(v_facts, vars->numStates(bdd));
+            }
+        }
+        cout << "Writing to file...";
         std::ofstream plan_file("out");
         plan_file << vars->numStates(bdd_valid) << endl;
         plan_file << vars->numStates(bdd_invalid) << endl;
@@ -174,6 +252,7 @@ namespace stackelberg {
             plan_file <<  r.second << endl;
         }
         plan_file.close();
+        cout << "Done" << endl;
 
         exit(0);
     }
