@@ -233,16 +233,16 @@ namespace stackelberg {
             const auto product = cartesian(facts);
             for (const auto &p : product) {
                 vector<pair<int, int>> v_facts;
-                BDD t_bdd_valid = bdd_valid;
-                BDD t_bdd_invalid = bdd_invalid;
+                BDD applicable = bdd_valid | bdd_invalid;
+                BDD invalid = bdd_invalid;
                 for (int i = 0; i < v_com.size(); i++) {
-                    t_bdd_valid &= ~vars->preBDD(v_com[i], p[i]);
-                    t_bdd_invalid &= ~vars->preBDD(v_com[i], p[i]);
+                    applicable &= vars->preBDD(v_com[i], p[i]);
+                    invalid &= ~vars->preBDD(v_com[i], p[i]);
                     v_facts.emplace_back(v_com[i], p[i]);
                 }
-                int applicability = vars->numStates(t_bdd_valid) + vars->numStates(t_bdd_invalid);
-                int validity = vars->numStates(t_bdd_invalid);
-                result.emplace_back(v_facts, std::make_pair(applicability, validity));
+                int applicable_count = vars->numStates(applicable);
+                int invalid_count = vars->numStates(invalid);
+                result.emplace_back(v_facts, std::make_pair(applicable_count, invalid_count));
             }
         }
         cout << "Writing to file...";
