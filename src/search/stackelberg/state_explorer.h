@@ -33,18 +33,14 @@ namespace stackelberg {
     class StateExplorer : public SearchEngine {
     public:
         explicit StateExplorer(const Options &opts);
-
         ~StateExplorer() override = default;
 
     protected:
         std::unique_ptr<StackelbergTask> task;
         std::shared_ptr<SymbolicStackelbergManager> stackelberg_mgr;
-
         std::unique_ptr<FollowerSearchEngine> optimal_engine;
         std::unique_ptr<FollowerSearchEngine> cost_bounded_engine;
-
         std::unique_ptr<PlanReuse> plan_reuse;
-
         std::shared_ptr<symbolic::SymVariables> vars;
         std::unique_ptr<symbolic::SymController> leader_search_controller;
         std::unique_ptr<symbolic::UniformCostSearch> leader_search;
@@ -52,18 +48,12 @@ namespace stackelberg {
                 mgrParams; // Parameters for SymStateSpaceManager configuration.
         symbolic::SymParamsSearch
                 searchParams; // Parameters to search the original state space
-
-        const bool upper_bound_pruning;
-
         ParetoFrontier pareto_frontier;
 
-        StackelbergStatistics statistics;
-
-        const int min_relevant_follower_cost;
-
+        const size_t min_precondition_size;
+        const size_t max_precondition_size;
 
         void initialize() final;
-
         SearchStatus step() final;
     };
 }

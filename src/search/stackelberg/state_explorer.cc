@@ -77,6 +77,12 @@ namespace {
         parser.add_option<stackelberg::FollowerSearchEngine *>("optimal_engine");
         parser.add_option<stackelberg::FollowerSearchEngine *>("cost_bounded_engine", "", "",
                                                   OptionFlags(false));
+        parser.add_option<size_t>(
+                "min_precondition_size",
+                "Minimum number of facts added to precondition", "1");
+        parser.add_option<size_t>(
+                "max_precondition_size",
+                "Maximum number of facts added to precondition", "4");
 
         Options opts = parser.parse();
         if (!parser.dry_run()) {
@@ -94,37 +100,24 @@ namespace stackelberg {
     optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
     plan_reuse(opts.get<PlanReuse *>("plan_reuse")), mgrParams(opts),
     searchParams(opts),
-    upper_bound_pruning(opts.get<bool>("upper_bound_pruning")),
-    statistics(opts.get<bool>("follower_info")),
-    min_relevant_follower_cost(opts.get<int>("min_relevant_follower_cost")) {
+    min_precondition_size(opts.get<size_t>("min_precondition_size")),
+    max_precondition_size(opts.get<size_t>("max_precondition_size")) {
         task = make_unique<StackelbergTask>();
         stackelberg_mgr = std::make_shared<SymbolicStackelbergManager>(task.get(), opts);
         optimal_engine->initialize(task.get(), stackelberg_mgr);
-
         plan_reuse->initialize(stackelberg_mgr);
-
-        if (opts.contains("cost_bounded_engine")) {
-            cost_bounded_engine.reset(
-                    opts.get<FollowerSearchEngine *>("cost_bounded_engine"));
-            cost_bounded_engine->initialize(task.get(), stackelberg_mgr);
-        }
     }
 
     void StateExplorer::initialize() {
         cout << "Initializing State Explore..." << endl;
         auto t1 = chrono::high_resolution_clock::now();
-
         vars = stackelberg_mgr->get_sym_vars();
-
         leader_search_controller =
                 make_unique<SymController>(vars, mgrParams, searchParams);
         leader_search = make_unique<UniformCostSearch>(leader_search_controller.get(),
                                                        searchParams);
         auto mgr = stackelberg_mgr->get_leader_manager();
-
         leader_search->init(mgr, true);
-
-        statistics.stackelberg_search_initialized(t1);
     }
 
     SearchStatus StateExplorer::step() {
@@ -214,7 +207,7 @@ namespace stackelberg {
         }
 
         vector<vector<int>> variable_combinations;
-        for (int i = 1; i <= 4; i++) {
+        for (size_t i = min_precondition_size; i <= max_precondition_size; i++) {
             auto combinations = comb(variable_facts.size(), i);
             for (const auto &c : combinations) {
                 vector<int> combination;
