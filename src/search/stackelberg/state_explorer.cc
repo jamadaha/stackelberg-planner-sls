@@ -214,7 +214,7 @@ namespace stackelberg {
         }
 
         vector<vector<int>> variable_combinations;
-        for (int i = 1; i < 4; i++) {
+        for (int i = 1; i <= 4; i++) {
             auto combinations = comb(variable_facts.size(), i);
             for (const auto &c : combinations) {
                 vector<int> combination;
@@ -224,7 +224,7 @@ namespace stackelberg {
             }
         }
 
-        vector<pair<vector<pair<int, int>>, int>> result;
+        vector<pair<vector<pair<int, int>>, pair<int, int>>> result;
         for (const auto &v_com : variable_combinations) {
             vector<vector<int>> facts;
             for (const auto &i : v_com)
@@ -233,12 +233,16 @@ namespace stackelberg {
             const auto product = cartesian(facts);
             for (const auto &p : product) {
                 vector<pair<int, int>> v_facts;
-                BDD bdd = bdd_invalid;
+                BDD t_bdd_valid = bdd_valid;
+                BDD t_bdd_invalid = bdd_invalid;
                 for (int i = 0; i < v_com.size(); i++) {
-                    bdd &= ~vars->preBDD(v_com[i], p[i]);
+                    t_bdd_valid &= ~vars->preBDD(v_com[i], p[i]);
+                    t_bdd_invalid &= ~vars->preBDD(v_com[i], p[i]);
                     v_facts.emplace_back(v_com[i], p[i]);
                 }
-                result.emplace_back(v_facts, vars->numStates(bdd));
+                int applicability = vars->numStates(t_bdd_valid) + vars->numStates(t_bdd_invalid);
+                int validity = vars->numStates(t_bdd_invalid);
+                result.emplace_back(v_facts, std::make_pair(applicability, validity));
             }
         }
         cout << "Writing to file...";
@@ -249,7 +253,8 @@ namespace stackelberg {
             for (const auto &fact : r.first)
               plan_file  << g_fact_names[fact.first][fact.second] << '|';
             plan_file << endl;
-            plan_file <<  r.second << endl;
+            plan_file <<  r.second.first << endl;
+            plan_file <<  r.second.second << endl;
         }
         plan_file.close();
         cout << "Done" << endl;
