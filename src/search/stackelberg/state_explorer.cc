@@ -206,6 +206,7 @@ namespace stackelberg {
             exit(0);
         }
 
+        cout << "Generating variable combinations...";
         vector<vector<int>> variable_combinations;
         for (size_t i = min_precondition_size; i <= max_precondition_size; i++) {
             auto combinations = comb(variable_facts.size(), i);
@@ -216,7 +217,11 @@ namespace stackelberg {
                 variable_combinations.push_back(combination);
             }
         }
+        cout << "Done" << endl;
+        cout << "Variable Combinations: " << variable_combinations.size() << endl;
 
+        cout << "Beginning precondition generation" << endl;
+        size_t combinations = 0;
         vector<pair<vector<pair<int, int>>, pair<int, int>>> result;
         for (const auto &v_com : variable_combinations) {
             vector<vector<int>> facts;
@@ -225,6 +230,7 @@ namespace stackelberg {
 
             const auto product = cartesian(facts);
             for (const auto &p : product) {
+                combinations++;
                 vector<pair<int, int>> v_facts;
                 BDD applicable = bdd_valid | bdd_invalid;
                 BDD invalid = bdd_invalid;
@@ -247,7 +253,8 @@ namespace stackelberg {
                 result.emplace_back(v_facts, std::make_pair(applicable_count, invalid_count));
             }
         }
-        cout << "Result count: " << result.size() << endl;
+        cout << "Tested combinations: " << combinations << endl;
+        cout << "Final combinations: " << result.size() << endl;
         cout << "Writing to file...";
         std::ofstream plan_file("out");
         plan_file << vars->numStates(bdd_valid) << endl;
