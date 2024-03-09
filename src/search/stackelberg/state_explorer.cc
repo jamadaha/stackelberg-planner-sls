@@ -2,23 +2,16 @@
 #include "util.h"
 #include "../option_parser.h"
 #include "../plugin.h"
-#include <filesystem>
 #include <vector>
 #include "../symbolic/sym_controller.h"
 #include "../symbolic/uniform_cost_search.h"
 #include "symbolic_stackelberg_manager.h"
-#include "../utils/timer.h"
 #include <algorithm>
 #include <cassert>
 #include <chrono>
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
 #include <sstream>
 #include "follower_search_engine.h"
-#include "follower_task.h"
 #include "plan_reuse.h"
-#include "../symbolic/sym_variables.h"
 
 using namespace std;
 using namespace symbolic;
@@ -29,7 +22,6 @@ std::vector<std::vector<size_t>> comb(size_t N, size_t K)
     bitmask.resize(N, 0); // N-K trailing 0's
 
     std::vector<std::vector<size_t>> combinations;
-    // print integers and permute bitmask
     do {
         std::vector<size_t> combination;
         for (size_t i = 0; i < N; ++i) // [0..N-1] integers
@@ -41,11 +33,11 @@ std::vector<std::vector<size_t>> comb(size_t N, size_t K)
     return combinations;
 }
 
-vector<vector<int>> cartesian( vector<vector<int> >& v ) {
-    auto product = []( long long a, vector<int>& b ) { return a*b.size(); };
+vector<vector<size_t>> cartesian( vector<vector<size_t> >& v ) {
+    auto product = []( long long a, vector<size_t>& b ) { return a*b.size(); };
     const long long N = accumulate( v.begin(), v.end(), 1LL, product );
-    vector<vector<int>> combinations;
-    vector<int> u(v.size());
+    vector<vector<size_t>> combinations;
+    vector<size_t> u(v.size());
     for( long long n=0 ; n<N ; ++n ) {
         lldiv_t q { n, 0 };
         for( long long i=v.size()-1 ; 0<=i ; --i ) {
@@ -57,6 +49,17 @@ vector<vector<int>> cartesian( vector<vector<int> >& v ) {
     }
     return combinations;
 }
+
+pair<string, vector<string>> split_operator(const string &s) {
+    std::istringstream is(s);
+    vector<string> objects;
+    string name;
+    string object;
+    is >> std::skipws >> name;
+    while (is >> std::skipws >> object) objects.push_back(object);
+    return {name, objects};
+}
+
 namespace {
     SearchEngine *parse_ss(OptionParser &parser) {
         SearchEngine::add_options_to_parser(parser);
@@ -110,7 +113,6 @@ namespace stackelberg {
 
     void StateExplorer::initialize() {
         cout << "Initializing State Explore..." << endl;
-        auto t1 = chrono::high_resolution_clock::now();
         vars = stackelberg_mgr->get_sym_vars();
         leader_search_controller =
                 make_unique<SymController>(vars, mgrParams, searchParams);
@@ -118,6 +120,14 @@ namespace stackelberg {
                                                        searchParams);
         auto mgr = stackelberg_mgr->get_leader_manager();
         leader_search->init(mgr, true);
+
+        for (const auto &o : g_operators) {
+            std::string name = o.get_name();
+            if (name.find('$') != string::npos) {
+                this->parameter_count = std::count(name.begin(), name.end(), ' ');
+                this->instantiations.push_back(split_operator(name).second);
+            }
+        }
     }
 
     SearchStatus StateExplorer::step() {
@@ -173,13 +183,34 @@ namespace stackelberg {
             exit(0);
         }
 
-        cout << "Finding relevant facts...";
-        int fact_count = 0;
-        std::unordered_map<int, std::vector<int>> variable_facts;
-        std::vector<int> variables;
-        for (int i = 0; i < g_variable_name.size(); i++) {
-            std::vector<int> facts;
-            for (int t = 0; t < g_fact_names[i].size(); t++) {
+        struct Fact {
+            string name;
+            vector<string> objects;
+            size_t variable;
+            size_t variable_val;
+
+            explicit Fact(size_t variable, size_t value) : variable(variable), variable_val(value) {
+                string s = g_fact_names[variable][value];
+                size_t i = s.find('(');
+                this->name = s.substr(0, i);
+                s = s.substr(i + 1);
+                while (s.size() > 1) {
+                    if ((i = s.find(',')) != string::npos) {
+                        this->objects.push_back(s.substr(0, i));
+                        s = s.substr(i + 2);
+                    } else if ((i = s.find(')') != string::npos)) {
+                        this->objects.push_back(s.substr(0, i + 1));
+                        s = s.substr(i + 2);
+                    } else {
+                        throw std::logic_error("Impossible!");
+                    }
+                }
+            }
+        };
+
+        vector<Fact> facts;
+        for (size_t i = 0; i < g_variable_name.size(); i++) {
+            for (size_t t = 0; t < g_fact_names[i].size(); t++) {
                 if (g_fact_names[i][t].find("is-goal") != std::string::npos)
                     continue;
                 if (g_fact_names[i][t].find("leader-state") != std::string::npos)
@@ -188,80 +219,88 @@ namespace stackelberg {
                     continue;
                 if (g_fact_names[i][t].find("none of those") != std::string::npos)
                     continue;
-                fact_count++;
-                facts.push_back(t);
-            }
-            if (!facts.empty()) {
-                variable_facts[i] = facts;
-                variables.push_back(i);
+                facts.emplace_back(i, t);
             }
         }
-        cout << "Done" << endl;
-        cout << "Task variables: " << variable_facts.size() << endl;
-        cout << "Relevant variables: " << variable_facts.size() << endl;
-        cout << "Task variable_facts: " << g_num_facts << endl;
-        cout << "Relevant variable_facts: " << fact_count << endl;
-        if (fact_count == 0) {
-            cout << "No relevant facts" << endl;
-            exit(0);
-        }
+        cout << "Facts: " << facts.size() << endl;
 
-        cout << "Generating variable combinations...";
-        vector<vector<int>> variable_combinations;
+        vector<pair<string, size_t>> predicates;
+        for (const auto &fact : facts) {
+            bool found = false;
+            for (const auto &p: predicates)
+                if (fact.name == get<0>(p))
+                    found = true;
+            if (found) continue;
+            predicates.emplace_back(fact.name, fact.objects.size());
+        }
+        cout << "Predicates: " << predicates.size() << endl;
+
+        vector<pair<string, vector<size_t>>> lifted_precondition;
+        for (const auto &predicate : predicates) {
+            vector<vector<size_t>> indexes;
+            for (size_t i = 0; i < predicate.second; i++) {
+                vector<size_t> v;
+                for (size_t t = 0; t < parameter_count; t++)
+                    v.push_back(t);
+                indexes.push_back(v);
+            }
+            if (indexes.empty()) {
+                lifted_precondition.emplace_back(predicate.first, vector<size_t>());
+            } else {
+                auto permutations = cartesian(indexes);
+                for (auto &p: permutations)
+                    lifted_precondition.emplace_back(predicate.first, std::move(p));
+            }
+        }
+        cout << "Lifted preconditions: " << lifted_precondition.size() << endl;
+
+
+        vector<vector<size_t>> combinations;
         for (size_t i = min_precondition_size; i <= max_precondition_size; i++) {
-            auto combinations = comb(variable_facts.size(), i);
-            for (const auto &c : combinations) {
-                vector<int> combination;
-                for (const auto c_i : c)
-                    combination.push_back(variables[c_i]);
-                variable_combinations.push_back(combination);
-            }
+            auto c = comb(lifted_precondition.size(), i);
+            combinations.insert(combinations.end(), c.begin(), c.end());
         }
-        cout << "Done" << endl;
-        cout << "Variable Combinations: " << variable_combinations.size() << endl;
+        cout << "Combinations: " << combinations.size() << endl;
 
-        cout << "Beginning precondition generation" << endl;
-        size_t combinations = 0;
-        vector<pair<vector<pair<int, int>>, pair<int, int>>> result;
-        for (const auto &v_com : variable_combinations) {
-            vector<vector<int>> facts;
-            for (const auto &i : v_com)
-                facts.push_back(variable_facts.at(i));
+        for (const auto &o : g_operators)
+            cout << o.get_name() << endl;
 
-            const auto product = cartesian(facts);
-            for (const auto &p : product) {
-                combinations++;
-                vector<pair<int, int>> v_facts;
-                BDD applicable = bdd_valid | bdd_invalid;
-                BDD invalid = bdd_invalid;
-                bool to_prune = false;
-                for (int i = 0; i < v_com.size(); i++) {
-                    BDD n_applicable = applicable & vars->preBDD(v_com[i], p[i]);
-                    BDD n_invalid = invalid & vars->preBDD(v_com[i], p[i]);
-                    if (n_applicable == applicable && n_invalid == invalid) {
-                        to_prune = true;
-                        break;
+        unordered_map<size_t, pair<size_t, size_t>> result;
+        for (size_t i = 0; i < combinations.size(); i++) {
+            BDD applicable = bdd_valid | bdd_invalid;
+            BDD invalid = bdd_invalid;
+            for (const auto &c : combinations[i]) {
+                for (const auto &f : facts) {
+                    if (lifted_precondition[c].first != f.name)
+                        continue;
+                    bool valid = true;
+                    for (const auto &instantiation : instantiations) {
+                        if (!valid) break;
+                        for (size_t t = 0; t < lifted_precondition[c].second.size(); t++)
+                            if (instantiation[lifted_precondition[c].second[t]] != f.objects[t]) {
+                                valid = false;
+                                break;
+                            }
                     }
-                    applicable = n_applicable;
-                    invalid = n_invalid;
-                    v_facts.emplace_back(v_com[i], p[i]);
+                    if (!valid) continue;
+                    applicable &= vars->preBDD(f.variable, f.variable_val);
+                    invalid &= vars->preBDD(f.variable, f.variable_val);
                 }
-                if (to_prune)
-                    continue;
-                int applicable_count = vars->numStates(applicable);
-                int invalid_count = vars->numStates(invalid);
-                result.emplace_back(v_facts, std::make_pair(applicable_count, invalid_count));
             }
+            result[i] = {vars->numStates(applicable), vars->numStates(invalid)};
         }
-        cout << "Tested combinations: " << combinations << endl;
-        cout << "Final combinations: " << result.size() << endl;
+
+
         cout << "Writing to file...";
         std::ofstream plan_file("out");
         plan_file << vars->numStates(bdd_valid) << endl;
         plan_file << vars->numStates(bdd_invalid) << endl;
         for (const auto &r : result) {
-            for (const auto &fact : r.first)
-              plan_file  << g_fact_names[fact.first][fact.second] << '|';
+            for (const auto &precondition : combinations[r.first])
+              plan_file
+              << lifted_precondition[precondition].first
+              << lifted_precondition[precondition].second
+              << '|';
             plan_file << endl;
             plan_file <<  r.second.first << endl;
             plan_file <<  r.second.second << endl;
