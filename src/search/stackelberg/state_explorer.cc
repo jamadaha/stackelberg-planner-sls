@@ -195,15 +195,11 @@ namespace stackelberg {
                 this->name = s.substr(0, i);
                 s = s.substr(i + 1);
                 while (s.size() > 1) {
-                    if ((i = s.find(',')) != string::npos) {
-                        this->objects.push_back(s.substr(0, i));
-                        s = s.substr(i + 2);
-                    } else if ((i = s.find(')') != string::npos)) {
-                        this->objects.push_back(s.substr(0, i + 1));
-                        s = s.substr(i + 2);
-                    } else {
-                        throw std::logic_error("Impossible!");
-                    }
+                    i = min(s.find(','), s.find(')'));
+                    this->objects.push_back(s.substr(0, i));
+                    s = s.substr(i + 1);
+                    if (s[0] == ' ')
+                        s = s.substr(1);
                 }
             }
         };
@@ -262,31 +258,44 @@ namespace stackelberg {
         }
         cout << "Combinations: " << combinations.size() << endl;
 
-        for (const auto &o : g_operators)
-            cout << o.get_name() << endl;
-
         unordered_map<size_t, pair<size_t, size_t>> result;
         for (size_t i = 0; i < combinations.size(); i++) {
-            BDD applicable = bdd_valid | bdd_invalid;
-            BDD invalid = bdd_invalid;
-            for (const auto &c : combinations[i]) {
-                for (const auto &f : facts) {
-                    if (lifted_precondition[c].first != f.name)
-                        continue;
-                    bool valid = true;
-                    for (const auto &instantiation : instantiations) {
-                        if (!valid) break;
-                        for (size_t t = 0; t < lifted_precondition[c].second.size(); t++)
-                            if (instantiation[lifted_precondition[c].second[t]] != f.objects[t]) {
-                                valid = false;
-                                break;
-                            }
+            BDD applicable = vars->zeroBDD();
+            BDD invalid = vars->zeroBDD();
+            for (const auto &instantiation : instantiations) {
+                BDD i_applicable = bdd_valid | bdd_invalid;
+                BDD i_invalid = bdd_invalid;
+                for (const auto &c : combinations[i]) {
+                    const auto &l_p = lifted_precondition[c];
+                    // map precondition to instantiation objects
+                    vector<string> objects;
+                    for (const auto &parameter_index : l_p.second)
+                        objects.push_back(instantiation[parameter_index]);
+                    // find fact that matches predicate & objects
+                    Fact const* fact = nullptr;
+                    for (const auto &f : facts)
+                        if (f.name == l_p.first && f.objects == objects) {
+                            fact = &f;
+                            break;
+                        }
+                    if (fact == nullptr){
+                        // If no fact exists for the permutation, there is no state wherein it is applicable
+                        // As such, if it is a required fact of the precondition there are no applicable states
+                        // However, if it is required not to be in the state it is always applicable
+                        if (l_p.first.find("NegatedAtom ") == string::npos) {
+                            i_applicable &= vars->zeroBDD();
+                            i_invalid &= vars->zeroBDD();
+                        }
+                        break;
                     }
-                    if (!valid) continue;
-                    applicable &= vars->preBDD(f.variable, f.variable_val);
-                    invalid &= vars->preBDD(f.variable, f.variable_val);
+                    i_applicable &= vars->preBDD(fact->variable, fact->variable_val);
+                    i_invalid &= vars->preBDD(fact->variable, fact->variable_val);
                 }
+                applicable |= i_applicable;
+                invalid |= i_invalid;
             }
+
+
             result[i] = {vars->numStates(applicable), vars->numStates(invalid)};
         }
 
