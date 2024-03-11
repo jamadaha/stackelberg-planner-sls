@@ -258,7 +258,7 @@ namespace stackelberg {
         }
         cout << "Combinations: " << combinations.size() << endl;
 
-        unordered_map<size_t, pair<size_t, size_t>> result;
+        vector<tuple<size_t, size_t, size_t>> result;
         for (size_t i = 0; i < combinations.size(); i++) {
             BDD applicable = vars->zeroBDD();
             BDD invalid = vars->zeroBDD();
@@ -280,12 +280,9 @@ namespace stackelberg {
                         }
                     if (fact == nullptr){
                         // If no fact exists for the permutation, there is no state wherein it is applicable
-                        // As such, if it is a required fact of the precondition there are no applicable states
-                        // However, if it is required not to be in the state it is always applicable
-                        if (l_p.first.find("NegatedAtom ") == string::npos) {
-                            i_applicable &= vars->zeroBDD();
-                            i_invalid &= vars->zeroBDD();
-                        }
+                        // This is usually because it somehow breaks types
+                        i_applicable &= vars->zeroBDD();
+                        i_invalid &= vars->zeroBDD();
                         break;
                     }
                     i_applicable &= vars->preBDD(fact->variable, fact->variable_val);
@@ -297,8 +294,14 @@ namespace stackelberg {
 
             if (applicable == (bdd_valid | bdd_invalid)) continue;
 
-            result[i] = {vars->numStates(applicable), vars->numStates(invalid)};
+            result.emplace_back(i, vars->numStates(applicable), vars->numStates(invalid));
         }
+
+        sort(result.begin(), result.end(), [](const auto &lhs, const auto &rhs) {
+            if (get<1>(lhs) == 0) return false;
+            if (get<1>(rhs) == 0) return true;
+            return get<1>(lhs) < get<1>(rhs);
+        });
 
         cout << "Result: " << result.size() << endl;
         cout << "Writing to file...";
@@ -306,14 +309,14 @@ namespace stackelberg {
         plan_file << vars->numStates(bdd_valid) << endl;
         plan_file << vars->numStates(bdd_invalid) << endl;
         for (const auto &r : result) {
-            for (const auto &precondition : combinations[r.first])
+            for (const auto &precondition : combinations[get<0>(r)])
               plan_file
               << lifted_precondition[precondition].first
               << lifted_precondition[precondition].second
               << '|';
             plan_file << endl;
-            plan_file <<  r.second.first << endl;
-            plan_file <<  r.second.second << endl;
+            plan_file <<  get<1>(r) << endl;
+            plan_file <<  get<2>(r) << endl;
         }
         plan_file.close();
         cout << "Done" << endl;
