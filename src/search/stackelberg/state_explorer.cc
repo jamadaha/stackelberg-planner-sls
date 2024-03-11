@@ -295,11 +295,12 @@ namespace stackelberg {
                 invalid |= i_invalid;
             }
 
+            if (applicable == (bdd_valid | bdd_invalid)) continue;
 
             result[i] = {vars->numStates(applicable), vars->numStates(invalid)};
         }
 
-
+        cout << "Result: " << result.size() << endl;
         cout << "Writing to file...";
         std::ofstream plan_file("out");
         plan_file << vars->numStates(bdd_valid) << endl;
