@@ -4,16 +4,15 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <cstdlib>
+#include <iostream>
+#include <numeric>
 
 #include "../global_operator.h"
 #include "../successor_generator.h"
 
-// #ifndef LEADER_SEARCH_DEBUG
-// #define LEADER_SEARCH_DEBUG 0
-// #endif
-
 namespace stackelberg {
-
 inline std::string get_uuid() {
   static std::random_device dev;
   static std::mt19937 rng(dev());
@@ -32,20 +31,46 @@ inline std::string get_uuid() {
   }
   return res;
 }
+inline std::vector<std::vector<size_t>> comb(size_t N, size_t K)
+{
+    std::string bitmask(K, 1); // K leading 1's
+    bitmask.resize(N, 0); // N-K trailing 0's
 
-inline std::string ops_to_string(std::vector<const GlobalOperator *> &ops) {
-  sort(ops.begin(), ops.end(),
-       [](const GlobalOperator *op1, const GlobalOperator *op2) {
-         return op1->get_name() < op2->get_name();
-       });
-  std::string res = "";
-  for (size_t i = 0; i < ops.size(); i++) {
-    if (i > 0) {
-      res += " ";
+    std::vector<std::vector<size_t>> combinations;
+    do {
+        std::vector<size_t> combination;
+        for (size_t i = 0; i < N; ++i) // [0..N-1] integers
+            if (bitmask[i])
+                combination.push_back(i);
+        combinations.push_back(std::move(combination));
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+
+    return combinations;
+}
+
+inline std::vector<std::vector<size_t>> cartesian (const std::vector<std::vector<size_t>>& in) {
+    std::vector<std::vector<size_t>> results = {{}};
+    for (const auto& new_values : in) {
+        std::vector<std::vector<size_t>> next_results;
+        for (const auto& result : results) {
+            for (const auto value : new_values) {
+                next_results.push_back(result);
+                next_results.back().push_back(value);
+            }
+        }
+        results = std::move(next_results);
     }
-    res += ops[i]->get_name();
-  }
-  return res;
+    return results;
+}
+
+inline std::pair<std::string, std::vector<std::string>> split_operator(const std::string &s) {
+    std::stringstream is(s);
+    std::vector<std::string> objects;
+    std::string name;
+    std::string object;
+    is >> std::skipws >> name;
+    while (is >> std::skipws >> object) objects.push_back(object);
+    return {name, objects};
 }
 
 /**

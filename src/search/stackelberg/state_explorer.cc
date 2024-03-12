@@ -16,50 +16,6 @@
 using namespace std;
 using namespace symbolic;
 
-std::vector<std::vector<size_t>> comb(size_t N, size_t K)
-{
-    std::string bitmask(K, 1); // K leading 1's
-    bitmask.resize(N, 0); // N-K trailing 0's
-
-    std::vector<std::vector<size_t>> combinations;
-    do {
-        std::vector<size_t> combination;
-        for (size_t i = 0; i < N; ++i) // [0..N-1] integers
-            if (bitmask[i])
-                combination.push_back(i);
-        combinations.push_back(std::move(combination));
-    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
-
-    return combinations;
-}
-
-vector<vector<size_t>> cartesian( vector<vector<size_t> >& v ) {
-    auto product = []( long long a, vector<size_t>& b ) { return a*b.size(); };
-    const long long N = accumulate( v.begin(), v.end(), 1LL, product );
-    vector<vector<size_t>> combinations;
-    vector<size_t> u(v.size());
-    for( long long n=0 ; n<N ; ++n ) {
-        lldiv_t q { n, 0 };
-        for( long long i=v.size()-1 ; 0<=i ; --i ) {
-            q = div( q.quot, v[i].size() );
-            u[i] = v[i][q.rem];
-        }
-
-        combinations.push_back(u);
-    }
-    return combinations;
-}
-
-pair<string, vector<string>> split_operator(const string &s) {
-    std::istringstream is(s);
-    vector<string> objects;
-    string name;
-    string object;
-    is >> std::skipws >> name;
-    while (is >> std::skipws >> object) objects.push_back(object);
-    return {name, objects};
-}
-
 namespace {
     SearchEngine *parse_ss(OptionParser &parser) {
         SearchEngine::add_options_to_parser(parser);
