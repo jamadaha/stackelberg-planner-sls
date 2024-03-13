@@ -46,6 +46,21 @@ std::pair<std::string, std::vector<std::string>> SplitOperator(const std::string
   return {name, objects};
 }
 
+std::pair<std::string, std::vector<std::string>> SplitFact(std::string s) {
+  size_t i = s.find('(');
+  std::string name = s.substr(0, i);
+  s = s.substr(i + 1);
+  std::vector<std::string> objects;
+  while (s.size() > 1) {
+    i = std::min(s.find(','), s.find(')'));
+    objects.push_back(s.substr(0, i));
+    s = s.substr(i + 1);
+    if (s[0] == ' ')
+      s = s.substr(1);
+  }
+  return {name, objects};
+}
+
 std::string MetaOperatorName() {
   for (const auto &o : g_operators) {
     const auto name = o.get_name();
