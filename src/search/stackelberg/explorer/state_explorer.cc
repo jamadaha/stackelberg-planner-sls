@@ -36,6 +36,9 @@ namespace {
       parser.add_option<stackelberg::FollowerSearchEngine *>("optimal_engine");
       parser.add_option<stackelberg::FollowerSearchEngine *>("cost_bounded_engine", "", "",
                                                              OptionFlags(false));
+      parser.add_option<vector<string>>(
+              "statics",
+              "", "[]");
       parser.add_option<size_t>(
               "min_precondition_size",
               "Minimum number of facts added to precondition", "1");
@@ -59,6 +62,7 @@ namespace stackelberg {
             optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
             plan_reuse(opts.get<PlanReuse *>("plan_reuse")), mgrParams(opts),
             searchParams(opts),
+            world(opts.get<vector<string>>("statics")),
             min_precondition_size(opts.get<size_t>("min_precondition_size")),
             max_precondition_size(opts.get<size_t>("max_precondition_size")) {
       task = make_unique<StackelbergTask>();
@@ -142,16 +146,9 @@ namespace stackelberg {
 
           explicit Fact(size_t variable, size_t value) : variable(variable), variable_val(value) {
             string s = g_fact_names[variable][value];
-            size_t i = s.find('(');
-            this->name = s.substr(0, i);
-            s = s.substr(i + 1);
-            while (s.size() > 1) {
-              i = min(s.find(','), s.find(')'));
-              this->objects.push_back(s.substr(0, i));
-              s = s.substr(i + 1);
-              if (s[0] == ' ')
-                s = s.substr(1);
-            }
+            const auto p = SplitFact(s);
+            this->name = p.first;
+            this->objects = p.second;
           }
       };
 

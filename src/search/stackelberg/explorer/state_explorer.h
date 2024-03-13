@@ -18,6 +18,7 @@
 #include "../../symbolic/sym_state_space_manager.h"
 
 #include "../../symbolic/sym_params_search.h"
+#include "world.h"
 
 
 namespace symbolic {
@@ -49,6 +50,7 @@ namespace stackelberg {
         symbolic::SymParamsSearch
                 searchParams; // Parameters to search the original state space
         ParetoFrontier pareto_frontier;
+        World world;
 
         const size_t min_precondition_size;
         const size_t max_precondition_size;
