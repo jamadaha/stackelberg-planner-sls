@@ -232,7 +232,7 @@ HEADERS += stackelberg/stackelberg_search.h \
 	 stackelberg/dominance_stackelberg_task.h
 
 HEADERS += stackelberg/explorer/state_explorer.h \
-           stackelberg/explorer/util.h
+           stackelberg/explorer/util.h 
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
 TARGET = downward

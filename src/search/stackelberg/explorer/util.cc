@@ -2,8 +2,10 @@
 #include <ios>
 #include <sstream>
 #include "util.h"
+#include "../../globals.h"
+#include "../../global_operator.h"
 
-std::vector<std::vector<size_t>> comb(size_t N, size_t K)
+std::vector<std::vector<size_t>> Comb(size_t N, size_t K)
 {
   std::string bitmask(K, 1); // K leading 1's
   bitmask.resize(N, 0); // N-K trailing 0's
@@ -19,8 +21,7 @@ std::vector<std::vector<size_t>> comb(size_t N, size_t K)
 
   return combinations;
 }
-
-std::vector<std::vector<size_t>> cartesian (const std::vector<std::vector<size_t>>& in) {
+std::vector<std::vector<size_t>> Cartesian (const std::vector<std::vector<size_t>>& in) {
   std::vector<std::vector<size_t>> results = {{}};
   for (const auto& new_values : in) {
     std::vector<std::vector<size_t>> next_results;
@@ -35,7 +36,7 @@ std::vector<std::vector<size_t>> cartesian (const std::vector<std::vector<size_t
   return results;
 }
 
-std::pair<std::string, std::vector<std::string>> split_operator(const std::string &s) {
+std::pair<std::string, std::vector<std::string>> SplitOperator(const std::string &s) {
   std::stringstream is(s);
   std::vector<std::string> objects;
   std::string name;
@@ -43,4 +44,44 @@ std::pair<std::string, std::vector<std::string>> split_operator(const std::strin
   is >> std::skipws >> name;
   while (is >> std::skipws >> object) objects.push_back(object);
   return {name, objects};
+}
+
+std::string MetaOperatorName() {
+  for (const auto &o : g_operators) {
+    const auto name = o.get_name();
+    if (std::find(name.begin(), name.end(), '$') != name.end())
+      return SplitOperator(name).first;
+  }
+  throw std::logic_error("No meta operator define. (Any operator with $ in name)");
+}
+
+size_t ActionParameters(const std::string &name) {
+  for (const auto &o : g_operators) {
+    const auto p = SplitOperator(o.get_name());
+    if (name == p.first) return p.second.size();
+  }
+  throw std::invalid_argument("No such action");
+}
+
+std::vector<std::vector<std::string>> FindInstantiations(const std::string &operator_name) {
+  std::vector<std::vector<std::string>> instantiations;
+  for (const auto &o : g_operators) {
+    const auto name = o.get_name();
+    const auto p = SplitOperator(name);
+    if (p.first != operator_name) continue;
+    instantiations.push_back(p.second);
+  }
+  return instantiations;
+}
+
+std::vector<std::string> FindAllObjects() {
+  std::vector<std::string> objects;
+  for (const auto &o : g_operators) {
+    const auto o_objects = SplitOperator(o.get_name()).second;
+    for (const auto &object : o_objects) {
+      if (std::find(objects.begin(), objects.end(), object) == objects.end())
+        objects.push_back(object);
+    }
+  }
+  return objects;
 }

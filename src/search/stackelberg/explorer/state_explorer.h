@@ -53,9 +53,6 @@ namespace stackelberg {
         const size_t min_precondition_size;
         const size_t max_precondition_size;
 
-        size_t parameter_count;
-        std::vector<std::vector<std::string>> instantiations;
-
         void initialize() final;
         SearchStatus step() final;
     };
