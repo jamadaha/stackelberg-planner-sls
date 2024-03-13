@@ -1,17 +1,17 @@
 #include "state_explorer.h"
 #include "util.h"
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "../../option_parser.h"
+#include "../../plugin.h"
 #include <vector>
-#include "../symbolic/sym_controller.h"
-#include "../symbolic/uniform_cost_search.h"
-#include "symbolic_stackelberg_manager.h"
+#include "../../symbolic/sym_controller.h"
+#include "../../symbolic/uniform_cost_search.h"
+#include "../symbolic_stackelberg_manager.h"
 #include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <sstream>
-#include "follower_search_engine.h"
-#include "plan_reuse.h"
+#include "../follower_search_engine.h"
+#include "../plan_reuse.h"
 
 using namespace std;
 using namespace symbolic;

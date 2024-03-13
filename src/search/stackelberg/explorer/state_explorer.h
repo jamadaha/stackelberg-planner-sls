@@ -6,18 +6,18 @@
 #include <memory>
 #include <unordered_set>
 
-#include "stackelberg_statistics.h"
+#include "../stackelberg_statistics.h"
 
-#include "pareto_frontier.h"
-#include "stackelberg_task.h"
+#include "../pareto_frontier.h"
+#include "../stackelberg_task.h"
 
-#include "../attack_success_prob_reuse_heuristic.h"
-#include "../search_engine.h"
-#include "../successor_generator.h"
-#include "../symbolic/sym_enums.h"
-#include "../symbolic/sym_state_space_manager.h"
+#include "../../attack_success_prob_reuse_heuristic.h"
+#include "../../search_engine.h"
+#include "../../successor_generator.h"
+#include "../../symbolic/sym_enums.h"
+#include "../../symbolic/sym_state_space_manager.h"
 
-#include "../symbolic/sym_params_search.h"
+#include "../../symbolic/sym_params_search.h"
 
 
 namespace symbolic {
