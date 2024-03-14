@@ -38,12 +38,13 @@ World::World(const std::vector<std::string> &statics, const std::vector<std::str
     }
     std::cout << "Static predicates: " << statics.size() << endl;
     for (const auto &s : types) {
-        std::stringstream is(s);
-        std::vector<size_t> s_objects;
         std::string name;
-        std::string object;
-        is >> std::skipws >> name;
-        while (is >> std::skipws >> object) s_objects.push_back(ObjectIndex(object));
+        std::vector<size_t> s_objects;
+        std::stringstream ss(s);
+        std::string token;
+        std::getline(ss, token, '#');
+        name = token;
+        while (std::getline(ss, token, '#')) s_objects.push_back(ObjectIndex(token));
         this->types.emplace_back(name, s_objects);
     }
     std::cout << "Types: " << types.size() << endl;
