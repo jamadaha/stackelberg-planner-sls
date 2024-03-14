@@ -100,8 +100,10 @@ const std::vector<size_t> &World::TypeObjects(size_t index) const {
     return this->types[index].second;
 }
 
-const BDD& World::FactBDD(size_t predicate, const std::vector<size_t> &objects) const {
-    return fact_bdds.at(predicate).at(objects);
+const BDD* World::FactBDD(size_t predicate, const std::vector<size_t> &objects) const {
+    if (fact_bdds.find(predicate) == fact_bdds.end()) return nullptr;
+    if (fact_bdds.at(predicate).find(objects) == fact_bdds.at(predicate).end()) return nullptr;
+    return &fact_bdds.at(predicate).at(objects);
 }
 
 void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {

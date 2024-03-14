@@ -202,9 +202,16 @@ namespace stackelberg {
                     objects.reserve(p_params.size());
                     for (const auto &p : p_params)
                         objects.push_back(instantiation[p]);
-                    const auto &f_bdd = world.FactBDD(predicate, objects);
-                    p_applicable |= f_bdd & (valid | invalid);
-                    p_invalid |= f_bdd & invalid;
+                    const auto f_bdd = world.FactBDD(predicate, objects);
+                    if (f_bdd == nullptr){
+                        // If no fact exists for the permutation, there is no state wherein it is applicable
+                        // This is usually because it somehow breaks types
+                        p_applicable &= vars->zeroBDD();
+                        p_invalid &= vars->zeroBDD();
+                        break;
+                    }
+                    p_applicable |= *f_bdd & (valid | invalid);
+                    p_invalid |= *f_bdd & invalid;
                 }
                 if (p_applicable == (valid | invalid)) continue;
                 literals.emplace_back(i, make_pair(p_applicable, p_invalid));

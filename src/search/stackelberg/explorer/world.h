@@ -34,7 +34,7 @@ public:
     const std::string &TypeName(size_t index) const;
     size_t TypeCount() const;
     const std::vector<size_t> &TypeObjects(size_t index) const;
-    const BDD& FactBDD(size_t predicate, const std::vector<size_t> &objects) const;
+    const BDD* FactBDD(size_t predicate, const std::vector<size_t> &objects) const;
 
     void Init(const std::shared_ptr<symbolic::SymVariables> vars);
 private:
