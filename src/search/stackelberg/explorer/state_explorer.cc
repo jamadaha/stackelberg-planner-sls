@@ -39,6 +39,9 @@ namespace {
       parser.add_option<vector<string>>(
               "statics",
               "", "[]");
+        parser.add_option<vector<string>>(
+                "types",
+                "", "[]");
       parser.add_option<size_t>(
               "min_precondition_size",
               "Minimum number of facts added to precondition", "1");
@@ -62,7 +65,7 @@ namespace stackelberg {
             optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
             plan_reuse(opts.get<PlanReuse *>("plan_reuse")), mgrParams(opts),
             searchParams(opts),
-            world(opts.get<vector<string>>("statics")),
+            world(opts.get<vector<string>>("statics"), opts.get<vector<string>>("types")),
             min_precondition_size(opts.get<size_t>("min_precondition_size")),
             max_precondition_size(opts.get<size_t>("max_precondition_size")) {
       task = make_unique<StackelbergTask>();
