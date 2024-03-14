@@ -316,3 +316,13 @@ src/translate/build_model.pyc
 src/translate/axiom_rules.pyc
 src/search/.idea/workspace.xml
 src/out
+src/search/cudd-3.0.0/doc/cudd.toc
+src/search/cudd-3.0.0/doc/cudd.tex
+src/search/cudd-3.0.0/doc/cudd.pdf
+src/search/cudd-3.0.0/doc/cudd.out
+src/search/cudd-3.0.0/doc/cudd.log
+src/search/cudd-3.0.0/doc/cudd.ind
+src/search/cudd-3.0.0/doc/cudd.ilg
+src/search/cudd-3.0.0/doc/cudd.idx
+src/search/cudd-3.0.0/doc/cudd.aux
+src/search/.idea/inspectionProfiles/Project_Default.xml

@@ -47,7 +47,10 @@ namespace {
               "Minimum number of facts added to precondition", "1");
       parser.add_option<size_t>(
               "max_precondition_size",
-              "Maximum number of facts added to precondition", "4");
+              "Maximum number of facts added to precondition", "2");
+        parser.add_option<size_t>(
+                "max_parameters",
+                "", "0");
 
       Options opts = parser.parse();
       if (!parser.dry_run()) {
@@ -67,11 +70,61 @@ namespace stackelberg {
             searchParams(opts),
             world(opts.get<vector<string>>("statics"), opts.get<vector<string>>("types")),
             min_precondition_size(opts.get<size_t>("min_precondition_size")),
-            max_precondition_size(opts.get<size_t>("max_precondition_size")) {
+            max_precondition_size(opts.get<size_t>("max_precondition_size")),
+            max_parameters(opts.get<size_t>("max_parameters")) {
       task = make_unique<StackelbergTask>();
       stackelberg_mgr = std::make_shared<SymbolicStackelbergManager>(task.get(), opts);
       optimal_engine->initialize(task.get(), stackelberg_mgr);
       plan_reuse->initialize(stackelberg_mgr);
+    }
+
+    std::pair<BDD, BDD> StateExplorer::explore() {
+        BDD bdd_valid = vars->zeroBDD();
+        BDD bdd_invalid = vars->zeroBDD();
+        const auto &closed_list = leader_search->getClosed()->getClosedList();
+        for (int L = 0; L < std::numeric_limits<int>::max();) {
+            if (closed_list.find(L) == closed_list.end())
+                break;
+            cout << "L: " << L << endl;
+            auto leader_states = closed_list.at(L);
+            BDD follower_initial_states =
+                    stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
+                    stackelberg_mgr->get_static_follower_initial_state();
+
+            follower_initial_states =
+                    plan_reuse->find_plan_follower_initial_states(follower_initial_states);
+            // TODO: What is a good way of limiting this loop?
+            while (!follower_initial_states.IsZero()) {
+                // TODO: Is sample random?
+                auto state = stackelberg_mgr->sample_follower_initial_state(
+                        follower_initial_states);
+                auto solution = optimal_engine->solve(state, plan_reuse.get(),
+                                                      std::numeric_limits<int>::max());
+                if (solution.has_plan() || solution.solution_cost() == 0) {
+                    bdd_valid += vars->getStateBDD(state);
+                    follower_initial_states =
+                            plan_reuse->regress_plan_to_follower_initial_states(
+                                    solution, follower_initial_states);
+                } else {
+                    bdd_invalid += vars->getStateBDD(state);
+                    BDD bdd_state = vars->getPartialStateBDD(state,
+                                                             stackelberg_mgr->get_pattern_vars_follower_subproblems());
+                    follower_initial_states -= bdd_state;
+                }
+            }
+            cout << "Valid: " << vars->numStates(bdd_valid) << endl;
+            cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
+
+            cout << "Generating next layer...";
+            while (!leader_search->finished() && leader_search->getG() == L) {
+                leader_search->step();
+            }
+            cout << "Done" << endl;
+
+            assert(leader_search->getG() > L);
+            L = leader_search->getG();
+        }
+        return {bdd_valid, bdd_invalid};
     }
 
     void StateExplorer::initialize() {
@@ -83,195 +136,102 @@ namespace stackelberg {
                                                      searchParams);
       auto mgr = stackelberg_mgr->get_leader_manager();
       leader_search->init(mgr, true);
+      world.Init(vars);
     }
 
     SearchStatus StateExplorer::step() {
-      cout << "Beginning state exploration" << endl;
-      const auto meta_name = MetaOperatorName();
-      const auto parameter_count = ActionParameters(meta_name);
-      const auto instantiations = FindInstantiations(meta_name);
-      BDD bdd_valid = vars->zeroBDD();
-      BDD bdd_invalid = vars->zeroBDD();
-      const auto &closed_list = leader_search->getClosed()->getClosedList();
-      for (int L = 0; L < std::numeric_limits<int>::max();) {
-        if (closed_list.find(L) == closed_list.end())
-          break;
-        cout << "L: " << L << endl;
-        auto leader_states = closed_list.at(L);
-        BDD follower_initial_states =
-                stackelberg_mgr->get_follower_initial_state_projection(leader_states) *
-                stackelberg_mgr->get_static_follower_initial_state();
-
-        follower_initial_states =
-                plan_reuse->find_plan_follower_initial_states(follower_initial_states);
-        // TODO: What is a good way of limiting this loop?
-        while (!follower_initial_states.IsZero()  ) {
-          // TODO: Is sample random?
-          auto state = stackelberg_mgr->sample_follower_initial_state(
-                  follower_initial_states);
-          auto solution = optimal_engine->solve(state, plan_reuse.get(),
-                                                std::numeric_limits<int>::max());
-          if (solution.has_plan() || solution.solution_cost() == 0) {
-            bdd_valid += vars->getStateBDD(state);
-            follower_initial_states =
-                    plan_reuse->regress_plan_to_follower_initial_states(
-                            solution, follower_initial_states);
-          } else {
-            bdd_invalid += vars->getStateBDD(state);
-            BDD bdd_state = vars->getPartialStateBDD(state, stackelberg_mgr->get_pattern_vars_follower_subproblems());
-            follower_initial_states -= bdd_state;
-          }
+        cout << "Beginning state exploration" << endl;
+        const pair<BDD, BDD> validity = explore();
+        const BDD valid = validity.first;
+        const BDD invalid = validity.second;
+        if (invalid.IsZero()) {
+            cout << "Meta action is valid" << endl;
+            exit(0);
         }
+        cout << "Beginning precondition exploration" << endl;
+        const string meta_name = MetaOperatorName();
+        const auto default_instantiations = FindInstantiations(meta_name);
+        cout << "Default default_instantiations: " << default_instantiations.size() << endl;
+        const size_t default_parameters = ActionParameters(meta_name);
+        const size_t desired_parameters = std::max(default_parameters, max_parameters);
+        const size_t p_diff = desired_parameters - default_parameters;
+        cout << "Default/desired parameters: " << default_parameters << '/' << desired_parameters << endl;
 
-        cout << "Valid: " << vars->numStates(bdd_valid) << endl;
-        cout << "Invalid: " << vars->numStates(bdd_invalid) << endl;
+        vector<vector<size_t>> type_combs = Cartesian(p_diff, world.TypeCount());
+        cout << "Type combs: " << type_combs.size() << endl;
 
-        cout << "Generating next layer...";
-        while (!leader_search->finished() && leader_search->getG() == L) {
-          leader_search->step();
-        }
-        cout << "Done" << endl;
-
-        assert(leader_search->getG() > L);
-        L = leader_search->getG();
-      }
-      cout << "Finished state exploration" << endl;
-      if (vars->numStates(bdd_invalid) == 0) {
-        cout << "Meta action is valid" << endl;
-        exit(0);
-      }
-
-      struct Fact {
-          string name;
-          vector<string> objects;
-          size_t variable;
-          size_t variable_val;
-
-          explicit Fact(size_t variable, size_t value) : variable(variable), variable_val(value) {
-            string s = g_fact_names[variable][value];
-            const auto p = SplitFact(s);
-            this->name = p.first;
-            this->objects = p.second;
-          }
-      };
-
-      vector<Fact> facts;
-      for (size_t i = 0; i < g_variable_name.size(); i++) {
-        for (size_t t = 0; t < g_fact_names[i].size(); t++) {
-          if (g_fact_names[i][t].find("is-goal") != std::string::npos)
-            continue;
-          if (g_fact_names[i][t].find("leader-state") != std::string::npos)
-            continue;
-          if (g_fact_names[i][t].find("leader-turn") != std::string::npos)
-            continue;
-          if (g_fact_names[i][t].find("none of those") != std::string::npos)
-            continue;
-          facts.emplace_back(i, t);
-        }
-      }
-      cout << "Facts: " << facts.size() << endl;
-
-      vector<pair<string, size_t>> predicates;
-      for (const auto &fact : facts) {
-        bool found = false;
-        for (const auto &p: predicates)
-          if (fact.name == get<0>(p))
-            found = true;
-        if (found) continue;
-        predicates.emplace_back(fact.name, fact.objects.size());
-      }
-      cout << "Predicates: " << predicates.size() << endl;
-
-      vector<pair<string, vector<size_t>>> lifted_precondition;
-      for (const auto &predicate : predicates) {
-        vector<vector<size_t>> indexes;
-        for (size_t i = 0; i < predicate.second; i++) {
-          vector<size_t> v;
-          for (size_t t = 0; t < parameter_count; t++)
-            v.push_back(t);
-          indexes.push_back(v);
-        }
-        if (indexes.empty()) {
-          lifted_precondition.emplace_back(predicate.first, vector<size_t>());
-        } else {
-          auto permutations = Cartesian(indexes);
-          for (auto &p: permutations)
-            lifted_precondition.emplace_back(predicate.first, std::move(p));
-        }
-      }
-      cout << "Lifted preconditions: " << lifted_precondition.size() << endl;
-
-
-      vector<vector<size_t>> combinations;
-      for (size_t i = min_precondition_size; i <= max_precondition_size; i++) {
-        auto c = Comb(lifted_precondition.size(), i);
-        combinations.insert(combinations.end(), c.begin(), c.end());
-      }
-      cout << "Combinations: " << combinations.size() << endl;
-
-      vector<tuple<size_t, size_t, size_t>> result;
-      for (size_t i = 0; i < combinations.size(); i++) {
-        BDD applicable = vars->zeroBDD();
-        BDD invalid = vars->zeroBDD();
-        for (const auto &instantiation : instantiations) {
-          BDD i_applicable = bdd_valid | bdd_invalid;
-          BDD i_invalid = bdd_invalid;
-          for (const auto &c : combinations[i]) {
-            const auto &l_p = lifted_precondition[c];
-            // map precondition to instantiation objects
-            vector<string> objects;
-            for (const auto &parameter_index : l_p.second)
-              objects.push_back(instantiation[parameter_index]);
-            // find fact that matches predicate & objects
-            Fact const* fact = nullptr;
-            for (const auto &f : facts)
-              if (f.name == l_p.first && f.objects == objects) {
-                fact = &f;
-                break;
-              }
-            if (fact == nullptr){
-              // If no fact exists for the permutation, there is no state wherein it is applicable
-              // This is usually because it somehow breaks types
-              i_applicable &= vars->zeroBDD();
-              i_invalid &= vars->zeroBDD();
-              break;
+        unordered_map<size_t, vector<vector<size_t>>> typed_instantiations;
+        for (size_t i = 0; i < type_combs.size(); i++) {
+            for (const auto &d_instantiation : default_instantiations) {
+                vector<vector<size_t>> options;
+                for (const auto &object : d_instantiation)
+                    options.push_back({world.ObjectIndex(object)});
+                for (size_t t = 0; t < p_diff; t++)
+                    options.push_back(world.TypeObjects(type_combs[i][t]));
+                for (const auto &instantiation : Cartesian(options))
+                    typed_instantiations[i].push_back(instantiation);
             }
-            i_applicable &= vars->preBDD(fact->variable, fact->variable_val);
-            i_invalid &= vars->preBDD(fact->variable, fact->variable_val);
-          }
-          applicable |= i_applicable;
-          invalid |= i_invalid;
         }
 
-        if (applicable == (bdd_valid | bdd_invalid)) continue;
+        vector<pair<size_t, vector<size_t>>> preconditions;
+        for (size_t i = 0; i < world.PredicateCount(); i++) {
+            const size_t param_count = world.PredicateParameters(i);
+            const auto permutations = Cartesian(param_count, desired_parameters);
+            for (const auto &permutation : permutations)
+                preconditions.emplace_back(i, permutation);
+        }
+        cout << "Preconditions: " << preconditions.size() << endl;
 
-        result.emplace_back(i, vars->numStates(applicable), vars->numStates(invalid));
-      }
+        std::ofstream plan_file("out");
+        plan_file << vars->numStates(valid | invalid) << endl;
+        plan_file << vars->numStates(invalid) << endl;
+        for (const auto &t_instantiations : typed_instantiations) {
+            plan_file << "types:";
+            for (const auto &t : type_combs[t_instantiations.first])
+                plan_file << ' ' << world.TypeName(t);
+            plan_file << endl;
+            const auto &instantiations = t_instantiations.second;
+            vector<pair<size_t, pair<BDD, BDD>>> literals;
+            for (size_t i = 0; i < preconditions.size(); i++) {
+                const size_t predicate = preconditions[i].first;
+                const auto &p_params = preconditions[i].second;
+                BDD p_applicable = vars->zeroBDD();
+                BDD p_invalid = vars->zeroBDD();
+                for (const auto &instantiation : instantiations) {
+                    vector<size_t> objects;
+                    objects.reserve(p_params.size());
+                    for (const auto &p : p_params)
+                        objects.push_back(instantiation[p]);
+                    const auto &f_bdd = world.FactBDD(predicate, objects);
+                    p_applicable |= f_bdd & (valid | invalid);
+                    p_invalid |= f_bdd & invalid;
+                }
+                if (p_applicable == (valid | invalid)) continue;
+                literals.emplace_back(i, make_pair(p_applicable, p_invalid));
+            }
+            cout << "Literals: " << literals.size() << endl;
+            vector<vector<size_t>> combinations;
+            for (size_t i = min_precondition_size; i <= max_precondition_size; i++) {
+                auto c = Comb(literals.size(), i);
+                combinations.insert(combinations.end(), c.begin(), c.end());
+            }
+            cout << "Combinations: " << combinations.size() << endl;
+            for (const auto &comb : combinations) {
+                BDD c_applicable = valid | invalid;
+                BDD c_invalid = invalid;
+                for (const auto &c : comb) {
+                    c_applicable &= literals[c].second.first;
+                    c_invalid &= literals[c].second.second;
+                    const auto &precondition = preconditions[literals[c].first];
+                    plan_file << world.PredicateName(precondition.first) << precondition.second << '|';
+                }
+                plan_file << endl;
+                plan_file << vars->numStates(c_applicable) << endl;
+                plan_file << vars->numStates(c_invalid) << endl;
+            }
+        }
+        plan_file.close();
 
-      sort(result.begin(), result.end(), [](const auto &lhs, const auto &rhs) {
-          if (get<1>(lhs) == 0) return false;
-          if (get<1>(rhs) == 0) return true;
-          return get<1>(lhs) < get<1>(rhs);
-      });
-
-      cout << "Result: " << result.size() << endl;
-      cout << "Writing to file...";
-      std::ofstream plan_file("out");
-      plan_file << vars->numStates(bdd_valid) << endl;
-      plan_file << vars->numStates(bdd_invalid) << endl;
-      for (const auto &r : result) {
-        for (const auto &precondition : combinations[get<0>(r)])
-          plan_file
-                  << lifted_precondition[precondition].first
-                  << lifted_precondition[precondition].second
-                  << '|';
-        plan_file << endl;
-        plan_file <<  get<1>(r) << endl;
-        plan_file <<  get<2>(r) << endl;
-      }
-      plan_file.close();
-      cout << "Done" << endl;
-
-      exit(0);
+        exit(0);
     }
 }

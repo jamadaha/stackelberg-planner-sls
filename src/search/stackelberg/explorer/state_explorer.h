@@ -54,7 +54,11 @@ namespace stackelberg {
 
         const size_t min_precondition_size;
         const size_t max_precondition_size;
+        const size_t max_parameters;
 
+        // Find the validity of all leader states
+        // It then returns the set of valid and invalid states respectively
+        std::pair<BDD, BDD> explore();
         void initialize() final;
         SearchStatus step() final;
     };

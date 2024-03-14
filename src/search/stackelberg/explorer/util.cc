@@ -36,6 +36,19 @@ std::vector<std::vector<size_t>> Cartesian (const std::vector<std::vector<size_t
   return results;
 }
 
+
+std::vector<std::vector<size_t>> Cartesian (size_t n, size_t v) {
+    std::vector<std::vector<size_t>> inputs;
+    inputs.reserve(n);
+    for (size_t i = 0; i < n; i++) {
+        std::vector<size_t> input;
+        for (size_t t = 0; t < v; t++)
+            input.push_back(t);
+        inputs.push_back(input);
+    }
+    return Cartesian(inputs);
+}
+
 std::pair<std::string, std::vector<std::string>> SplitOperator(const std::string &s) {
   std::stringstream is(s);
   std::vector<std::string> objects;
