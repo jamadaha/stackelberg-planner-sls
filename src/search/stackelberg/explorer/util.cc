@@ -21,6 +21,16 @@ std::vector<std::vector<size_t>> Comb(size_t N, size_t K)
 
   return combinations;
 }
+
+std::vector<std::vector<size_t>> Comb(size_t N, size_t min, size_t max) {
+    std::vector<std::vector<size_t>> combs;
+    for (size_t i = min; i <= max; i++) {
+        const auto comb = Comb(N, i);
+        combs.insert(combs.end(), comb.begin(), comb.end());
+    }
+    return combs;
+}
+
 std::vector<std::vector<size_t>> Cartesian (const std::vector<std::vector<size_t>>& in) {
   std::vector<std::vector<size_t>> results = {{}};
   for (const auto& new_values : in) {

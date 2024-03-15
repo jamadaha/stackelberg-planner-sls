@@ -189,54 +189,56 @@ namespace stackelberg {
                 for (const auto &permutation : permutations)
                     preconditions.emplace_back(i, permutation);
             }
-            cout << "Preconditions: " << preconditions.size() << endl;
-            vector<pair<size_t, pair<BDD, BDD>>> literals;
-            for (size_t i = 0; i < preconditions.size(); i++) {
-                const size_t predicate = preconditions[i].first;
-                const auto &p_params = preconditions[i].second;
-                BDD p_applicable = vars->zeroBDD();
-                BDD p_invalid = vars->zeroBDD();
-                for (const auto &instantiation : instantiations) {
-                    vector<size_t> objects;
-                    objects.reserve(p_params.size());
-                    for (const auto &p : p_params)
-                        objects.push_back(instantiation[p]);
-                    const auto f_bdd = world.FactBDD(predicate, objects);
-                    if (f_bdd == nullptr){
-                        // If no fact exists for the permutation, there is no state wherein it is applicable
-                        // This is usually because it somehow breaks types
-                        p_applicable &= vars->zeroBDD();
-                        p_invalid &= vars->zeroBDD();
-                        break;
-                    }
-                    p_applicable |= *f_bdd & (valid | invalid);
-                    p_invalid |= *f_bdd & invalid;
-                }
-                if (p_applicable == (valid | invalid)) continue;
-                literals.emplace_back(i, make_pair(p_applicable, p_invalid));
-            }
-            cout << "Literals: " << literals.size() << endl;
-            vector<vector<size_t>> combinations;
-            for (size_t i = min_precondition_size; i <= max_precondition_size; i++) {
-                auto c = Comb(literals.size(), i);
-                combinations.insert(combinations.end(), c.begin(), c.end());
-            }
+            vector<vector<size_t>> combinations = Comb(preconditions.size(), min_precondition_size, max_precondition_size);
             cout << "Combinations: " << combinations.size() << endl;
-            for (const auto &comb : combinations) {
+
+            vector<pair<size_t, pair<size_t, size_t>>> result;
+            for (size_t i = 0; i < combinations.size(); i++) {
+                const auto &comb = combinations[i];
+                BDD c_applicable = vars->zeroBDD();
+                BDD c_invalid = vars->zeroBDD();
+
+                for (const auto &instantiation : instantiations) {
+                    BDD i_applicable = valid | invalid;
+                    BDD i_invalid = invalid;
+
+                    for (const auto &c : comb) {
+                        const auto &pre = preconditions[c];
+                        vector<size_t> objects;
+                        for (const auto &p : pre.second) objects.push_back(instantiation[p]);
+                        const auto f_bdd = world.FactBDD(pre.first, objects);
+                        if (f_bdd == nullptr) {
+                            i_applicable = vars->zeroBDD();
+                            i_invalid = vars->zeroBDD();
+                            break;
+                        }
+                        i_applicable &= *f_bdd;
+                        i_invalid &= *f_bdd;
+                    }
+
+                    c_applicable |= i_applicable;
+                    c_invalid |= i_invalid;
+                }
+
+                if (c_applicable == (valid | invalid)) continue;
+                result.emplace_back(i, make_pair<size_t, size_t>(vars->numStates(c_applicable), vars->numStates(c_invalid)));
+            }
+
+            sort(result.begin(), result.end(), [](const auto &lhs, const auto &rhs) {
+                if (lhs.second.first == 0) return false;
+                if (rhs.second.first == 0) return true;
+                return lhs.second.first < rhs.second.first;
+            });
+
+            for (const auto &r : result) {
                 for (const auto &t : type_combs[t_instantiations.first])
                     plan_file << world.TypeName(t) << ' ';
                 plan_file << endl;
-                BDD c_applicable = valid | invalid;
-                BDD c_invalid = invalid;
-                for (const auto &c : comb) {
-                    c_applicable &= literals[c].second.first;
-                    c_invalid &= literals[c].second.second;
-                    const auto &precondition = preconditions[literals[c].first];
-                    plan_file << world.PredicateName(precondition.first) << precondition.second << '|';
-                }
+                for (const auto &p : combinations[r.first])
+                    plan_file << world.PredicateName(preconditions[p].first) << preconditions[p].second << '|';
                 plan_file << endl;
-                plan_file << vars->numStates(c_applicable) << endl;
-                plan_file << vars->numStates(c_invalid) << endl;
+                plan_file << r.second.first << endl;
+                plan_file << r.second.second << endl;
             }
         }
         plan_file.close();
