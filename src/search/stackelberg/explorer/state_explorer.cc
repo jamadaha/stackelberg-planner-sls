@@ -176,20 +176,20 @@ namespace stackelberg {
             }
         }
 
-        vector<pair<size_t, vector<size_t>>> preconditions;
-        for (size_t i = 0; i < world.PredicateCount(); i++) {
-            const size_t param_count = world.PredicateParameters(i);
-            const auto permutations = Cartesian(param_count, desired_parameters);
-            for (const auto &permutation : permutations)
-                preconditions.emplace_back(i, permutation);
-        }
-        cout << "Preconditions: " << preconditions.size() << endl;
 
         std::ofstream plan_file("out");
         plan_file << vars->numStates(valid | invalid) << endl;
         plan_file << vars->numStates(invalid) << endl;
         for (const auto &t_instantiations : typed_instantiations) {
             const auto &instantiations = t_instantiations.second;
+            vector<pair<size_t, vector<size_t>>> preconditions;
+            for (size_t i = 0; i < world.PredicateCount(); i++) {
+                const size_t param_count = world.PredicateParameters(i);
+                const auto permutations = Cartesian(param_count, instantiations.begin()->size());
+                for (const auto &permutation : permutations)
+                    preconditions.emplace_back(i, permutation);
+            }
+            cout << "Preconditions: " << preconditions.size() << endl;
             vector<pair<size_t, pair<BDD, BDD>>> literals;
             for (size_t i = 0; i < preconditions.size(); i++) {
                 const size_t predicate = preconditions[i].first;
