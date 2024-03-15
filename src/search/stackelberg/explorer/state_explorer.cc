@@ -186,10 +186,6 @@ namespace stackelberg {
         plan_file << vars->numStates(valid | invalid) << endl;
         plan_file << vars->numStates(invalid) << endl;
         for (const auto &t_instantiations : typed_instantiations) {
-            plan_file << "types:";
-            for (const auto &t : type_combs[t_instantiations.first])
-                plan_file << ' ' << world.TypeName(t);
-            plan_file << endl;
             const auto &instantiations = t_instantiations.second;
             vector<pair<size_t, pair<BDD, BDD>>> literals;
             for (size_t i = 0; i < preconditions.size(); i++) {
@@ -224,6 +220,10 @@ namespace stackelberg {
             }
             cout << "Combinations: " << combinations.size() << endl;
             for (const auto &comb : combinations) {
+                plan_file << "types:";
+                for (const auto &t : type_combs[t_instantiations.first])
+                    plan_file << ' ' << world.TypeName(t);
+                plan_file << endl;
                 BDD c_applicable = valid | invalid;
                 BDD c_invalid = invalid;
                 for (const auto &c : comb) {
