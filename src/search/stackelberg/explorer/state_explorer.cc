@@ -163,7 +163,7 @@ namespace stackelberg {
         }
         cout << "Type combs: " << type_combs.size() << endl;
 
-        unordered_map<size_t, vector<vector<size_t>>> typed_instantiations;
+        map<size_t, vector<vector<size_t>>> typed_instantiations;
         for (size_t i = 0; i < type_combs.size(); i++) {
             for (const auto &d_instantiation : default_instantiations) {
                 vector<vector<size_t>> options;
@@ -182,6 +182,7 @@ namespace stackelberg {
         plan_file << vars->numStates(invalid) << endl;
         for (const auto &t_instantiations : typed_instantiations) {
             const auto &instantiations = t_instantiations.second;
+            cout << "Parameters: " << instantiations.begin()->size() << endl;
             vector<pair<size_t, vector<size_t>>> preconditions;
             for (size_t i = 0; i < world.PredicateCount(); i++) {
                 const size_t param_count = world.PredicateParameters(i);
@@ -189,7 +190,19 @@ namespace stackelberg {
                 for (const auto &permutation : permutations)
                     preconditions.emplace_back(i, permutation);
             }
-            vector<vector<size_t>> combinations = Comb(preconditions.size(), min_precondition_size, max_precondition_size);
+            vector<vector<size_t>> combinations;
+            for (const auto &comb : Comb(preconditions.size(), min_precondition_size, max_precondition_size)) {
+                vector<bool> usage(instantiations.begin()->size(), false);
+                for (const auto c : comb)
+                    for (const auto p : preconditions[c].second)
+                        usage[p] = true;
+                bool novel = true;
+                for (size_t i = default_parameters; i < usage.size(); i++)
+                    if (!usage[i])
+                        novel = false;
+                if (novel)
+                    combinations.push_back(comb);
+            }
             cout << "Combinations: " << combinations.size() << endl;
 
             vector<pair<size_t, pair<size_t, size_t>>> result;
