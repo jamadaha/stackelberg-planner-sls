@@ -153,11 +153,14 @@ namespace stackelberg {
         const auto default_instantiations = FindInstantiations(meta_name);
         cout << "Default default_instantiations: " << default_instantiations.size() << endl;
         const size_t default_parameters = ActionParameters(meta_name);
-        const size_t desired_parameters = std::max(default_parameters, max_parameters);
-        const size_t p_diff = desired_parameters - default_parameters;
+        const size_t desired_parameters = default_parameters + max_parameters;
         cout << "Default/desired parameters: " << default_parameters << '/' << desired_parameters << endl;
 
-        vector<vector<size_t>> type_combs = Cartesian(p_diff, world.TypeCount());
+        vector<vector<size_t>> type_combs;
+        for (size_t i = 0; i <= max_parameters; i++) {
+            const auto combs = Cartesian(i, world.TypeCount());
+            type_combs.insert(type_combs.end(), combs.begin(), combs.end());
+        }
         cout << "Type combs: " << type_combs.size() << endl;
 
         unordered_map<size_t, vector<vector<size_t>>> typed_instantiations;
@@ -166,8 +169,8 @@ namespace stackelberg {
                 vector<vector<size_t>> options;
                 for (const auto &object : d_instantiation)
                     options.push_back({world.ObjectIndex(object)});
-                for (size_t t = 0; t < p_diff; t++)
-                    options.push_back(world.TypeObjects(type_combs[i][t]));
+                for (unsigned int t : type_combs[i])
+                    options.push_back(world.TypeObjects(t));
                 for (const auto &instantiation : Cartesian(options))
                     typed_instantiations[i].push_back(instantiation);
             }
