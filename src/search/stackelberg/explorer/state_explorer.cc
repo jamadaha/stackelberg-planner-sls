@@ -220,9 +220,8 @@ namespace stackelberg {
             }
             cout << "Combinations: " << combinations.size() << endl;
             for (const auto &comb : combinations) {
-                plan_file << "types:";
                 for (const auto &t : type_combs[t_instantiations.first])
-                    plan_file << ' ' << world.TypeName(t);
+                    plan_file << world.TypeName(t) << ' ';
                 plan_file << endl;
                 BDD c_applicable = valid | invalid;
                 BDD c_invalid = invalid;
