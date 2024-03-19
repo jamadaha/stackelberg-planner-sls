@@ -23,7 +23,12 @@ public:
 
 class World {
 public:
-    explicit World(const std::vector<std::string> &statics, const std::vector<std::string> &types);
+    explicit World(
+            const std::vector<std::string> &type_names,
+            const std::vector<std::vector<std::string>> &type_objects,
+            const std::vector<std::string> &static_names,
+            const std::vector<std::vector<std::vector<std::string>>> &static_facts
+            );
     size_t PredicateIndex(const std::string &predicate) const;
     const std::string &PredicateName(size_t index) const;
     size_t PredicateParameters(size_t index) const;
@@ -41,7 +46,7 @@ private:
     // Maps predicate name to its number of parameters
     std::vector<std::pair<std::string, size_t>> predicates;
     // Maps static predicates to the objects which has it
-    std::vector<std::pair<std::string, std::vector<size_t>>> statics;
+    std::vector<std::pair<std::string, std::vector<std::vector<size_t>>>> statics;
     std::vector<std::pair<std::string, std::vector<size_t>>> types;
     std::vector<std::string> objects;
     std::vector<std::vector<size_t>> instantiations;

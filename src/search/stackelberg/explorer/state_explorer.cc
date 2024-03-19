@@ -36,11 +36,17 @@ namespace {
       parser.add_option<stackelberg::FollowerSearchEngine *>("optimal_engine");
       parser.add_option<stackelberg::FollowerSearchEngine *>("cost_bounded_engine", "", "",
                                                              OptionFlags(false));
-      parser.add_option<vector<string>>(
-              "statics",
-              "", "[]");
         parser.add_option<vector<string>>(
-                "types",
+                "type_names",
+                "", "[]");
+        parser.add_option<vector<vector<string>>>(
+                "type_objects",
+                "", "[]");
+      parser.add_option<vector<string>>(
+              "static_names",
+              "", "[]");
+        parser.add_option<vector<vector<vector<string>>>>(
+                "static_facts",
                 "", "[]");
       parser.add_option<size_t>(
               "min_precondition_size",
@@ -68,7 +74,12 @@ namespace stackelberg {
             optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
             plan_reuse(opts.get<PlanReuse *>("plan_reuse")), mgrParams(opts),
             searchParams(opts),
-            world(opts.get<vector<string>>("statics"), opts.get<vector<string>>("types")),
+            world(
+                    opts.get<vector<string>>("type_names"),
+                    opts.get<vector<vector<string>>>("type_objects"),
+                    opts.get<vector<string>>("static_names"),
+                    opts.get<vector<vector<vector<string>>>>("static_facts")
+                    ),
             min_precondition_size(opts.get<size_t>("min_precondition_size")),
             max_precondition_size(opts.get<size_t>("max_precondition_size")),
             max_parameters(opts.get<size_t>("max_parameters")) {

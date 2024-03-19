@@ -2,10 +2,15 @@
 #include "../../plugin.h"
 #include "util.h"
 
-World::World(const std::vector<std::string> &statics, const std::vector<std::string> &types) {
+World::World(
+        const std::vector<std::string> &type_names,
+        const std::vector<std::vector<std::string>> &type_objects,
+        const std::vector<std::string> &static_names,
+        const std::vector<std::vector<std::vector<std::string>>> &static_facts
+) {
     std::cout << "Generating World" << std::endl;
     this->objects = FindAllObjects();
-    std::cout << "Objects: " << objects.size() << endl;
+    std::cout << "Objects: " << objects << endl;
     for (const auto &var : g_fact_names)
         for (const auto &fact : var) {
             if (fact.find("is-goal") != std::string::npos)
@@ -26,34 +31,39 @@ World::World(const std::vector<std::string> &statics, const std::vector<std::str
             if (!novel) continue;
             this->predicates.emplace_back(p.first, p.second.size());
         }
-    std::cout << "Predicates: " << predicates.size() << endl;
-    for (const auto &s : statics) {
-        std::stringstream is(s);
-        std::vector<size_t> s_objects;
-        std::string name;
-        std::string object;
-        is >> std::skipws >> name;
-        while (is >> std::skipws >> object) s_objects.push_back(ObjectIndex(object));
-        this->statics.emplace_back(name, s_objects);
-    }
-    std::cout << "Static predicates: " << statics.size() << endl;
-    for (const auto &s : types) {
-        std::string name;
-        std::vector<size_t> s_objects;
-        std::stringstream ss(s);
-        std::string token;
-        std::getline(ss, token, '#');
-        name = token;
-        while (std::getline(ss, token, '#')) s_objects.push_back(ObjectIndex(token));
-        this->types.emplace_back(name, s_objects);
-    }
-    std::cout << "Types: " << types.size() << endl;
-    if (this->types.empty()) {
-        std::vector<size_t> idx;
-        for (const auto &object: this->objects) idx.push_back(ObjectIndex(object));
-        this->types.emplace_back("object", idx);
-    }
-
+    std::cout << "Predicates: " << predicates << endl;
+    cout << "Type names: " << type_names << endl;
+    cout << "Type objects: " << type_objects << endl;
+    assert(type_names.size() == type_objects.size());
+    std::transform(
+            type_names.begin(),
+            type_names.end(),
+            type_objects.begin(),
+            std::back_inserter(this->types), [&](const auto &t_name, const auto &t_objects) {
+                std::vector<size_t> indexes;
+                indexes.reserve(t_objects.size());
+                for (const auto &o : t_objects) indexes.push_back(ObjectIndex(o));
+                return make_pair(t_name, indexes);
+    });
+    cout << "Types: " << types << endl;
+    cout << "Static names: " << static_names << endl;
+    cout << "Static objects: " << static_facts << endl;
+    assert(static_names.size() == static_facts.size());
+    std::transform(
+            static_names.begin(),
+            static_names.end(),
+            static_facts.begin(),
+            std::back_inserter(this->statics), [&](const auto &s_name, const auto &s_facts) {
+                std::vector<std::vector<size_t>> indexes;
+                for (const auto &f : s_facts) {
+                    std::vector<size_t> f_indexes;
+                    f_indexes.reserve(f.size());
+                    for (const auto &o: f) f_indexes.push_back(ObjectIndex(o));
+                    indexes.push_back(f_indexes);
+                }
+                return make_pair(s_name, indexes);
+            });
+    cout << "Statics: " << statics << endl;
 }
 
 size_t World::PredicateIndex(const std::string &predicate) const {
