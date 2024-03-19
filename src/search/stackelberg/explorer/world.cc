@@ -21,7 +21,9 @@ World::World(
             std::back_inserter(this->types), [&](const auto &t_name, const auto &t_objects) {
                 std::vector<size_t> indexes;
                 indexes.reserve(t_objects.size());
-                for (const auto &o : t_objects) indexes.push_back(ObjectIndex(o));
+                for (const auto &o : t_objects)
+                    if (IsObject(o))
+                        indexes.push_back(ObjectIndex(o));
                 return make_pair(t_name, indexes);
     });
     cout << "Types: " << types << endl;
@@ -37,8 +39,16 @@ World::World(
                 for (const auto &f : s_facts) {
                     std::vector<size_t> f_indexes;
                     f_indexes.reserve(f.size());
-                    for (const auto &o: f) f_indexes.push_back(ObjectIndex(o));
-                    indexes.push_back(f_indexes);
+                    bool exists = true;
+                    for (const auto &o: f)  {
+                        if (!IsObject(o)) {
+                            exists = false;
+                            break;
+                        }
+                        f_indexes.push_back(ObjectIndex(o));
+                    }
+                    if (exists)
+                        indexes.push_back(f_indexes);
                 }
                 return make_pair(s_name, indexes);
             });
@@ -108,6 +118,13 @@ size_t World::ObjectIndex(const std::string &object) const {
 
 const std::string &World::ObjectName(size_t index) const {
     return objects.at(index);
+}
+
+
+bool World::IsObject(const std::string &object) const {
+    for (const auto &o : objects)
+        if (object == o) return true;
+    return false;
 }
 
 size_t World::TypeIndex(const std::string &type) const {
