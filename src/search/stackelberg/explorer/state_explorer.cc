@@ -220,8 +220,7 @@ namespace stackelberg {
             }
             cout << "Combinations: " << combinations.size() << endl;
 
-            for (size_t i = 0; i < combinations.size(); i++) {
-                const auto &comb = combinations[i];
+            for (const auto & comb : combinations) {
                 BDD c_applicable = vars->zeroBDD();
                 BDD c_invalid = vars->zeroBDD();
 
@@ -233,6 +232,13 @@ namespace stackelberg {
                         const auto &pre = preconditions[c];
                         vector<size_t> objects;
                         for (const auto &p : pre.second) objects.push_back(instantiation[p]);
+                        if (world.IsStatic(pre.first)) {
+                            if (!world.HasStatic(pre.first, pre.second)) {
+                                i_applicable = vars->zeroBDD();
+                                i_invalid = vars->zeroBDD();
+                            }
+                            continue;
+                        }
                         const auto f_bdd = world.FactBDD(pre.first, objects);
                         if (f_bdd == nullptr) {
                             i_applicable = vars->zeroBDD();

@@ -11,27 +11,6 @@ World::World(
     std::cout << "Generating World" << std::endl;
     this->objects = FindAllObjects();
     std::cout << "Objects: " << objects << endl;
-    for (const auto &var : g_fact_names)
-        for (const auto &fact : var) {
-            if (fact.find("is-goal") != std::string::npos)
-                continue;
-            if (fact.find("leader-state") != std::string::npos)
-                continue;
-            if (fact.find("leader-turn") != std::string::npos)
-                continue;
-            if (fact.find("none of those") != std::string::npos)
-                continue;
-            const auto p = SplitFact(fact);
-            bool novel = true;
-            for (const auto &predicate : this->predicates)
-                if (predicate.first == p.first) {
-                    novel = false;
-                    break;
-                }
-            if (!novel) continue;
-            this->predicates.emplace_back(p.first, p.second.size());
-        }
-    std::cout << "Predicates: " << predicates << endl;
     cout << "Type names: " << type_names << endl;
     cout << "Type objects: " << type_objects << endl;
     assert(type_names.size() == type_objects.size());
@@ -64,43 +43,81 @@ World::World(
                 return make_pair(s_name, indexes);
             });
     cout << "Statics: " << statics << endl;
+    for (const auto &var : g_fact_names)
+        for (const auto &fact : var) {
+            if (fact.find("is-goal") != std::string::npos)
+                continue;
+            if (fact.find("leader-state") != std::string::npos)
+                continue;
+            if (fact.find("leader-turn") != std::string::npos)
+                continue;
+            if (fact.find("none of those") != std::string::npos)
+                continue;
+            const auto p = SplitFact(fact);
+            bool novel = true;
+            for (const auto &predicate : this->predicates)
+                if (predicate.first == p.first) {
+                    novel = false;
+                    break;
+                }
+            if (!novel) continue;
+            this->predicates.emplace_back(p.first, p.second.size());
+        }
+    std::cout << "Predicates: " << predicates << endl;
 }
 
 size_t World::PredicateIndex(const std::string &predicate) const {
     for (size_t i = 0; i < this->predicates.size(); i++)
-        if (predicates[i].first == predicate) return i;
+        if (predicates.at(i).first == predicate) return i;
     throw std::logic_error("Unknown predicate: " + predicate);
 }
 const std::string &World::PredicateName(size_t index) const {
-    return predicates[index].first;
+    if (IsStatic(index))
+        return statics.at(index - predicates.size()).first;
+    else
+        return predicates.at(index).first;
 }
 
 size_t World::PredicateParameters(size_t index) const {
-    return predicates[index].second;
+    if (IsStatic(index))
+        return statics.at(index - predicates.size()).second.begin()->size();
+    else
+        return predicates.at(index).second;
 }
 
 size_t World::PredicateCount() const {
-    return predicates.size();
+    return predicates.size() + statics.size();
+}
+
+bool World::IsStatic(size_t i) const {
+    return i >= predicates.size();
+}
+
+bool World::HasStatic(size_t predicate, std::vector<size_t> objects) const {
+    const size_t p_index = predicate - predicates.size();
+    for (size_t i = 0; i < statics.at(p_index).second.size(); i++)
+        if (objects == statics.at(p_index).second.at(i)) return true;
+    return false;
 }
 
 size_t World::ObjectIndex(const std::string &object) const {
     for (size_t i = 0; i < this->objects.size(); i++)
-        if (objects[i] == object) return i;
+        if (objects.at(i) == object) return i;
     throw std::logic_error("Unknown object: " + object);
 }
 
 const std::string &World::ObjectName(size_t index) const {
-    return objects[index];
+    return objects.at(index);
 }
 
 size_t World::TypeIndex(const std::string &type) const {
     for (size_t i = 0; i < this->types.size(); i++)
-        if (types[i].first == type) return i;
+        if (types.at(i).first == type) return i;
     throw std::logic_error("Unknown type: " + type);
 }
 
 const std::string &World::TypeName(size_t index) const {
-    return this->types[index].first;
+    return this->types.at(index).first;
 }
 
 size_t World::TypeCount() const {
@@ -108,7 +125,7 @@ size_t World::TypeCount() const {
 }
 
 const std::vector<size_t> &World::TypeObjects(size_t index) const {
-    return this->types[index].second;
+    return this->types.at(index).second;
 }
 
 const BDD* World::FactBDD(size_t predicate, const std::vector<size_t> &objects) const {
@@ -119,7 +136,7 @@ const BDD* World::FactBDD(size_t predicate, const std::vector<size_t> &objects) 
 
 void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {
     for (size_t var = 0; var < g_fact_names.size(); var++)
-        for (size_t val = 0; val < g_fact_names[var].size(); val++) {
+        for (size_t val = 0; val < g_fact_names.at(var).size(); val++) {
             if (g_fact_names[var][val].find("is-goal") != std::string::npos)
                 continue;
             if (g_fact_names[var][val].find("leader-state") != std::string::npos)
@@ -128,7 +145,7 @@ void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {
                 continue;
             if (g_fact_names[var][val].find("none of those") != std::string::npos)
                 continue;
-            const auto p = SplitFact(g_fact_names[var][val]);
+            const auto p = SplitFact(g_fact_names.at(var).at(val));
             const size_t predicate = PredicateIndex(p.first);
             std::vector<size_t> i_objects;
             for (const auto &o : p.second)

@@ -33,6 +33,8 @@ public:
     const std::string &PredicateName(size_t index) const;
     size_t PredicateParameters(size_t index) const;
     size_t PredicateCount() const;
+    bool IsStatic(size_t i) const;
+    bool HasStatic(size_t predicate, std::vector<size_t> objects) const;
     size_t ObjectIndex(const std::string &object) const;
     const std::string &ObjectName(size_t index) const;
     size_t TypeIndex(const std::string &type) const;
