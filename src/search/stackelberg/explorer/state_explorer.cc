@@ -155,6 +155,7 @@ namespace stackelberg {
         const size_t default_parameters = ActionParameters(meta_name);
         const size_t desired_parameters = default_parameters + max_parameters;
         cout << "Default/desired parameters: " << default_parameters << '/' << desired_parameters << endl;
+        cout << "Predicates: " << world.PredicateCount() << endl;
 
         vector<vector<size_t>> type_combs;
         for (size_t i = 0; i <= max_parameters; i++) {
@@ -163,6 +164,7 @@ namespace stackelberg {
         }
         cout << "Type combs: " << type_combs.size() << endl;
 
+        size_t instantiation_count = 0;
         map<size_t, vector<vector<size_t>>> typed_instantiations;
         for (size_t i = 0; i < type_combs.size(); i++) {
             for (const auto &d_instantiation : default_instantiations) {
@@ -171,11 +173,13 @@ namespace stackelberg {
                     options.push_back({world.ObjectIndex(object)});
                 for (unsigned int t : type_combs[i])
                     options.push_back(world.TypeObjects(t));
-                for (const auto &instantiation : Cartesian(options))
+                for (const auto &instantiation : Cartesian(options)) {
                     typed_instantiations[i].push_back(instantiation);
+                    instantiation_count++;
+                }
             }
         }
-
+        cout << "Instantiations: " << instantiation_count << endl;
 
         std::ofstream plan_file("out");
         plan_file << vars->numStates(valid | invalid) << endl;
@@ -205,7 +209,6 @@ namespace stackelberg {
             }
             cout << "Combinations: " << combinations.size() << endl;
 
-            vector<pair<size_t, pair<size_t, size_t>>> result;
             for (size_t i = 0; i < combinations.size(); i++) {
                 const auto &comb = combinations[i];
                 BDD c_applicable = vars->zeroBDD();
@@ -227,6 +230,7 @@ namespace stackelberg {
                         }
                         i_applicable &= *f_bdd;
                         i_invalid &= *f_bdd;
+                        if (i_applicable == vars->zeroBDD()) break;
                     }
 
                     c_applicable |= i_applicable;
@@ -234,24 +238,14 @@ namespace stackelberg {
                 }
 
                 if (c_applicable == (valid | invalid)) continue;
-                result.emplace_back(i, make_pair<size_t, size_t>(vars->numStates(c_applicable), vars->numStates(c_invalid)));
-            }
-
-            sort(result.begin(), result.end(), [](const auto &lhs, const auto &rhs) {
-                if (lhs.second.first == 0) return false;
-                if (rhs.second.first == 0) return true;
-                return lhs.second.first < rhs.second.first;
-            });
-
-            for (const auto &r : result) {
                 for (const auto &t : type_combs[t_instantiations.first])
                     plan_file << world.TypeName(t) << ' ';
                 plan_file << endl;
-                for (const auto &p : combinations[r.first])
+                for (const auto &p : comb)
                     plan_file << world.PredicateName(preconditions[p].first) << preconditions[p].second << '|';
                 plan_file << endl;
-                plan_file << r.second.first << endl;
-                plan_file << r.second.second << endl;
+                plan_file << vars->numStates(c_applicable) << endl;
+                plan_file << vars->numStates(c_invalid) << endl;
             }
         }
         plan_file.close();
