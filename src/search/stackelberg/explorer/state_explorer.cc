@@ -233,7 +233,7 @@ namespace stackelberg {
                         vector<size_t> objects;
                         for (const auto &p : pre.second) objects.push_back(instantiation[p]);
                         if (world.IsStatic(pre.first)) {
-                            if (!world.HasStatic(pre.first, pre.second)) {
+                            if (!world.HasStatic(pre.first, objects)) {
                                 i_applicable = vars->zeroBDD();
                                 i_invalid = vars->zeroBDD();
                             }
