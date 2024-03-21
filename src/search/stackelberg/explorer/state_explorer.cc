@@ -254,7 +254,6 @@ namespace stackelberg {
                     c_invalid |= i_invalid;
                 }
 
-                if (c_applicable == (valid | invalid)) continue;
                 for (const auto &t : type_combs[t_instantiations.first])
                     plan_file << world.TypeName(t) << ' ';
                 plan_file << endl;
