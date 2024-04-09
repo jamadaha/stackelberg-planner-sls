@@ -290,13 +290,17 @@ exitOutOfMemory(size_t) {
 std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_state) const {
     vector<int> state(var_order.size(), 0);
     
-    for (int v : var_order) {       
+    for (int v : var_order) {
         for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {           
             int bdd_v = bdd_index_pre[v][j];
-            assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1);
-                        
+	    
+            assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1 || binary_state[bdd_v] == 2);                        
             state[v] *= 2;
-            state[v] += binary_state[bdd_v];
+	    if(binary_state[bdd_v] < 2) { 
+		state[v] += binary_state[bdd_v];
+	    } /* else {// Don't care value
+		//TODO: Here, we pick 0 by default. We should probably pick at random for sampling purposes.
+		} */
         }
         
         assert ((size_t)(state[v]) < g_fact_names[v].size());
@@ -317,11 +321,13 @@ std::vector<int> SymVariables::getStateDescription(const vector<char> & binary_s
         // cout << "Consider " << v << " " << g_variable_domain[v] << endl;
         for (int j = bdd_index_pre[v].size() -1; j >= 0; --j) {           
             int bdd_v = bdd_index_pre[v][j];
-            // cout << binary_state[bdd_v]; 
-            assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1);
-                        
+            assert (binary_state[bdd_v] == 0 || binary_state[bdd_v] == 1 || binary_state[bdd_v] == 2);                        
             state[v] *= 2;
-            state[v] += binary_state[bdd_v];
+	    if(binary_state[bdd_v] < 2) { 
+		state[v] += binary_state[bdd_v];
+	    } /* else {// Don't care value
+		//TODO: Here, we pick 0 by default. We should probably pick at random for sampling purposes.
+		} */
         }
 
         // cout  << "     " << state[v] << endl;
