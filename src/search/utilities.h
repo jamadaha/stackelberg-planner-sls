@@ -90,7 +90,7 @@ ostream &operator<<(ostream &stream, const pair<T1, T2> &pair) {
 
 template<class Sequence>
 size_t hash_number_sequence(const Sequence &data, size_t length) {
-    // hash functin adapted from Python's hash function for tuples.
+    // hash function adapted from Python's hash function for tuples.
     size_t hash_value = 0x345678;
     size_t mult = 1000003;
     for (int i = length - 1; i >= 0; --i) {

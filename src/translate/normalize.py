@@ -1,10 +1,11 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 import copy
+from typing import Sequence
 
 import pddl
 
-class ConditionProxy(object):
+class ConditionProxy:
     def clone_owner(self):
         clone = copy.copy(self)
         clone.owner = copy.copy(clone.owner)
@@ -23,7 +24,19 @@ class PreconditionProxy(ConditionProxy):
     def build_rules(self, rules):
         action = self.owner
         rule_head = get_action_predicate(action)
-        rule_body = condition_to_rule_body(action.parameters, self.condition)
+
+        # If the action cost is based on a primitive numeric expression,
+        # we need to require that it has a value defined in the initial state.
+        # We hand it over to condition_to_rule_body to include this in the rule
+        # body.
+        pne = None
+        if (isinstance(action.cost, pddl.Increase) and
+            isinstance(action.cost.expression,
+                       pddl.PrimitiveNumericExpression)):
+            pne = action.cost.expression
+
+        rule_body = condition_to_rule_body(action.parameters, self.condition,
+                                           pne)
         rules.append((rule_body, rule_head))
     def get_type_map(self):
         return self.owner.type_map
@@ -117,6 +130,9 @@ def get_axiom_predicate(axiom):
         variables += [par.name for par in axiom.condition.parameters]
     return pddl.Atom(name, variables)
 
+def get_pne_definition_predicate(pne: pddl.PrimitiveNumericExpression):
+    return pddl.Atom(f"@def-{pne.symbol}", pne.args)
+
 def all_conditions(task):
     for action in task.actions:
         yield PreconditionProxy(action)
@@ -141,12 +157,12 @@ def remove_universal_quantifiers(task):
         if isinstance(condition, pddl.UniversalCondition):
             axiom_condition = condition.negate()
             parameters = sorted(axiom_condition.free_variables())
-            axiom = new_axioms_by_condition.get(axiom_condition)
+            typed_parameters = tuple(pddl.TypedObject(v, type_map[v]) for v in parameters)
+            axiom = new_axioms_by_condition.get((axiom_condition, typed_parameters))
             if not axiom:
-                typed_parameters = [pddl.TypedObject(v, type_map[v]) for v in parameters]
                 condition = recurse(axiom_condition)
-                axiom = task.add_axiom(typed_parameters, condition)
-                new_axioms_by_condition[condition] = axiom
+                axiom = task.add_axiom(list(typed_parameters), condition)
+                new_axioms_by_condition[(condition, typed_parameters)] = axiom
             return pddl.NegatedAtom(axiom.name, parameters)
         else:
             new_parts = [recurse(part) for part in condition.parts]
@@ -366,10 +382,24 @@ def build_exploration_rules(task):
         proxy.build_rules(result)
     return result
 
-def condition_to_rule_body(parameters, condition):
+def condition_to_rule_body(parameters: Sequence[pddl.TypedObject],
+                           condition: pddl.conditions.Condition,
+                           pne: pddl.PrimitiveNumericExpression = None):
+    """The rule body requires that
+       - all parameters (including existentially quantified variables in the
+         condition) are instantiated with objecst of the right type,
+       - all positive atoms in the condition (which must be normalized) are
+         true in the Prolog model, and
+       - the primitive numeric expression (from the action cost) has a defined
+         value (in the initial state)."""
     result = []
+    # Require parameters to be instantiated with objects of the right type.
     for par in parameters:
         result.append(par.get_atom())
+
+    # Require each positive literal in the condition to be reached and
+    # existentially quantified variables of the condition to be instantiated
+    # with objects of the right type.
     if not isinstance(condition, pddl.Truth):
         if isinstance(condition, pddl.ExistentialCondition):
             for par in condition.parameters:
@@ -388,6 +418,11 @@ def condition_to_rule_body(parameters, condition):
             assert isinstance(part, pddl.Literal), "Condition not normalized: %r" % part
             if not part.negated:
                 result.append(part)
+
+    # Require the primitive numeric expression (from the action cost) to be
+    # defined.
+    if pne is not None:
+        result.append(get_pne_definition_predicate(pne))
     return result
 
 if __name__ == "__main__":

@@ -49,7 +49,7 @@ class SymVariables {
     //The variable order must be complete.
     std::vector <int> var_order; //Variable(FD) order in the BDD
     std::vector <std::vector <int>> bdd_index_pre, bdd_index_eff; //vars(BDD) for each var(FD)
-
+    
     std::vector <std::vector <BDD>> preconditionBDDs; // BDDs associated with the precondition of a predicate
     std::vector <std::vector <BDD>> effectBDDs;      // BDDs associated with the effect of a predicate
     std::vector<BDD> biimpBDDs;  //BDDs associated with the biimplication of one variable(FD)
@@ -59,7 +59,7 @@ class SymVariables {
 
     //Vector to store the binary description of an state
     //Avoid allocating memory during heuristic evaluation
-    mutable std::vector <char> binStateChar;
+    mutable std::vector <char> binStateChar; 
     mutable std::vector <int> binStateInt;
     // We need different representations because some CUDD functions use int * and some
     // use char *
@@ -78,7 +78,7 @@ public:
  //Returns the number of states in a BDD
     double numStates(const BDD & bdd, int relevant_vars) const;
     double numStates(const BDD &bdd) const {
-        return numStates(bdd, numBDDVars);
+        return numStates(bdd, numBDDVars); 
     }
     double numStates() const;
     double numStates(const Bucket &bucket) const;
@@ -184,8 +184,8 @@ public:
     }
 
     void print();
-
-    template <class T>
+    
+    template <class T> 
     char *getBinaryDescriptionChar(const T &state) {
         int pos = 0;
         //  cout << "State " << endl;
@@ -207,13 +207,13 @@ public:
         return &(binStateChar[0]);
     }
 
-    template <class T>
+    template <class T> 
     int *getBinaryDescriptionInt(const T &state) {
         int pos = 0;
         //  cout << "State " << endl;
         for (int v : var_order) {
       	//       std::cout << v << "=" << state[v] << " " << g_variable_domain[v] << " assignments  " << g_fact_names[v][state[v]] ;
-
+            
             // preconditionBDDs[v] [state[v]].PrintMinterm();
 
             for (size_t j = 0; j < bdd_index_pre[v].size(); j++) {
@@ -239,7 +239,7 @@ public:
     std::vector<int> sample_state (const BDD &  bdd, const std::vector<bool> & pattern) const;
 
 
-
+    
 
     inline ADD getADD(int value) {
         return _manager->constant(value);

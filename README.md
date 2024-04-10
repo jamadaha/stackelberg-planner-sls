@@ -1,4 +1,4 @@
-NOTE: This is a fork of https://gitlab.com/atorralba_planners/stackelberg-planner-sls
+This is a fork of https://gitlab.com/atorralba_planners/stackelberg-planner-sls
 
 # Stackelberg Framework and Symbolic Leader Search
 

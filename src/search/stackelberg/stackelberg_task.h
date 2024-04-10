@@ -53,7 +53,7 @@ namespace stackelberg {
         std::vector<int> leader_initial_state_data;
 
         std::vector<std::vector<std::vector<const GlobalOperator *>>> deleting_leader_facts_ops;
-	    std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_leader_facts_ops;
+	std::vector<std::vector<std::vector<const GlobalOperator *>>> achieving_leader_facts_ops;
         
         /* std::unique_ptr<FollowerTask> minimal_follower_task; */
         
