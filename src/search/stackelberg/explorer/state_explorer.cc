@@ -269,6 +269,9 @@ TIME_OUT:
                     c_invalid |= i_invalid;
                 }
 
+                if (vars->numStates(c_applicable) == 0)
+                    continue;
+
                 for (const auto &t : type_combs[t_instantiations.first])
                     plan_file << world.TypeName(t) << ' ';
                 plan_file << endl;
