@@ -12,6 +12,7 @@
 #include <sstream>
 #include "../follower_search_engine.h"
 #include "../plan_reuse.h"
+#include <chrono>
 
 using namespace std;
 using namespace symbolic;
@@ -36,16 +37,16 @@ namespace {
       parser.add_option<stackelberg::FollowerSearchEngine *>("optimal_engine");
       parser.add_option<stackelberg::FollowerSearchEngine *>("cost_bounded_engine", "", "",
                                                              OptionFlags(false));
-        parser.add_option<vector<string>>(
+      parser.add_option<vector<string>>(
                 "type_names",
                 "", "[]");
-        parser.add_option<vector<vector<string>>>(
+      parser.add_option<vector<vector<string>>>(
                 "type_objects",
                 "", "[]");
       parser.add_option<vector<string>>(
               "static_names",
               "", "[]");
-        parser.add_option<vector<vector<vector<string>>>>(
+      parser.add_option<vector<vector<vector<string>>>>(
                 "static_facts",
                 "", "[]");
       parser.add_option<size_t>(
@@ -54,9 +55,15 @@ namespace {
       parser.add_option<size_t>(
               "max_precondition_size",
               "Maximum number of facts added to precondition", "2");
-        parser.add_option<size_t>(
+      parser.add_option<size_t>(
                 "max_parameters",
                 "", "0");
+      parser.add_option<size_t>(
+                "exploration_time_limit",
+                "Time allowed for state exploration in seconds", "10000"
+      );
+     
+
 
       Options opts = parser.parse();
       if (!parser.dry_run()) {
@@ -82,7 +89,8 @@ namespace stackelberg {
                     ),
             min_precondition_size(opts.get<size_t>("min_precondition_size")),
             max_precondition_size(opts.get<size_t>("max_precondition_size")),
-            max_parameters(opts.get<size_t>("max_parameters")) {
+            max_parameters(opts.get<size_t>("max_parameters")),
+            exploration_time_limit(opts.get<size_t>("exploration_time_limit")) {
       task = make_unique<StackelbergTask>();
       stackelberg_mgr = std::make_shared<SymbolicStackelbergManager>(task.get(), opts);
       optimal_engine->initialize(task.get(), stackelberg_mgr);
@@ -90,6 +98,7 @@ namespace stackelberg {
     }
 
     std::pair<BDD, BDD> StateExplorer::explore() {
+        const std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
         BDD bdd_valid = vars->zeroBDD();
         BDD bdd_invalid = vars->zeroBDD();
         const auto &closed_list = leader_search->getClosed()->getClosedList();
@@ -104,9 +113,11 @@ namespace stackelberg {
 
             follower_initial_states =
                     plan_reuse->find_plan_follower_initial_states(follower_initial_states);
-            // TODO: What is a good way of limiting this loop?
             while (!follower_initial_states.IsZero()) {
-                // TODO: Is sample random?
+                const std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+                const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
+                if (elapsed > exploration_time_limit) goto TIME_OUT;
+
                 auto state = stackelberg_mgr->sample_follower_initial_state(
                         follower_initial_states);
                 auto solution = optimal_engine->solve(state, plan_reuse.get(),
@@ -128,6 +139,9 @@ namespace stackelberg {
 
             cout << "Generating next layer...";
             while (!leader_search->finished() && leader_search->getG() == L) {
+                const std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+                const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
+                if (elapsed > exploration_time_limit) goto TIME_OUT;
                 leader_search->step();
             }
             cout << "Done" << endl;
@@ -135,6 +149,7 @@ namespace stackelberg {
             assert(leader_search->getG() > L);
             L = leader_search->getG();
         }
+TIME_OUT:
         return {bdd_valid, bdd_invalid};
     }
 
