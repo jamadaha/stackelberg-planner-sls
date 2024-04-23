@@ -231,7 +231,9 @@ HEADERS +=  stackelberg/stackelberg_search.h \
 	    stackelberg/plan_reuse.h	\
 	 stackelberg/dominance_stackelberg_task.h
 
-HEADERS += stackelberg/explorer/state_explorer.h \
+HEADERS += stackelberg/explorer/combiner.h \
+           stackelberg/explorer/combination.h \
+           stackelberg/explorer/state_explorer.h \
            stackelberg/explorer/util.h \
            stackelberg/explorer/world.h
 

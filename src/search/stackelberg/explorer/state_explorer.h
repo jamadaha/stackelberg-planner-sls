@@ -19,6 +19,7 @@
 
 #include "../../symbolic/sym_params_search.h"
 #include "world.h"
+#include "combiner.h"
 
 namespace symbolic {
 class UniformCostSearch;
@@ -51,9 +52,7 @@ protected:
   ParetoFrontier pareto_frontier;
   World world;
 
-  const size_t min_precondition_size;
-  const size_t max_precondition_size;
-  const size_t max_parameters;
+  std::unique_ptr<Combiner> combiner;
 
   const size_t exploration_time_limit;
 

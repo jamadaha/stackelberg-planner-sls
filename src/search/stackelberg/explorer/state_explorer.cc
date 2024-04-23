@@ -56,14 +56,15 @@ namespace {
               "max_precondition_size",
               "Maximum number of facts added to precondition", "2");
       parser.add_option<size_t>(
+                "min_parameters",
+                "", "0");
+      parser.add_option<size_t>(
                 "max_parameters",
                 "", "0");
       parser.add_option<size_t>(
                 "exploration_time_limit",
                 "Time allowed for state exploration in seconds", "10000"
       );
-     
-
 
       Options opts = parser.parse();
       if (!parser.dry_run()) {
@@ -87,10 +88,13 @@ namespace stackelberg {
                     opts.get<vector<string>>("static_names"),
                     opts.get<vector<vector<vector<string>>>>("static_facts")
                     ),
-            min_precondition_size(opts.get<size_t>("min_precondition_size")),
-            max_precondition_size(opts.get<size_t>("max_precondition_size")),
-            max_parameters(opts.get<size_t>("max_parameters")),
-            exploration_time_limit(opts.get<size_t>("exploration_time_limit")) {
+            exploration_time_limit(opts.get<size_t>("exploration_time_limit")){
+      combiner = make_unique<Combiner>(
+        opts.get<size_t>("min_parameters"),
+        opts.get<size_t>("max_parameters"),
+        opts.get<size_t>("min_precondition_size"),
+        opts.get<size_t>("max_precondition_size")
+      );
       task = make_unique<StackelbergTask>();
       stackelberg_mgr = std::make_shared<SymbolicStackelbergManager>(task.get(), opts);
       optimal_engine->initialize(task.get(), stackelberg_mgr);
@@ -163,6 +167,7 @@ TIME_OUT:
       auto mgr = stackelberg_mgr->get_leader_manager();
       leader_search->init(mgr, true);
       world.Init(vars);
+      combiner->Init(vars, world);
     }
 
     SearchStatus StateExplorer::step() {
@@ -174,114 +179,29 @@ TIME_OUT:
             cout << "Meta action is valid" << endl;
             exit(0);
         }
-        cout << "Beginning precondition exploration" << endl;
-        const string meta_name = MetaOperatorName();
-        const auto default_instantiations = FindInstantiations(meta_name);
-        cout << "Default default_instantiations: " << default_instantiations.size() << endl;
-        const size_t default_parameters = ActionParameters(meta_name);
-        const size_t desired_parameters = default_parameters + max_parameters;
-        cout << "Default/desired parameters: " << default_parameters << '/' << desired_parameters << endl;
-        cout << "Predicates: " << world.PredicateCount() << endl;
-
-        vector<vector<size_t>> type_combs;
-        for (size_t i = 0; i <= max_parameters; i++) {
-            const auto combs = Cartesian(i, world.TypeCount());
-            type_combs.insert(type_combs.end(), combs.begin(), combs.end());
-        }
-        cout << "Type combs: " << type_combs.size() << endl;
-
-        size_t instantiation_count = 0;
-        map<size_t, vector<vector<size_t>>> typed_instantiations;
-        for (size_t i = 0; i < type_combs.size(); i++) {
-            for (const auto &d_instantiation : default_instantiations) {
-                vector<vector<size_t>> options;
-                for (const auto &object : d_instantiation)
-                    options.push_back({world.ObjectIndex(object)});
-                for (unsigned int t : type_combs[i])
-                    options.push_back(world.TypeObjects(t));
-                for (const auto &instantiation : Cartesian(options)) {
-                    typed_instantiations[i].push_back(instantiation);
-                    instantiation_count++;
-                }
-            }
-        }
-        cout << "Instantiations: " << instantiation_count << endl;
 
         std::ofstream plan_file("out");
         plan_file << vars->numStates(valid | invalid) << endl;
         plan_file << vars->numStates(invalid) << endl;
-        for (const auto &t_instantiations : typed_instantiations) {
-            const auto &instantiations = t_instantiations.second;
-            cout << "Parameters: " << instantiations.begin()->size() << endl;
-            vector<pair<size_t, vector<size_t>>> preconditions;
-            for (size_t i = 0; i < world.PredicateCount(); i++) {
-                const size_t param_count = world.PredicateParameters(i);
-                const auto permutations = Cartesian(param_count, instantiations.begin()->size());
-                for (const auto &permutation : permutations)
-                    preconditions.emplace_back(i, permutation);
-            }
-            vector<vector<size_t>> combinations;
-            for (const auto &comb : Comb(preconditions.size(), min_precondition_size, max_precondition_size)) {
-                vector<bool> usage(instantiations.begin()->size(), false);
-                for (const auto c : comb)
-                    for (const auto p : preconditions[c].second)
-                        usage[p] = true;
-                bool novel = true;
-                for (size_t i = default_parameters; i < usage.size(); i++)
-                    if (!usage[i])
-                        novel = false;
-                if (novel)
-                    combinations.push_back(comb);
-            }
-            cout << "Combinations: " << combinations.size() << endl;
-
-            for (const auto & comb : combinations) {
-                BDD c_applicable = vars->zeroBDD();
-                BDD c_invalid = vars->zeroBDD();
-
-                for (const auto &instantiation : instantiations) {
-                    BDD i_applicable = valid | invalid;
-                    BDD i_invalid = invalid;
-
-                    for (const auto &c : comb) {
-                        const auto &pre = preconditions[c];
-                        vector<size_t> objects;
-                        for (const auto &p : pre.second) objects.push_back(instantiation[p]);
-                        if (world.IsStatic(pre.first)) {
-                            if (!world.HasStatic(pre.first, objects)) {
-                                i_applicable = vars->zeroBDD();
-                                i_invalid = vars->zeroBDD();
-                            }
-                            continue;
-                        }
-                        const auto f_bdd = world.FactBDD(pre.first, objects);
-                        if (f_bdd == nullptr) {
-                            i_applicable = vars->zeroBDD();
-                            i_invalid = vars->zeroBDD();
-                            break;
-                        }
-                        i_applicable &= *f_bdd;
-                        i_invalid &= *f_bdd;
-                        if (i_applicable == vars->zeroBDD()) break;
-                    }
-
-                    c_applicable |= i_applicable;
-                    c_invalid |= i_invalid;
+        combiner->Combine(
+            this->world,
+            valid,
+            invalid,
+            [&](const auto &combination){
+                for (const auto & p : combination.params)
+                    plan_file << world.TypeName(p) << ' ';
+                plan_file << endl;
+                for (const auto &l : combination.literals) {
+                    plan_file << world.PredicateName(l.predicate);
+                    for (const auto &p : l.params)
+                        plan_file << ' ' << p;
+                    plan_file << '|';
                 }
-
-                if (vars->numStates(c_applicable) == 0)
-                    continue;
-
-                for (const auto &t : type_combs[t_instantiations.first])
-                    plan_file << world.TypeName(t) << ' ';
                 plan_file << endl;
-                for (const auto &p : comb)
-                    plan_file << world.PredicateName(preconditions[p].first) << preconditions[p].second << '|';
-                plan_file << endl;
-                plan_file << vars->numStates(c_applicable) << endl;
-                plan_file << vars->numStates(c_invalid) << endl;
+                plan_file << combination.applicable << endl;
+                plan_file << combination.invalid << endl;
             }
-        }
+        );
         plan_file.close();
 
         exit(0);

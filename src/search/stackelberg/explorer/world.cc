@@ -119,6 +119,9 @@ size_t World::ObjectIndex(const std::string &object) const {
 const std::string &World::ObjectName(size_t index) const {
     return objects.at(index);
 }
+size_t World::ObjectCount() const {
+    return this->objects.size();
+}
 
 
 bool World::IsObject(const std::string &object) const {

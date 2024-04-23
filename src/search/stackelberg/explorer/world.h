@@ -36,6 +36,7 @@ public:
     bool IsStatic(size_t i) const;
     bool HasStatic(size_t predicate, std::vector<size_t> objects) const;
     size_t ObjectIndex(const std::string &object) const;
+    size_t ObjectCount() const;
     const std::string &ObjectName(size_t index) const;
     bool IsObject(const std::string &object) const;
     size_t TypeIndex(const std::string &type) const;
