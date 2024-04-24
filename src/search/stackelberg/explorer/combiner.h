@@ -43,13 +43,6 @@ protected:
     const std::vector<Literal> &literals,
     const BDD &valid,
     const BDD &invalid,
-    std::function<void (Combination)> f
-  );
-  void ExploreDAG(
-    const World &world, 
-    const std::vector<Literal> &literals,
-    const BDD &valid,
-    const BDD &invalid,
     std::vector<std::size_t> &comb,
     std::function<void (Combination)> f
   );

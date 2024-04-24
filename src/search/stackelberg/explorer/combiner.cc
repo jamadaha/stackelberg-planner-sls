@@ -53,7 +53,8 @@ void Combiner::Combine(
     printf("Parameters: %zu/%zu\n", param_count, param_count);
     const auto literals = GenerateRoot(world, param_count);
     printf("Literals: %zu\n", literals.size());
-    ExploreDAG(world, literals, valid, invalid, f);
+    std::vector<std::size_t> comb;
+    ExploreDAG(world, literals, valid, invalid, comb, f);
 }
 
 std::vector<Literal> Combiner::GenerateRoot(
@@ -72,18 +73,6 @@ std::vector<Literal> Combiner::GenerateRoot(
 }
 
 void Combiner::ExploreDAG(
-  const World &world, 
-  const std::vector<Literal> &literals,
-  const BDD &valid,
-  const BDD &invalid,
-  std::function<void (Combination)> f
-) {
-  for (std::size_t i = 0; i < literals.size(); i++) {
-      std::vector<std::size_t> comb{i};
-      ExploreDAG(world, literals, valid, invalid, comb, f);
-  }
-}
-void Combiner::ExploreDAG(
     const World &world, 
     const std::vector<Literal> &literals,
     const BDD &valid,
@@ -93,7 +82,7 @@ void Combiner::ExploreDAG(
 ) {
     if (comb.size() >= max_precondition_size) return;
 
-    for (std::size_t i = comb.back() + 1; i < literals.size(); i++) {
+    for (std::size_t i = comb.empty() ? 0 : comb.back() + 1; i < literals.size(); i++) {
         comb.push_back(i);
         const BDD c_valid = Reduce(world, this->default_instantiations, literals, comb, valid);
         const BDD c_invalid = Reduce(world, this->default_instantiations, literals, comb, invalid);
@@ -183,7 +172,7 @@ void Combiner::Expand(
                 const BDD c_valid = Reduce(world, instantiations, literals, comb, valid);
                 const BDD c_invalid = Reduce(world, instantiations, literals, comb, invalid);
                 const BDD c_applicable = c_valid | c_invalid;
-                //if (vars->numStates(c_applicable) != 0) {
+                if (vars->numStates(c_applicable) != 0) {
                     std::vector<Literal> c_literals;
                     for (const auto &i : comb)
                         c_literals.push_back(literals[i]);
@@ -193,7 +182,7 @@ void Combiner::Expand(
                         types,
                         c_literals
                     ));
-                //}
+                }
             }
         }
     }
