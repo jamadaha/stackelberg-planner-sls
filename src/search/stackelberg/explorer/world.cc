@@ -26,6 +26,11 @@ World::World(
                         indexes.push_back(ObjectIndex(o));
                 return make_pair(t_name, indexes);
     });
+    this->types.erase(std::remove_if(
+        this->types.begin(), this->types.end(),
+        [](const auto &t) {
+            return t.second.empty();
+        }), this->types.end());
     cout << "Types: " << types << endl;
     cout << "Static names: " << static_names << endl;
     cout << "Static objects: " << static_facts << endl;
@@ -52,6 +57,11 @@ World::World(
                 }
                 return make_pair(s_name, indexes);
             });
+    this->statics.erase(std::remove_if(
+        this->statics.begin(), this->statics.end(),
+        [](const auto &t) {
+            return t.second.empty();
+        }), this->statics.end());
     cout << "Statics: " << statics << endl;
     for (const auto &var : g_fact_names)
         for (const auto &fact : var) {
@@ -155,6 +165,7 @@ const BDD* World::FactBDD(size_t predicate, const std::vector<size_t> &objects) 
 }
 
 void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {
+    printf("Initializing world...\n");
     for (size_t var = 0; var < g_fact_names.size(); var++)
         for (size_t val = 0; val < g_fact_names.at(var).size(); val++) {
             if (g_fact_names[var][val].find("is-goal") != std::string::npos)
@@ -172,4 +183,5 @@ void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {
                 i_objects.push_back(ObjectIndex(o));
             this->fact_bdds[predicate][i_objects] = vars->preBDD(var, val);
         }
+    printf("Finished initializing world.\n");
 }
