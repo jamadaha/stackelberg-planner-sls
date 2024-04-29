@@ -80,8 +80,6 @@ void Combiner::ExploreDAG(
     std::vector<std::size_t> &comb,
     std::function<void (Combination)> f
 ) {
-    if (comb.size() >= max_precondition_size) return;
-
     for (std::size_t i = comb.empty() ? 0 : comb.back() + 1; i < literals.size(); i++) {
         comb.push_back(i);
         const BDD c_valid = Reduce(world, this->default_instantiations, literals, comb, valid);
@@ -96,9 +94,10 @@ void Combiner::ExploreDAG(
                 {},
                 c_literals
             ));
-            if (comb.size() < this->max_precondition_size)
+            if (comb.size() < this->max_precondition_size) {
                 Expand(world, literals, comb, c_valid, c_invalid, f);
-            ExploreDAG(world, literals, c_valid, c_invalid, comb, f);
+                ExploreDAG(world, literals, c_valid, c_invalid, comb, f);
+            }
         }
         comb.pop_back();
     }
