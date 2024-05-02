@@ -1,6 +1,7 @@
 #ifndef STACKELBERG_BOUNDED_H
 #define STACKELBERG_BOUNDED_H
 
+#include <filesystem>
 #include <unordered_set>
 #include <limits>
 #include <memory>
@@ -52,6 +53,9 @@ namespace stackelberg {
         StackelbergStatistics statistics;
 
         const int min_relevant_follower_cost;
+        std::string replacement_dir;
+        std::string replacement_title;
+        std::filesystem::path replacement_out;
 
     protected:
         virtual void initialize() override;

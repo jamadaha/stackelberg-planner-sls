@@ -29,25 +29,28 @@ using namespace symbolic;
 
 namespace stackelberg {
 
-    SymbolicStackelberg::SymbolicStackelberg(const Options &opts) :
-        SearchEngine(opts),
-        optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
-        plan_reuse (opts.get<PlanReuse *>("plan_reuse")),
-        mgrParams(opts), searchParams(opts),
-        upper_bound_pruning(opts.get<bool> ("upper_bound_pruning")),
-        statistics (opts.get<bool> ("follower_info")),
-        min_relevant_follower_cost (opts.get<int>("min_relevant_follower_cost")){
-
-        task = make_unique<StackelbergTask> ();
-        stackelberg_mgr = make_shared<SymbolicStackelbergManager> (task.get(), opts);
-        optimal_engine->initialize(task.get(), stackelberg_mgr);
-
-        plan_reuse->initialize(stackelberg_mgr);
-
-        if (opts.contains("cost_bounded_engine")) {
-            cost_bounded_engine.reset(opts.get<FollowerSearchEngine *>("cost_bounded_engine"));
-            cost_bounded_engine->initialize(task.get(), stackelberg_mgr);
-        }
+    SymbolicStackelberg::SymbolicStackelberg(const Options &opts)
+        : SearchEngine(opts),
+          optimal_engine(opts.get<FollowerSearchEngine *>("optimal_engine")),
+          plan_reuse(opts.get<PlanReuse *>("plan_reuse")), mgrParams(opts),
+          searchParams(opts),
+          upper_bound_pruning(opts.get<bool>("upper_bound_pruning")),
+          statistics(opts.get<bool>("follower_info")),
+          min_relevant_follower_cost(opts.get<int>("min_relevant_follower_cost")),
+          replacement_dir(opts.get<std::string>("replacement_dir")),
+          replacement_title(opts.get<std::string>("replacement_title")) {
+    
+      task = make_unique<StackelbergTask>();
+      stackelberg_mgr = make_shared<SymbolicStackelbergManager>(task.get(), opts);
+      optimal_engine->initialize(task.get(), stackelberg_mgr);
+    
+      plan_reuse->initialize(stackelberg_mgr);
+    
+      if (opts.contains("cost_bounded_engine")) {
+        cost_bounded_engine.reset(
+            opts.get<FollowerSearchEngine *>("cost_bounded_engine"));
+        cost_bounded_engine->initialize(task.get(), stackelberg_mgr);
+      }
     }
 
     void SymbolicStackelberg::initialize() {
@@ -62,6 +65,11 @@ namespace stackelberg {
 
         leader_search->init(mgr, true);
 
+        replacement_out = replacement_dir;
+        if (replacement_title != ".")
+          replacement_out /= replacement_title;
+        std::filesystem::create_directories(replacement_out);
+        
         statistics.stackelberg_search_initialized(t1);
     }
 
@@ -134,6 +142,23 @@ namespace stackelberg {
                 if (solution.has_plan() || solution.solution_cost () == 0) {
 
                     const auto plan = solution.get_plan();
+                    if (!plan.empty()) {
+                        std::ofstream plan_file(replacement_out / (get_uuid() + ".plan"));
+                        if (plan_file.is_open()) {
+                          vector<const GlobalOperator *> leader_ops_sequence;
+                          leader_search->getClosed()->extract_path(
+                              vars->getPartialStateBDD(
+                                  state,
+                                  stackelberg_mgr->get_pattern_vars_follower_subproblems()),
+                              L, true, leader_ops_sequence);
+                          plan_file << '(' << leader_ops_sequence.front()->get_name() << ')'
+                                    << endl;
+                        
+                          for (auto *op : plan)
+                            plan_file << '(' << op->get_name() << ')' << endl;
+                          plan_file.close();
+                        }
+                    }
 #ifndef NDEBUG
                     auto state_aux  = state;
                     for (auto * op : plan) {
@@ -237,6 +262,18 @@ namespace stackelberg {
         parser.add_option<FollowerSearchEngine *>("optimal_engine");
         parser.add_option<FollowerSearchEngine *>("cost_bounded_engine", "", "",
         OptionFlags(false));
+
+        // Used for replacement plans
+        parser.add_option<std::string>(
+            "replacement_dir",
+            "Path to a directory in which follower plans are exported",
+            "replacements", OptionFlags(false));
+        
+        parser.add_option<std::string>(
+            "replacement_title",
+            "What the directory replacements are added to should be called "
+            "as a sub-directory of \"replacement_dir\"",
+            ".", OptionFlags(false));
 
         Options opts = parser.parse();
         if (!parser.dry_run()) {
