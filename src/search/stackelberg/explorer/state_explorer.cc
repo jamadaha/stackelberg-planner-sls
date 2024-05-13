@@ -54,7 +54,7 @@ namespace {
               "Minimum number of facts added to precondition", "1");
       parser.add_option<size_t>(
               "max_precondition_size",
-              "Maximum number of facts added to precondition", "2");
+              "Maximum number of facts added to precondition", "999");
       parser.add_option<size_t>(
                 "min_parameters",
                 "", "0");
@@ -172,14 +172,19 @@ TIME_OUT:
 
     SearchStatus StateExplorer::step() {
         cout << "Beginning state exploration" << endl;
+        const std::chrono::steady_clock::time_point t_s_0 = std::chrono::steady_clock::now();
         const pair<BDD, BDD> validity = explore();
         const BDD valid = validity.first;
         const BDD invalid = validity.second;
+        const std::chrono::steady_clock::time_point t_s_1 = std::chrono::steady_clock::now();
+        const auto s_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_s_1 - t_s_0).count();
+        printf("Exploration time: %f\n", (double) s_elapsed / 1000);
         if (invalid.IsZero()) {
             cout << "Meta action is valid" << endl;
             exit(0);
         }
 
+        const std::chrono::steady_clock::time_point t_c_0 = std::chrono::steady_clock::now();
         std::ofstream plan_file("out");
         plan_file << vars->numStates(valid | invalid) << endl;
         plan_file << vars->numStates(invalid) << endl;
@@ -203,7 +208,9 @@ TIME_OUT:
             }
         );
         plan_file.close();
-
+        const std::chrono::steady_clock::time_point t_c_1 = std::chrono::steady_clock::now();
+        const auto c_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_c_1 - t_c_0).count();
+        printf("Combination time: %f\n", (double) c_elapsed / 1000);
         exit(0);
     }
 }
