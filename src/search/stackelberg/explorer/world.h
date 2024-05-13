@@ -43,6 +43,10 @@ public:
     const std::string &TypeName(size_t index) const;
     size_t TypeCount() const;
     const std::vector<size_t> &TypeObjects(size_t index) const;
+    size_t InstantiationParameters() const;
+    size_t InstantiationCount() const;
+    const std::vector<size_t> &Instantiation(size_t index) const;
+    const BDD &InstantiationBDD(size_t index) const;
     const BDD* FactBDD(size_t predicate, const std::vector<size_t> &objects) const;
 
     void Init(const std::shared_ptr<symbolic::SymVariables> vars);
@@ -53,7 +57,8 @@ private:
     std::vector<std::pair<std::string, std::vector<std::vector<size_t>>>> statics;
     std::vector<std::pair<std::string, std::vector<size_t>>> types;
     std::vector<std::string> objects;
-    std::vector<std::vector<size_t>> instantiations;
     std::unordered_map<size_t, std::unordered_map<std::vector<size_t>, BDD, s_hasher>> fact_bdds;
+    std::vector<std::vector<size_t>> instantiations;
+    std::vector<BDD> instantiation_bdds;
 };
 
