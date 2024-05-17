@@ -204,7 +204,6 @@ TIME_OUT:
                 }
                 plan_file << endl;
                 plan_file << combination.applicable << endl;
-                plan_file << combination.invalid << endl;
             }
         );
         plan_file.close();

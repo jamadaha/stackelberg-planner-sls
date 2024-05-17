@@ -158,6 +158,22 @@ const std::vector<size_t> &World::TypeObjects(size_t index) const {
     return this->types.at(index).second;
 }
 
+size_t World::InstantiationParameters() const {
+    return this->instantiations.at(0).size();
+}
+
+size_t World::InstantiationCount() const {
+    return this->instantiations.size();
+}
+
+const std::vector<size_t> &World::Instantiation(size_t index) const {
+    return this->instantiations.at(index);
+}
+
+const BDD &World::InstantiationBDD(size_t index) const {
+    return this->instantiation_bdds.at(index);
+}
+
 const BDD* World::FactBDD(size_t predicate, const std::vector<size_t> &objects) const {
     if (fact_bdds.find(predicate) == fact_bdds.end()) return nullptr;
     if (fact_bdds.at(predicate).find(objects) == fact_bdds.at(predicate).end()) return nullptr;
@@ -183,5 +199,23 @@ void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {
                 i_objects.push_back(ObjectIndex(o));
             this->fact_bdds[predicate][i_objects] = vars->preBDD(var, val);
         }
+    const auto &meta_name = MetaOperatorName();
+    for (const auto &o : g_operators) {
+        const auto name = o.get_name();
+        const auto p = SplitOperator(name);
+        if (p.first != meta_name) continue;
+        std::vector<std::size_t> ins;
+        for (const auto &o : p.second)
+            ins.push_back(this->ObjectIndex(o));
+        this->instantiations.push_back(ins);
+        BDD bdd = vars->oneBDD();
+        const auto &effects = o.get_effects();
+        for (const auto &effect : effects) {
+            if (g_fact_names[effect.var][effect.val].find("is-goal") == std::string::npos)
+                continue;
+            bdd &= vars->preBDD(effect.var, effect.val);
+        }
+        this->instantiation_bdds.push_back(bdd);
+    }
     printf("Finished initializing world.\n");
 }
