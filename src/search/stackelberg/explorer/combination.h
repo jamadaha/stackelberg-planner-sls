@@ -19,15 +19,12 @@ struct Literal {
 struct Combination {
   // The number of states wherein the combination is applicable
   std::size_t applicable;
-  // The number of invalid states for the combination
-  std::size_t invalid;
   // What parameters are added, potentially none
   std::vector<std::size_t> params;
   // What literals build the combination
   std::vector<Literal> literals;
   Combination(
     std::size_t applicable, 
-    std::size_t invalid, 
     std::vector<std::size_t> params, 
     std::vector<Literal> literals
   );

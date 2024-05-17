@@ -208,12 +208,12 @@ void World::Init(const std::shared_ptr<symbolic::SymVariables> vars) {
         for (const auto &o : p.second)
             ins.push_back(this->ObjectIndex(o));
         this->instantiations.push_back(ins);
-        BDD bdd = vars->zeroBDD();
+        BDD bdd = vars->oneBDD();
         const auto &effects = o.get_effects();
         for (const auto &effect : effects) {
             if (g_fact_names[effect.var][effect.val].find("is-goal") == std::string::npos)
                 continue;
-            bdd |= vars->preBDD(effect.var, effect.val);
+            bdd &= vars->preBDD(effect.var, effect.val);
         }
         this->instantiation_bdds.push_back(bdd);
     }

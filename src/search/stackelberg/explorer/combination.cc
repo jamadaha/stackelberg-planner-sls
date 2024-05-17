@@ -11,12 +11,10 @@ Literal::Literal(
 
 Combination::Combination(
   std::size_t applicable, 
-  std::size_t invalid, 
   std::vector<std::size_t> params, 
   std::vector<Literal> literals
 ) : 
     applicable(std::move(applicable)),
-    invalid(std::move(invalid)),
     params(std::move(params)),
     literals(std::move(literals))
 {}
