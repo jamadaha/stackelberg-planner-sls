@@ -73,7 +73,8 @@ void Combiner::ExploreDAG(const World &world,
         f(Combination(
             this->vars->numStates(c_valid | c_invalid), {},
             c_literals));
-      } else if (comb.size() < this->max_precondition_size) {
+      } 
+      if (comb.size() < this->max_precondition_size) {
         Expand(world, literals, comb, c_valid, c_invalid, f);
         ExploreDAG(world, literals, comb, c_valid, c_invalid, f);
       }
